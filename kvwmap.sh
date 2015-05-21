@@ -58,6 +58,7 @@ case "$1" in
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
     docker build -t pkorduan/kvwmap-server $USER_DIR/kvwmap-server/
+    ;;
     
   start)
    fail_unless_root
