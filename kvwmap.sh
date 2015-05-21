@@ -8,7 +8,7 @@ USER_DIR=/home/$OS_USER
 
 fail_unless_root() {
   if [ "$(id -u)" != '0' ]; then
-    log_failure_msg "$DOCKER_DESC must be run as root"
+    log_failure_msg "This script must be run as root"
     exit 1
   fi
 }
@@ -28,10 +28,10 @@ case "$1" in
     	wget \
       git
 
-    if [ `docker --version || grep 'Docker version'` ] then;
+    if [ `docker --version || grep 'Docker version'` ]; then
       # install docker
       curl -sSL https://get.docker.com/ | sh
-    fi;
+    fi
 
     # create user for web gis anwendung
     id -u $OS_USER &>/dev/null || adduser $OS_USER
