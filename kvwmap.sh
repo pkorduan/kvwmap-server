@@ -3,8 +3,6 @@
 # Settings
 #settings
 OS_USER="gisadmin"
-PGUSER=$OS_USER
-PGPASSWORD=<pgsqlpassword>
 IP=192.124.245.52
 USER_DIR=/home/$OS_USER
 
@@ -47,7 +45,6 @@ case "$1" in
     mkdir -p $USER_DIR/etc
     mkdir -p $USER_DIR/www
     mkdir -p $USER_DIR/data
-    mkdir -p $USER_DIR/docker
     
     # clone kvwmap repository into apps
     cd $USER_DIR/apps
@@ -60,7 +57,7 @@ case "$1" in
     docker pull midillon/postgis:9.4
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-    docker build -t pkorduan/kvwmap-server $USER_DIR/docker/kvwmap-server/
+    docker build -t pkorduan/kvwmap-server $USER_DIR/kvwmap-server/
     
   start)
    fail_unless_root
