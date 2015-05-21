@@ -8,7 +8,7 @@ USER_DIR=/home/$OS_USER
 
 fail_unless_root() {
   if [ "$(id -u)" != '0' ]; then
-    log_failure_msg "This script must be run as root"
+    echo "This script must be run as root"
     exit 1
   fi
 }
@@ -76,7 +76,7 @@ case "$1" in
     ;;
 
   *)
-    echo "Usage: $0 {start|stop|restart|status}"
+    echo "Usage: $0 {install|start|stop|restart|status}"
     exit 1
     ;;
 esac
