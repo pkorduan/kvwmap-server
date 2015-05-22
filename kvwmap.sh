@@ -15,6 +15,25 @@ fail_unless_root() {
   fi
 }
 
+start_web_container() {
+  docker run --name web \
+    --link mysql-server:mysql \
+    --link pgsql-server:pgsql \
+    -p 80:80 \
+    -p 443:443 \
+    -e "OS_USER=$OS_USER" \
+    -v $user_DIR:/home/gisadmin \
+    -d pkorduan/kvwmap-server:latest
+  #-v $USER_DIR/etc/apache2:/etc/apache2 \
+    #-v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
+    #-v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
+    #-v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
+    #-v $USER_DIR/apps/kvwmap:/home/gisadmin/apps/kvwmap \
+  #-v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
+  #-v $USER_DIR/etc/php5:/etc/php5 \
+  #-v $USER_DIR/etc/pgsql:/etc/postgres/9.4/main \
+}
+
 case "$1" in
   install)
     fail_unless_root
@@ -48,7 +67,10 @@ case "$1" in
 
     # create directories
     mkdir -p $USER_DIR/apps
-    mkdir -p $USER_DIR/etc/apache2
+    mkdir -p $USER_DIR/etc/apache2/sites-available
+    mkdir -p $USER_DIR/etc/apache2/sites-enabled
+    mkdir -p $USER_DIR/etc/php5
+    mkdir -p $USER_DIR/etc/pgsql
     mkdir -p $USER_DIR/www
     mkdir -p $USER_DIR/data
     
@@ -98,10 +120,12 @@ case "$1" in
     done
   ;;
   
-  rebuild-kvwmap-server)
+  rebuild)
     fail_unless_root
+    docker rm -f web
     docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
     docker build -t pkorduan/kvwmap-server:latest .
+    start_web_container
   ;;
 
   start)
@@ -112,13 +136,8 @@ case "$1" in
     # run the pgsql container
     read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
     docker run --name pgsql-server -e POSTGRES_PASSWORD=$PGSQL_PASSWORD -d mdillon/postgis:9.4
-    
-    docker run --name web -p 80:80 –link mysql-server:mysql –link pgsql-server:pgsql -d pkorduan/kvwmap-server:latest \
-    -v $USER_DIR/etc/apache2:/etc/apache2
-    -v /home/gisadmin/etc/php5:/etc/php5
-    -v /home/gisadmin/etc/postgres:/etc/postgres/9.4/main/
-    -v /home/gisadmin/www:/var/www
-    -v /home/gisadmin/data:/home/gisadmin/data
+    # run the web container
+    start_web_container
   ;;
 
   stop)
@@ -137,7 +156,7 @@ case "$1" in
   ;;
 
   *)
-    echo "Usage: $0 {install|start|stop|restart|status|uninstall|rebuild-kvwmap-server}"
+    echo "Usage: $0 {install|start|stop|restart|status|uninstall|rebuild}"
     exit 1
     ;;
 esac
