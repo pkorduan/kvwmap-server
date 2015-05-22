@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y apt-utils \
   mapserver-bin \
   php5-mapscript
 
-#EXPOSE 80
-#EXPOSE 443
+EXPOSE 80
+EXPOSE 443
 
 ENV OS_USER="gisadmin"
 ENV USER_DIR="/home/${OS_USER}"

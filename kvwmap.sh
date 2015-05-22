@@ -108,7 +108,6 @@ case "$1" in
             rm -R -f $USER_DIR
             echo "$USER_DIR gelöscht."
           fi
-          return
         ;;
         [Nn]* )
           exit
@@ -119,7 +118,7 @@ case "$1" in
       esac
     done
   ;;
-  
+
   rebuild)
     fail_unless_root
     docker rm -f web
