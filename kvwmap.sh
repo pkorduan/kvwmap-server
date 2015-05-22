@@ -3,6 +3,9 @@
 # Settings
 #settings
 OS_USER="gisadmin"
+OS_USER_EXISTS=false
+getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
+
 IP=192.124.245.52
 USER_DIR=/home/$OS_USER
 
@@ -21,20 +24,24 @@ case "$1" in
     grep -q -F 'alias ll=' /etc/profile || echo "alias ll='ls -l'" >> /etc/profile
     grep -q -F 'alias rm=' /etc/profile || echo "alias rm='rm -i'" >> /etc/profile    
     
-    source /etc/profile
 
     # Update debian repo
-    apt-get update && install curl \
-    	wget \
-      git
+    apt-get update
+    apt-get install -y apt-utils curl wget git
 
-    if [ `docker --version || grep 'Docker version'` ]; then
-      # install docker
-      curl -sSL https://get.docker.com/ | sh
-    fi
+    case `docker --version` in
+      *Docker*)
+        echo 'Docker allready installed!' 
+        ;;
+      *)
+        # install docker
+        echo 'Install docker.'
+        curl -sSL https://get.docker.com/ | sh
+      ;;
+    esac
 
-    # create user for web gis anwendung
-    id -u $OS_USER &>/dev/null || adduser $OS_USER
+    # create user for web gis anwendung if not exists
+    $OS_USER_EXISTS || adduser $OS_USER
 
     # uncomment bash Einstellungen for web gis user
     sed -i "s/# alias ll='ls/alias ll='ls/g" $USER_DIR/.bashrc
@@ -46,37 +53,73 @@ case "$1" in
     mkdir -p $USER_DIR/www
     mkdir -p $USER_DIR/data
     
-    # clone kvwmap repository into apps
-    cd $USER_DIR/apps
-    git clone https://github.com/srahn/kvwmap.git
+    if [ ! -d "$USER_DIR/apps/kvwmap" ]; then
+      # clone kvwmap repository into apps
+      git clone https://github.com/srahn/kvwmap.git $USER_DIR/apps/kvwmap
+    fi
 
     chown -R $OS_USER.$OS_USER $USER_DIR
 
     # download neccessary images for mysql and postgis
     docker pull mysql:5.5
-    docker pull midillon/postgis:9.4
+    docker pull mdillon/postgis:9.4
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-    docker build -t pkorduan/kvwmap-server $USER_DIR/kvwmap-server/
-    ;;
+    docker build -t pkorduan/kvwmap-server .
+  ;;
+
+  uninstall)
+    faiil_unless_root
     
+    # stop and remove all container and images
+    docker stop $(docker ps -a -q)
+    docker rm $(docker ps -a -q)
+    docker rmi -f $(docker images -q)
+    while true; do
+      read -p "User $OS_USER mit home Verzeichnis löschen? Es gehen alle Daten in /home/$OS_USER verloren! (j/n) " jn
+      case $jn in
+        [YyJj]* )
+          # remove user if exists
+          $OS_USER_EXISTS && userdel -f $OS_USER
+          echo "User $OS_USER existiert nicht mehr."
+          # remove user and its home directory
+          if [ -d "$USER_DIR" ]; then
+            rm -R -f $USER_DIR
+            echo "$USER_DIR gelöscht."
+          fi
+          return
+        ;;
+        [Nn]* )
+          exit
+          ;;
+        *)
+          echo "Bitte antworten mit Ja oder Nein."
+        ;;
+      esac
+    done
+  ;;
+
   start)
-   fail_unless_root
-    ;;
+    fail_unless_root
+    
+    # run the mysql container
+    docker run --name mysql-server -e MYSQL_ROOT_PASSWORD=MYSQL_my-secret-pw -d mysql:tag
+  ;;
 
   stop)
     fail_unless_root
-    ;;
+    docker stop $(docker ps -a -q)
+  ;;
 
   restart)
     fail_unless_root
-    ;;
+  ;;
 
   status)
-    ;;
+  ;;
 
   *)
-    echo "Usage: $0 {install|start|stop|restart|status}"
+    echo "Usage: $0 {install|start|stop|restart|status|uninstall}"
     exit 1
     ;;
 esac
