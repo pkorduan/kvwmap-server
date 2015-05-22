@@ -1,8 +1,10 @@
 FROM debian
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
 
-RUN alias ll='ls -l'
-RUN alias rm='rm -i'
+# bash für root anpassen
+RUN grep -q -F 'alias ll=' /etc/profile || echo "alias ll='ls -l'" >> /etc/profile
+RUN grep -q -F 'alias rm=' /etc/profile || echo "alias rm='rm -i'" >> /etc/profile    
+
 
 RUN apt-get update
 RUN apt-get install -y apt-utils \

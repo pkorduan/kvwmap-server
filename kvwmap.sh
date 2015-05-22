@@ -1,13 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
 # Settings
 #settings
 OS_USER="gisadmin"
 OS_USER_EXISTS=false
 getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
-
-IP=192.124.245.52
 USER_DIR=/home/$OS_USER
+
 
 fail_unless_root() {
   if [ "$(id -u)" != '0' ]; then
@@ -49,7 +48,7 @@ case "$1" in
 
     # create directories
     mkdir -p $USER_DIR/apps
-    mkdir -p $USER_DIR/etc
+    mkdir -p $USER_DIR/etc/apache2
     mkdir -p $USER_DIR/www
     mkdir -p $USER_DIR/data
     
@@ -69,7 +68,7 @@ case "$1" in
   ;;
 
   uninstall)
-    faiil_unless_root
+    fail_unless_root
     
     # stop and remove all container and images
     docker stop $(docker ps -a -q)
@@ -98,17 +97,36 @@ case "$1" in
       esac
     done
   ;;
+  
+  rebuild-kvwmap-server)
+    fail_unless_root
+    docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
+    docker build -t pkorduan/kvwmap-server:latest .
+  ;;
 
   start)
     fail_unless_root
-    
     # run the mysql container
-    docker run --name mysql-server -e MYSQL_ROOT_PASSWORD=MYSQL_my-secret-pw -d mysql:tag
+    read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
+    docker run --name mysql-server -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD -d mysql:5.5
+    # run the pgsql container
+    read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
+    docker run --name pgsql-server -e POSTGRES_PASSWORD=$PGSQL_PASSWORD -d mdillon/postgis:9.4
+    
+    docker run --name web -p 80:80 –link mysql-server:mysql –link pgsql-server:pgsql -d pkorduan/kvwmap-server:latest \
+    -v $USER_DIR/etc/apache2:/etc/apache2
+    -v /home/gisadmin/etc/php5:/etc/php5
+    -v /home/gisadmin/etc/postgres:/etc/postgres/9.4/main/
+    -v /home/gisadmin/www:/var/www
+    -v /home/gisadmin/data:/home/gisadmin/data
   ;;
 
   stop)
     fail_unless_root
     docker stop $(docker ps -a -q)
+    echo "Alle Container gestopped."
+    docker rm $(docker ps -a -q)
+    echo "Alle Container gelöscht."
   ;;
 
   restart)
@@ -119,7 +137,7 @@ case "$1" in
   ;;
 
   *)
-    echo "Usage: $0 {install|start|stop|restart|status|uninstall}"
+    echo "Usage: $0 {install|start|stop|restart|status|uninstall|rebuild-kvwmap-server}"
     exit 1
     ;;
 esac
