@@ -11,15 +11,16 @@ RUN apt-get update && apt-get install -y apt-utils \
   vim \
   apache2 \
   php5 \
-	php5-pgsql \
-	php5-mysql \
+  php5-pgsql \
+  php5-mysql \
   cgi-mapserver \
   mapserver-bin \
   php5-mapscript \
-	postgresql-client \
-	mysql-client \
+  postgresql-client \
+  mysql-client \
   postgresql-9.4-postgis-2.1 \
-  mysql-server-5.5
+  mysql-server-5.5 \
+  imagemagick
 
 EXPOSE 80
 EXPOSE 443
