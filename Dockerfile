@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y apt-utils \
   mapserver-bin \
   php5-mapscript \
 	postgresql-client \
-	mysql-client
+	mysql-client \
   postgresql-9.4-postgis-2.1 \
   mysql-server-5.5
 
