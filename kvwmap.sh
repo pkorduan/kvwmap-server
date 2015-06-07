@@ -6,6 +6,7 @@ OS_USER="gisadmin"
 OS_USER_EXISTS=false
 getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
 USER_DIR=/home/$OS_USER
+KVWMAP_IMAGE_VERSION=latest
 
 
 fail_unless_root() {
@@ -16,22 +17,33 @@ fail_unless_root() {
 }
 
 start_web_container() {
-  docker run --name web \
+  echo "Start container with docker command:"
+  echo "docker run --name web \
     --link mysql-server:mysql \
     --link pgsql-server:pgsql \
     -p 80:80 \
     -p 443:443 \
-    -e "OS_USER=$OS_USER" \
-    -v $user_DIR:/home/gisadmin \
-    -d pkorduan/kvwmap-server:latest
-  #-v $USER_DIR/etc/apache2:/etc/apache2 \
-    #-v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
-    #-v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
-    #-v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
-    #-v $USER_DIR/apps/kvwmap:/home/gisadmin/apps/kvwmap \
-  #-v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
-  #-v $USER_DIR/etc/php5:/etc/php5 \
-  #-v $USER_DIR/etc/pgsql:/etc/postgres/9.4/main \
+    -e "OS_USER=${OS_USER}" \
+    -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
+    -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
+    -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
+    -v $USER_DIR/apps/kvwmap:/home/gisadmin/apps/kvwmap \
+    -v $USER_DIR/data:/home/gisadmin/data \
+    -v $USER_DIR/www:/home/gisadmin/www \
+    -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}"
+  docker run --name web \
+      --link mysql-server:mysql \
+      --link pgsql-server:pgsql \
+      -p 80:80 \
+      -p 443:443 \
+      -e "OS_USER=${OS_USER}" \
+      -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
+      -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
+      -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
+      -v $USER_DIR/apps/kvwmap:/home/gisadmin/apps/kvwmap \
+      -v $USER_DIR/data:/home/gisadmin/data \
+      -v $USER_DIR/www:/home/gisadmin/www \
+      -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
 }
 
 case "$1" in
@@ -71,8 +83,10 @@ case "$1" in
     mkdir -p $USER_DIR/etc/apache2/sites-enabled
     mkdir -p $USER_DIR/etc/php5
     mkdir -p $USER_DIR/etc/pgsql
+    mkdir -p $USER_DIR/etc/mysql
     mkdir -p $USER_DIR/www
     mkdir -p $USER_DIR/data
+		mkdir -p $USER_DIR/tmp
     
     if [ ! -d "$USER_DIR/apps/kvwmap" ]; then
       # clone kvwmap repository into apps
@@ -83,10 +97,14 @@ case "$1" in
 
     # download neccessary images for mysql and postgis
     docker pull mysql:5.5
+    echo "[mysqld]" > $USER_DIR/etc/mysql/docker.cnf
+    echo "user = mysql" >> $USER_DIR/etc/mysql/docker.cnf
+    echo "datadir = /var/lib/mysql" >> $USER_DIR/etc/mysql/docker.cnf
+    
     docker pull mdillon/postgis:9.4
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-    docker build -t pkorduan/kvwmap-server .
+    docker build -t pkorduan/kvwmap-server:latest .
   ;;
 
   uninstall)
@@ -131,7 +149,8 @@ case "$1" in
     fail_unless_root
     # run the mysql container
     read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
-    docker run --name mysql-server -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD -d mysql:5.5
+    docker run --name mysql-server -v $USER_DIR/etc/mysql:/etc/mysql/conf.d -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD -d mysql:5.5
+    #docker run --name mysql-server -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD -d mysql:5.5
     # run the pgsql container
     read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
     docker run --name pgsql-server -e POSTGRES_PASSWORD=$PGSQL_PASSWORD -d mdillon/postgis:9.4
@@ -152,12 +171,17 @@ case "$1" in
   ;;
 
   status)
+    fail_unless_root
+    docker ps
   ;;
 
+  console)
+    fail_unless_root
+    docker exec -it web /bin/bash
+  ;;
+  
   *)
     echo "Usage: $0 {install|start|stop|restart|status|uninstall|rebuild}"
     exit 1
-    ;;
+  ;;
 esac
-
-
