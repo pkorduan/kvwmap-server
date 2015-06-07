@@ -8,6 +8,7 @@ RUN echo "deb-src http://ftp.de.debian.org/debian/ jessie main contrib non-free"
 RUN apt-get update && apt-get install -y apt-utils \
   dialog \
   less \
+  vim \
   apache2 \
   php5 \
 	php5-pgsql \
@@ -17,8 +18,8 @@ RUN apt-get update && apt-get install -y apt-utils \
   php5-mapscript \
 	postgresql-client \
 	mysql-client
-  #postgresql-9.4-postgis-2.1 \
-  #mysql-server-5.5
+  postgresql-9.4-postgis-2.1 \
+  mysql-server-5.5
 
 EXPOSE 80
 EXPOSE 443
@@ -37,5 +38,5 @@ RUN useradd -ms /bin/bash ${OS_USER} && \
   chown -R ${OS_USER}.${OS_USER} ${USER_DIR}
 
 RUN service postgresql start
-RUN service mysql start
+RUN service mysqld start
 CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]

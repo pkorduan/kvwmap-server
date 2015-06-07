@@ -29,7 +29,7 @@ start_web_container() {
     -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
     -v $USER_DIR/apps/kvwmap:/home/gisadmin/apps/kvwmap \
     -v $USER_DIR/data:/home/gisadmin/data \
-    -v $USER_DIR/www:/home/gisadmin/www \
+    -v $USER_DIR/www/html:/var/www/html \
     -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}"
   docker run --name web \
       --link mysql-server:mysql \
@@ -42,7 +42,7 @@ start_web_container() {
       -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
       -v $USER_DIR/apps/kvwmap:/home/gisadmin/apps/kvwmap \
       -v $USER_DIR/data:/home/gisadmin/data \
-      -v $USER_DIR/www:/home/gisadmin/www \
+      -v $USER_DIR/www:/var/www \
       -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
 }
 
@@ -142,7 +142,6 @@ case "$1" in
     docker rm -f web
     docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
     docker build -t pkorduan/kvwmap-server:latest .
-    start_web_container
   ;;
 
   start)
