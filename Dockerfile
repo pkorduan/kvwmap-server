@@ -38,5 +38,5 @@ RUN useradd -ms /bin/bash ${OS_USER} && \
   chown -R ${OS_USER}.${OS_USER} ${USER_DIR}
 
 RUN service postgresql start
-RUN service mysqld start
+RUN service mysql start
 CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
