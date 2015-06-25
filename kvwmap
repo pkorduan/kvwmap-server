@@ -1,0 +1,342 @@
+#!/bin/bash
+
+# Settings
+#settings
+OS_USER="gisadmin"
+OS_USER_EXISTS=false
+getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
+USER_DIR=/home/$OS_USER
+KVWMAP_IMAGE_VERSION=latest
+
+usage() {
+  echo ""
+  echo "Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden.";
+  echo "Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos."
+  echo "Kontakt: peter.korduan@gdi-service.de"
+  echo ""
+  echo "Aufruf:";
+  echo "kvwmap [Option]";
+  echo ""
+  echo "Optionen:"
+  echo "install"
+  echo "start         Startet alle Container."
+  echo "status"
+  echo "restart"
+  echo "rebuild"
+  echo "stop          Stopped alle Container."
+  echo "clear         Löscht alle beendeten Container."
+  echo "pgsql start   Startet nur den Container mit der PostgreSQL-Datenbank."
+  echo "pgsql status  Zeigt den Status des PostgreSQL-Datenbank Containers an."
+  echo "uninstall"
+  echo ""
+  echo "Beispiele:"
+  echo "$0 start"
+  echo "$0 stop"
+  echo "$0 pgsql status"
+  echo ""  
+}
+
+fail_unless_root() {
+  if [ "$(id -u)" != '0' ]; then
+    echo "This script must be run as root"
+    exit 1
+  fi
+}
+
+start_mysql_container() {
+  # run the mysql container
+  read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
+  docker run --name mysql-server \
+    -v $USER_DIR/etc/mysql:/etc/mysql/conf.d \
+    -v $USER_DIR/db/mysql:/var/lib/mysql \
+    -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
+    -d mysql:5.5
+}
+
+start_pgsql_container() {
+  # run the pgsql container
+  read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
+  docker run --name pgsql-server \
+    -v $USER_DIR/etc/pgsql/9.4/main:/etc/pgsql/ \
+    -v $USER_DIR/db/pgsql:/var/lib/pgsql \
+    -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
+    -d mdillon/postgis:9.4
+}
+
+#
+# Start the web container
+#
+start_web_container() {
+  echo "Start container with docker command:"
+  echo "
+  docker run --name web \
+      --link mysql-server:mysql \
+      --link pgsql_server:pgsql \
+      -p 80:80 \
+      -p 443:443 \
+      -e "OS_USER=${OS_USER}" \
+      -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
+      -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
+      -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
+      -v $USER_DIR/data:/home/gisadmin/data \
+      -v $USER_DIR/www:/var/www \
+      -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
+  "
+  docker run --name web \
+      --link mysql-server:mysql \
+      --link pgsql-server:pgsql \
+      -p 80:80 \
+      -p 443:443 \
+      -e "OS_USER=${OS_USER}" \
+      -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
+      -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
+      -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
+      -v $USER_DIR/data:/home/gisadmin/data \
+      -v $USER_DIR/www:/var/www \
+      -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
+#--link pgsql-server:pgsql \
+}
+
+start_all_container() {
+  start_mysql_container
+  start_pgsql_container
+  start_web_container
+}
+
+stop_all_container() {
+  docker stop $(docker ps -a -q)
+  echo "Alle Container gestopped."
+}
+
+remove_all_container() {
+  docker rm $(docker ps -a -q)
+  echo "Alle Container gelöscht."
+}
+
+show_container_status() {
+  CONTAINER=$1
+  RUNNING=$(docker inspect --format="{{ .State.Running }}" $CONTAINER 2> /dev/null)
+ 
+  if [ $? -eq 1 ]; then
+    echo "UNKNOWN - Container $CONTAINER does not exist."
+    exit 3
+  fi
+ 
+  if [ "$RUNNING" == "false" ]; then
+    echo "CRITICAL - $CONTAINER is not running."
+    exit 2
+  fi
+ 
+  GHOST=$(docker inspect --format="{{ .State.Ghost }}" $container)
+ 
+  if [ "$GHOST" == "true" ]; then
+    echo "WARNING - $CONTAINER has been ghosted."
+    exit 1
+  fi
+ 
+  STARTED=$(docker inspect --format="{{ .State.StartedAt }}" $CONTAINER)
+  NETWORK=$(docker inspect --format="{{ .NetworkSettings.IPAddress }}" $CONTAINER)
+ 
+  echo "OK - $CONTAINER is running. IP: $NETWORK, StartedAt: $STARTED"
+}
+
+case "$1" in
+  install)
+    fail_unless_root
+
+    # bash für root anpassen
+    grep -q -F 'alias ll=' /etc/profile || echo "alias ll='ls -l'" >> /etc/profile
+    grep -q -F 'alias rm=' /etc/profile || echo "alias rm='rm -i'" >> /etc/profile
+    grep -q -F 'alias dps=' /etc/profile || echo "alias dps='docker ps -a'" >> /etc/profile
+    grep -q -F "export PATH=\$PATH:${USER_DIR}/kvwmap-server" /etc/profile || echo "PATH=\$PATH:${USER_DIR}/kvwmap-server
+export PATH" >> /etc/profile
+    
+    # Update debian repo
+    apt-get update
+    apt-get install -y apt-utils curl wget git
+
+    case `docker --version` in
+      *Docker*)
+        echo 'Docker allready installed!' 
+        ;;
+      *)
+        # install docker
+        echo 'Install docker.'
+        curl -sSL https://get.docker.com/ | sh
+      ;;
+    esac
+
+    # create user for web gis anwendung if not exists
+    $OS_USER_EXISTS || adduser $OS_USER
+
+    # uncomment bash Einstellungen for web gis user
+    sed -i "s/#alias ll='ls/alias ll='ls/g" $USER_DIR/.bashrc
+    sed -i "s/alias rm='rm -i'/# alias rm='rm -i'/g" $USER_DIR/.bashrc
+
+    # create directories
+    mkdir -p $USER_DIR/data
+    mkdir -p $USER_DIR/db/mysql
+    mkdir -p $USER_DIR/etc/apache2/sites-available
+    mkdir -p $USER_DIR/etc/apache2/sites-enabled
+    mkdir -p $USER_DIR/etc/mysql
+    mkdir -p $USER_DIR/etc/pgsql
+    mkdir -p $USER_DIR/etc/php5
+    mkdir -p $USER_DIR/www/apps
+    mkdir -p $USER_DIR/www/html
+    mkdir -p $USER_DIR/www/logs
+    mkdir -p $USER_DIR/www/tmp
+    mkdir -p $USER_DIR/www/cache
+    mkdir -p $USER_DIR/www/wms
+    mkdir -p $USER_DIR/www/var/data/mapfiles
+    mkdir -p $USER_DIR/www/var/data/synchro
+    mkdir -p $USER_DIR/www/var/data/upload
+    mkdir -p $USER_DIR/www/var/data/druckrahmen
+    mkdir -p $USER_DIR/www/var/data/bilder
+    mkdir -p $USER_DIR/www/var/data/alb
+    mkdir -p $USER_DIR/www/var/data/referencemaps
+    mkdir -p $USER_DIR/www/var/data/nachweise
+    mkdir -p $USER_DIR/www/var/data/recherchierte_antraege
+    mkdir -p $USER_DIR/www/var/data/festpunkte/archiv
+
+    cp $USER_DIR/kvwmap-server/www/html/index.php $USER_DIR/www/html/index.php
+    cp -R $USER_DIR/kvwmap-server/www/var/data/mapfiles/ $USER_DIR/www/var/data/
+    cp -R $USER_DIR/kvwmap-server/www/var/data/referencemaps/ $USER_DIR/www/var/data/
+    cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass $USER_DIR/www/apps/
+
+    if [ ! -d "$USER_DIR/www/apps/kvwmap" ]; then
+      # clone kvwmap repository into apps
+      git clone https://github.com/srahn/kvwmap.git $USER_DIR/www/apps/kvwmap
+    fi
+
+    chown -R $OS_USER.$OS_USER $USER_DIR
+
+    # download neccessary images for mysql and postgis
+    docker pull mysql:5.5
+    echo "[mysqld]" > $USER_DIR/etc/mysql/docker.cnf
+    echo "user = mysql" >> $USER_DIR/etc/mysql/docker.cnf
+    echo "datadir = /var/lib/mysql" >> $USER_DIR/etc/mysql/docker.cnf
+    
+    docker pull mdillon/postgis:9.4
+
+    # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
+    docker build -t pkorduan/kvwmap-server:latest .
+  ;;
+
+  uninstall)
+    fail_unless_root
+    
+    # stop and remove all container and images
+    docker stop $(docker ps -a -q)
+    docker rm $(docker ps -a -q)
+    docker rmi -f $(docker images -q)
+    while true; do
+      read -p "User $OS_USER mit home Verzeichnis löschen? Es gehen alle Daten in /home/$OS_USER verloren! (j/n) " jn
+      case $jn in
+        [YyJj]* )
+          # remove user if exists
+          $OS_USER_EXISTS && userdel -f $OS_USER
+          echo "User $OS_USER existiert nicht mehr."
+          # remove user and its home directory
+          if [ -d "$USER_DIR" ]; then
+            rm -R -f $USER_DIR
+            echo "$USER_DIR gelöscht."
+          fi
+        ;;
+        [Nn]* )
+          exit
+          ;;
+        *)
+          echo "Bitte antworten mit Ja oder Nein."
+        ;;
+      esac
+    done
+  ;;
+
+  rebuild)
+    fail_unless_root
+    stop_all_container
+    remove_all_container
+    docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
+    cd $USER_DIR/kvwmap-server
+    docker build -t pkorduan/kvwmap-server:latest .
+    start_all_container
+  ;;
+
+  start)
+    fail_unless_root
+    start_all_container
+  ;;
+  
+  pgsql)
+    fail_unless_root
+    case $2 in
+      start)
+        start_pgsql_container
+      ;;
+      stop)
+        docker stop pgsql-server
+        docker ps -a
+      ;;
+      remove)
+        docker stop pgsql-server
+        docker rm pgsql-server
+        docker ps -a
+      ;;
+      status)
+        show_container_status "pgsql-server"
+      ;;
+      *)
+        echo "Gib nach pgsql einen der folgenden Parameter ein: start stop remove status"
+      ;;
+    esac
+  ;;
+
+  stop)
+    fail_unless_root
+    stop_all_container
+    remove_all_container
+  ;;
+
+  restart)
+    fail_unless_root
+    stop_all_container
+    remove_all_container
+    start_all_container
+  ;;
+
+  status)
+    fail_unless_root
+    docker ps -a
+    docker images
+  ;;
+  
+  clean)
+    docker rm $(docker ps -q -f status=exited)
+  ;;
+  
+  console)
+    fail_unless_root
+    case $2 in
+      mysql)
+        echo "Öffne ein Terminal im Container in dem der MySQL-Server läuft."
+        docker exec -it mysql-server /bin/bash
+      ;;
+      pgsql)
+        echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft."
+        docker exec -it pgsql-server /bin/bash
+      ;;
+      web)
+        echo "Öffne ein Terminal im Container in dem der Web-Server läuft."
+        docker exec -it web /bin/bash
+      ;;
+      *)
+        docker exec -it web /bin/bash
+      ;;
+    esac
+  ;;
+  
+  *)
+    usage
+    exit 1
+  ;;
+esac

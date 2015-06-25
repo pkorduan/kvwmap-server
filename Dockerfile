@@ -18,9 +18,8 @@ RUN apt-get update && apt-get install -y apt-utils \
   php5-mapscript \
   postgresql-client \
   mysql-client \
-  postgresql-9.4-postgis-2.1 \
-  mysql-server-5.5 \
-  imagemagick
+  imagemagick \
+	zip
 
 EXPOSE 80
 EXPOSE 443
@@ -36,8 +35,10 @@ RUN grep -q -F 'alias rm=' /etc/profile || echo "alias rm='rm -i'" >> /etc/profi
 RUN useradd -ms /bin/bash ${OS_USER} && \
   sed -i "s/#alias ll='ls/alias ll='ls/g" ${USER_DIR}/.bashrc && \
   sed -i "s/alias rm='rm -i'/# alias rm='rm -i'/g" ${USER_DIR}/.bashrc && \
+	usermod -G ${OS_USER} www-data && \
   chown -R ${OS_USER}.${OS_USER} ${USER_DIR}
 
-RUN service postgresql start
-RUN service mysql start
+RUN mkdir -p /var/www/apps
+RUN ln -s /etc/apache2/sites-available/kvwmap.conf /etc/apache2/sites-enabled/kvwmap.conf
+
 CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
