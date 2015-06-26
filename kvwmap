@@ -199,6 +199,7 @@ export PATH" >> /etc/profile
     mkdir -p $USER_DIR/www/var/data/festpunkte/archiv
 
     cp $USER_DIR/kvwmap-server/www/html/index.php $USER_DIR/www/html/index.php
+    cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
     cp -R $USER_DIR/kvwmap-server/www/var/data/mapfiles/ $USER_DIR/www/var/data/
     cp -R $USER_DIR/kvwmap-server/www/var/data/referencemaps/ $USER_DIR/www/var/data/
     cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass $USER_DIR/www/apps/
@@ -330,7 +331,7 @@ export PATH" >> /etc/profile
         docker exec -it web /bin/bash
       ;;
       *)
-        docker exec -it web /bin/bash
+        echo "Zu welchem Container soll eine Console aufgemacht werden, mysql, pgsql oder web?"
       ;;
     esac
   ;;
