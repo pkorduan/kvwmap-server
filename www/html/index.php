@@ -55,7 +55,7 @@ function versionFormatter($version) {
   <b>MapServer-Version:</b> <?php echo versionFormatter(getMapServerVersion()); ?><br>
   <b>PHP-Version:</b> <?php echo versionFormatter(getPHPVersion()); ?><br>
   <?php
-  phpinfo();
+  #phpinfo();
   ?>
 </body>
 </html>
