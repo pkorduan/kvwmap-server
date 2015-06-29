@@ -22,4 +22,9 @@ sed -i "s|\$MYSQL_KVWMAP_PASSWORD|$MYSQL_KVWMAP_PASSWORD|g" /create_mysql_user.s
 mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /create_mysql_user.sql
 rm /create_mysql_user.sql
 
-mv /usr/local/bin/phpmyadmin-firstrun /usr/local/bin/phpmyadmin-firstrun-executed
+cd /etc/apache2/sites-enabled
+ln -s ../sites-available/kvwmap.conf kvwmap.conf
+ln -s ../sites-available/mapserver.conf mapserver.conf
+ln -s ../sites-available/phpmyadmin.conf phpmyadmin.conf
+
+mv /usr/local/bin/kvwmap-firstrun /usr/local/bin/kvwmap-firstrun-executed
