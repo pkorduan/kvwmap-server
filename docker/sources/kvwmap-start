@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ -f "/usr/local/bin/kvwmap-firstrun" ];
+then
+	/usr/local/bin/kvwmap-firstrun
+fi
+    
+/usr/sbin/apache2ctl -d /etc/apache2 -DFOREGROUND

@@ -47,7 +47,7 @@ start_mysql_container() {
   # run the mysql container
   read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
   docker run --name mysql-server \
-    -v $USER_DIR/etc/mysql:/etc/mysql/conf.d \
+    -v $USER_DIR/etc/mysql:/etc/mysql \
     -v $USER_DIR/db/mysql:/var/lib/mysql \
     -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
     -d mysql:5.5
@@ -57,8 +57,8 @@ start_pgsql_container() {
   # run the pgsql container
   read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
   docker run --name pgsql-server \
-    -v $USER_DIR/etc/pgsql/9.4/main:/etc/pgsql/ \
-    -v $USER_DIR/db/pgsql:/var/lib/pgsql \
+    -v $USER_DIR/db/postgresql/data:/var/lib/postgresql/data \
+    -p 5432:5432 \
     -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
     -d mdillon/postgis:9.4
 }
@@ -94,7 +94,7 @@ start_web_container() {
       -v $USER_DIR/data:/home/gisadmin/data \
       -v $USER_DIR/www:/var/www \
       -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
-#--link pgsql-server:pgsql \
+  docker ps
 }
 
 start_all_container() {
@@ -141,124 +141,12 @@ show_container_status() {
 }
 
 case "$1" in
-  install)
-    fail_unless_root
-
-    # bash für root anpassen
-    grep -q -F 'alias ll=' /etc/profile || echo "alias ll='ls -l'" >> /etc/profile
-    grep -q -F 'alias rm=' /etc/profile || echo "alias rm='rm -i'" >> /etc/profile
-    grep -q -F 'alias dps=' /etc/profile || echo "alias dps='docker ps -a'" >> /etc/profile
-    grep -q -F "export PATH=\$PATH:${USER_DIR}/kvwmap-server" /etc/profile || echo "PATH=\$PATH:${USER_DIR}/kvwmap-server
-export PATH" >> /etc/profile
-    
-    # Update debian repo
-    apt-get update
-    apt-get install -y apt-utils curl wget git
-
-    case `docker --version` in
-      *Docker*)
-        echo 'Docker allready installed!' 
-        ;;
-      *)
-        # install docker
-        echo 'Install docker.'
-        curl -sSL https://get.docker.com/ | sh
-      ;;
-    esac
-
-    # create user for web gis anwendung if not exists
-    $OS_USER_EXISTS || adduser $OS_USER
-
-    # uncomment bash Einstellungen for web gis user
-    sed -i "s/#alias ll='ls/alias ll='ls/g" $USER_DIR/.bashrc
-    sed -i "s/alias rm='rm -i'/# alias rm='rm -i'/g" $USER_DIR/.bashrc
-
-    # create directories
-    mkdir -p $USER_DIR/data
-    mkdir -p $USER_DIR/db/mysql
-    mkdir -p $USER_DIR/etc/apache2/sites-available
-    mkdir -p $USER_DIR/etc/apache2/sites-enabled
-    mkdir -p $USER_DIR/etc/mysql
-    mkdir -p $USER_DIR/etc/pgsql
-    mkdir -p $USER_DIR/etc/php5
-    mkdir -p $USER_DIR/www/apps
-    mkdir -p $USER_DIR/www/html
-    mkdir -p $USER_DIR/www/logs
-    mkdir -p $USER_DIR/www/tmp
-    mkdir -p $USER_DIR/www/cache
-    mkdir -p $USER_DIR/www/wms
-    mkdir -p $USER_DIR/www/var/data/mapfiles
-    mkdir -p $USER_DIR/www/var/data/synchro
-    mkdir -p $USER_DIR/www/var/data/upload
-    mkdir -p $USER_DIR/www/var/data/druckrahmen
-    mkdir -p $USER_DIR/www/var/data/bilder
-    mkdir -p $USER_DIR/www/var/data/alb
-    mkdir -p $USER_DIR/www/var/data/referencemaps
-    mkdir -p $USER_DIR/www/var/data/nachweise
-    mkdir -p $USER_DIR/www/var/data/recherchierte_antraege
-    mkdir -p $USER_DIR/www/var/data/festpunkte/archiv
-
-    cp $USER_DIR/kvwmap-server/www/html/index.php $USER_DIR/www/html/index.php
-    cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
-    cp -R $USER_DIR/kvwmap-server/www/var/data/mapfiles/ $USER_DIR/www/var/data/
-    cp -R $USER_DIR/kvwmap-server/www/var/data/referencemaps/ $USER_DIR/www/var/data/
-    cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass $USER_DIR/www/apps/
-
-    if [ ! -d "$USER_DIR/www/apps/kvwmap" ]; then
-      # clone kvwmap repository into apps
-      git clone https://github.com/srahn/kvwmap.git $USER_DIR/www/apps/kvwmap
-    fi
-
-    chown -R $OS_USER.$OS_USER $USER_DIR
-
-    # download neccessary images for mysql and postgis
-    docker pull mysql:5.5
-    echo "[mysqld]" > $USER_DIR/etc/mysql/docker.cnf
-    echo "user = mysql" >> $USER_DIR/etc/mysql/docker.cnf
-    echo "datadir = /var/lib/mysql" >> $USER_DIR/etc/mysql/docker.cnf
-    
-    docker pull mdillon/postgis:9.4
-
-    # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-    docker build -t pkorduan/kvwmap-server:latest .
-  ;;
-
-  uninstall)
-    fail_unless_root
-    
-    # stop and remove all container and images
-    docker stop $(docker ps -a -q)
-    docker rm $(docker ps -a -q)
-    docker rmi -f $(docker images -q)
-    while true; do
-      read -p "User $OS_USER mit home Verzeichnis löschen? Es gehen alle Daten in /home/$OS_USER verloren! (j/n) " jn
-      case $jn in
-        [YyJj]* )
-          # remove user if exists
-          $OS_USER_EXISTS && userdel -f $OS_USER
-          echo "User $OS_USER existiert nicht mehr."
-          # remove user and its home directory
-          if [ -d "$USER_DIR" ]; then
-            rm -R -f $USER_DIR
-            echo "$USER_DIR gelöscht."
-          fi
-        ;;
-        [Nn]* )
-          exit
-          ;;
-        *)
-          echo "Bitte antworten mit Ja oder Nein."
-        ;;
-      esac
-    done
-  ;;
-
   rebuild)
     fail_unless_root
     stop_all_container
     remove_all_container
     docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
-    cd $USER_DIR/kvwmap-server
+    cd $USER_DIR/kvwmap-server/docker
     docker build -t pkorduan/kvwmap-server:latest .
     start_all_container
   ;;
@@ -334,6 +222,20 @@ export PATH" >> /etc/profile
         echo "Zu welchem Container soll eine Console aufgemacht werden, mysql, pgsql oder web?"
       ;;
     esac
+  ;;
+  
+  mysql-client)
+    fail_unless_root
+    MYSQL_TCP_ADD=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql-server`
+    MYSQL_ROOT_PASSWORD=`docker inspect --format '{{index .Config.Env 0}}' mysql-server | cut -d \= -f 2`
+    docker exec -it mysql-server mysql -h ${MYSQL_TCP_ADD} -u root --password=${MYSQL_ROOT_PASSWORD} mysql
+  ;;
+
+  pgsql-client)
+    fail_unless_root
+    POSTGRESQL_TCP_ADD=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' pgsql-server`
+    PGPASSWORD=`docker inspect --format '{{index .Config.Env 0}}' pgsql-server | cut -d \= -f 2`
+    docker exec -it pgsql-server psql -h ${POSTGRESQL_TCP_ADD} -U postgres postgres
   ;;
   
   *)

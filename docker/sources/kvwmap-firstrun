@@ -1,0 +1,25 @@
+#!/bin/bash
+
+PMA_SECRET="blowfish_secret"
+PMA_URI="http://195.98.195.50/phpMyAdmin/"
+MYSQL_KVWMAP_USERNAME="kvwmap"
+read -s -p "Enter Password for kvwmap user on MySQL-Database: " MYSQL_KVWMAP_PASSWORD
+
+mv /config.inc.php /var/www/apps/phpMyAdmin/
+
+sed -i \
+    -e "s|\$PMA_SECRET|$PMA_SECRET|g" \
+    -e "s|\$PMA_URI|$PMA_URI|g" \
+    -e "s|\$MYSQL_KVWMAP_USERNAME|$MYSQL_KVWMAP_USERNAME|g" \
+    -e "s|\$MYSQL_KVWMAP_PASSWORD|$MYSQL_KVWMAP_PASSWORD|g" \
+    -e "s|\$MYSQL_PORT_3306_TCP_ADDR|$MYSQL_PORT_3306_TCP_ADDR|g" \
+    -e "s|\$MYSQL_PORT_3306_TCP_PORT|$MYSQL_PORT_3306_TCP_PORT|g" \
+    /var/www/apps/phpMyAdmin/config.inc.php
+
+mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /var/www/apps/phpMyAdmin/sql/create_tables.sql
+
+sed -i "s|\$MYSQL_KVWMAP_PASSWORD|$MYSQL_KVWMAP_PASSWORD|g" /create_mysql_user.sql
+mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /create_mysql_user.sql
+rm /create_mysql_user.sql
+
+mv /usr/local/bin/phpmyadmin-firstrun /usr/local/bin/phpmyadmin-firstrun-executed
