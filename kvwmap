@@ -233,11 +233,11 @@ case "$1" in
 
     docker pull mdillon/postgis:9.4
     
-    docker pull pkorduan/kvwmap-server:latest
+    #docker pull pkorduan/kvwmap-server:latest
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-#    cd $USER_DIR/kvwmap-server/docker
-#   docker build -t pkorduan/kvwmap-server:latest .
+    cd $USER_DIR/kvwmap-server/docker
+    docker build -t pkorduan/kvwmap-server:latest .
   ;;
   rebuild)
     fail_unless_root
