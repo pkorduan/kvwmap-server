@@ -218,10 +218,6 @@ case "$1" in
     mkdir -p $USER_DIR/www/apps/kvwmap/layouts/custom \
              $USER_DIR/www/apps/kvwmap/layouts/snippets/custom \
              $USER_DIR/www/apps/kvwmap/symbols/custom
-
-    ln -s $USER_DIR/etc/apache2/sites-available/kvwmap.conf $USER_DIR/etc/apache2/sites-enabled/kvwmap.conf
-    ln -s $USER_DIR/etc/apache2/sites-available/mapserver.conf $USER_DIR/etc/apache2/sites-enabled/mapserver.conf
-    ln -s $USER_DIR/etc/apache2/sites-available/phpmyadmin.conf $USER_DIR/etc/apache2/sites-enabled/phpmyadmin.conf
     
     chown -R $OS_USER.$OS_USER $USER_DIR
 
