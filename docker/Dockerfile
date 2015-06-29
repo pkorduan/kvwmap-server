@@ -38,13 +38,10 @@ RUN mkdir -p /var/www/apps && \
   mv /var/www/apps/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages /var/www/apps/phpMyAdmin && \
   rm /var/www/apps/phpMyAdmin.tar.gz
 
-COPY sources/config.inc.php /
-COPY sources/create_mysql_user.sql /
-COPY sources/kvwmap-start /usr/local/bin/
-COPY sources/kvwmap-firstrun /usr/local/bin/
-COPY sources/kvwmap.conf /etc/apache2/sites-available/
-COPY sources/mapserver.conf /etc/apache2/sites-available/
-COPY sources/phpmyadmin.conf /etc/apache2/sites-available/
+ADD sources/config.inc.php /
+ADD sources/create_mysql_user.sql /
+ADD sources/kvwmap-start /usr/local/bin/
+ADD sources/kvwmap-firstrun /usr/local/bin/
 
 RUN chmod +x /usr/local/bin/kvwmap*
 
