@@ -46,7 +46,7 @@ COPY sources/kvwmap.conf /etc/apache2/sites-available/
 COPY sources/mapserver.conf /etc/apache2/sites-available/
 COPY sources/phpmyadmin.conf /etc/apache2/sites-available/
 
-RUN cd /etc/apache2/sites-enable && \
+RUN cd /etc/apache2/sites-enabled && \
     ln -s ../sites-available/kvwmap.conf kvwmap.conf && \
     ln -s ../sites-available/mapserver.conf mapserver.conf && \
     ln -s ../sites-available/phpmyadmin.conf phpmyadmin.conf
