@@ -151,7 +151,7 @@ case "$1" in
         ~/.bashrc
 
     # Update debian repo
-    apt-get update && apt-get install -y
+    apt-get update && apt-get install -y \
       apt-utils \
       curl \
       wget
