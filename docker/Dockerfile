@@ -42,9 +42,6 @@ ADD sources/config.inc.php /
 ADD sources/create_mysql_user.sql /
 ADD sources/kvwmap-start /usr/local/bin/
 ADD sources/kvwmap-firstrun /usr/local/bin/
-ADD sources/kvwmap.conf /etc/apache2/sites-available/
-ADD sources/mapserver.conf /etc/apache2/sites-available/
-ADD sources/phpmyadmin.conf /etc/apache2/sites-available/
 
 RUN chmod +x /usr/local/bin/kvwmap*
 
@@ -56,10 +53,6 @@ RUN useradd -ms /bin/bash ${OS_USER} && \
   sed -i "s/alias rm='rm -i'/# alias rm='rm -i'/g" ${USER_DIR}/.bashrc && \
   usermod -G ${OS_USER} www-data && \
   chown -R ${OS_USER}.${OS_USER} ${USER_DIR}
-
-RUN ln -s /etc/apache2/sites-available/kvwmap.conf /etc/apache2/sites-enabled/kvwmap.conf && \
-    ln -s /etc/apache2/sites-available/mapserver.conf /etc/apache2/sites-enabled/mapserver.conf && \
-    ln -s /etc/apache2/sites-available/phpmyadmin.conf /etc/apache2/sites-enabled/phpmyadmin.conf
 
 EXPOSE 80
 EXPOSE 443

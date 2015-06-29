@@ -172,6 +172,7 @@ case "$1" in
 
     # uncomment bash Einstellungen for web gis user
     echo "export PATH=\$PATH:${USER_DIR}/kvwmap-server" > ~/.bashrc
+    source ~/.bashrc
     sed -i \
       -e "s|#alias ll=|alias ll=|g" \
       -e "s|alias rm=|#alias rm=|g" \
@@ -218,6 +219,10 @@ case "$1" in
              $USER_DIR/www/apps/kvwmap/layouts/snippets/custom \
              $USER_DIR/www/apps/kvwmap/symbols/custom
 
+    ln -s /etc/apache2/sites-available/kvwmap.conf /etc/apache2/sites-enabled/kvwmap.conf
+    ln -s /etc/apache2/sites-available/mapserver.conf /etc/apache2/sites-enabled/mapserver.conf
+    ln -s /etc/apache2/sites-available/phpmyadmin.conf /etc/apache2/sites-enabled/phpmyadmin.conf
+    
     chown -R $OS_USER.$OS_USER $USER_DIR
 
     # download neccessary images for mysql and postgis
@@ -227,10 +232,12 @@ case "$1" in
     echo "datadir = /var/lib/mysql" >> $USER_DIR/etc/mysql/docker.cnf
 
     docker pull mdillon/postgis:9.4
+    
+    docker pull pkorduan/kvwmap-server:latest
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-    cd $USER_DIR/kvwmap-server/docker
-    docker build -t pkorduan/kvwmap-server:latest .
+#    cd $USER_DIR/kvwmap-server/docker
+#   docker build -t pkorduan/kvwmap-server:latest .
   ;;
   rebuild)
     fail_unless_root
