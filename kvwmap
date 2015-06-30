@@ -143,13 +143,7 @@ show_container_status() {
 case "$1" in
   install)
     fail_unless_root
-    # bash für root anpassen
-    sed -i \
-        -e "s|# alias ls=|alias ls=|g" \
-        -e "s|# alias ll=|alias ll=|g" \
-        -e "s|# alias rm=|alias rm=|g" \
-        ~/.bashrc
-
+    
     # Update debian repo
     apt-get update && apt-get install -y \
       apt-utils \
@@ -177,6 +171,7 @@ case "$1" in
       -e "s|#alias ll=|alias ll=|g" \
       -e "s|alias rm=|#alias rm=|g" \
         $USER_DIR/.bashrc
+    cp $USER_DIR/.bashrc ~/.bashrc
 
     # create directories
     mkdir -p $USER_DIR/data \
@@ -213,12 +208,23 @@ case "$1" in
     if [ ! -d "$USER_DIR/www/apps/kvwmap" ]; then
       # clone kvwmap repository into apps
       git clone https://github.com/srahn/kvwmap.git $USER_DIR/www/apps/kvwmap
+      cd /$USER_DIR/www/apps/kvwmap
+      git checkout develop
     fi
 
     mkdir -p $USER_DIR/www/apps/kvwmap/layouts/custom \
              $USER_DIR/www/apps/kvwmap/layouts/snippets/custom \
              $USER_DIR/www/apps/kvwmap/symbols/custom
     
+    ENV PHPMYADMIN_VERSION="4.4.10"
+
+    mkdir -p $USER_DIR/www/apps
+    cd $USER_DIR/www/apps
+    wget -O phpMyAdmin.tar.gz http://downloads.sourceforge.net/project/phpmyadmin/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz
+    tar xvfz phpMyAdmin.tar.gz
+    mv $USER_DIR/www/apps/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages $USER_DIR/www/apps/phpMyAdmin
+    rm $USER_DIR/www/apps/phpMyAdmin.tar.gz
+
     chown -R $OS_USER.$OS_USER $USER_DIR
 
     # download neccessary images for mysql and postgis

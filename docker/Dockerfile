@@ -29,15 +29,6 @@ RUN apt-get update && apt-get install -y \
     wget \
     zip
 
-ENV PHPMYADMIN_VERSION="4.4.10"
-
-RUN mkdir -p /var/www/apps && \
-  cd /var/www/apps && \
-  wget -O phpMyAdmin.tar.gz http://downloads.sourceforge.net/project/phpmyadmin/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz && \
-  tar xvfz phpMyAdmin.tar.gz && \
-  mv /var/www/apps/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages /var/www/apps/phpMyAdmin && \
-  rm /var/www/apps/phpMyAdmin.tar.gz
-
 ADD sources/config.inc.php /
 ADD sources/create_mysql_user.sql /
 ADD sources/kvwmap-start /usr/local/bin/
@@ -53,6 +44,7 @@ RUN useradd -ms /bin/bash ${OS_USER} && \
   sed -i "s/alias rm='rm -i'/# alias rm='rm -i'/g" ${USER_DIR}/.bashrc && \
   usermod -G ${OS_USER} www-data && \
   chown -R ${OS_USER}.${OS_USER} ${USER_DIR}
+  chmod g+w ${USER_DIR}/www/apps/kvwmap
 
 EXPOSE 80
 EXPOSE 443
