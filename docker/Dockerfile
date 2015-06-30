@@ -40,12 +40,8 @@ RUN chmod +x /usr/local/bin/kvwmap*
 ENV OS_USER="gisadmin"
 ENV USER_DIR="/home/${OS_USER}"
 
-RUN useradd -ms /bin/bash ${OS_USER} && \
-  sed -i "s/#alias ll=/alias ll=/g" ${USER_DIR}/.bashrc && \
-  sed -i "s/alias rm='rm -i'/# alias rm='rm -i'/g" ${USER_DIR}/.bashrc && \
-  usermod -G ${OS_USER} www-data && \
-  chown -R ${OS_USER}.${OS_USER} ${USER_DIR} && \
-  chmod g+w ${USER_DIR}/www/apps/kvwmap
+RUN useradd -ms /bin/bash ${OS_USER}
+  usermod -G ${OS_USER} www-data
 
 EXPOSE 80
 EXPOSE 443

@@ -226,6 +226,7 @@ case "$1" in
     rm $USER_DIR/www/apps/phpMyAdmin.tar.gz
 
     chown -R $OS_USER.$OS_USER $USER_DIR
+    chmod g+w ${USER_DIR}/www/apps/kvwmap
 
     # download neccessary images for mysql and postgis
     docker pull mysql:5.5
