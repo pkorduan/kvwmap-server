@@ -165,14 +165,14 @@ case "$1" in
     $OS_USER_EXISTS || adduser $OS_USER
 
     # uncomment bash Einstellungen for web gis user
-    echo "export PATH=\$PATH:${USER_DIR}/kvwmap-server" > ~/.bashrc
-    source ~/.bashrc
+    echo "export PATH=\$PATH:${USER_DIR}/kvwmap-server" > $USER_DIR/.bashrc
     sed -i \
       -e "s|#alias ll=|alias ll=|g" \
       -e "s|alias rm=|#alias rm=|g" \
         $USER_DIR/.bashrc
     cp $USER_DIR/.bashrc ~/.bashrc
-
+    source ~/.bashrc
+    q
     # create directories
     mkdir -p $USER_DIR/data \
              $USER_DIR/db/mysql \
@@ -226,13 +226,17 @@ case "$1" in
     rm $USER_DIR/www/apps/phpMyAdmin.tar.gz
 
     chown -R $OS_USER.$OS_USER $USER_DIR
-    chmod g+w ${USER_DIR}/www/apps/kvwmap
+    chmod g+w ${USER_DIR}/www/logs \
+              ${USER_DIR}/www/tmp \
+              ${USER_DIR}/www/var/data/bilder \
+              ${USER_DIR}/www/var/data/festpunkte \
+              ${USER_DIR}/www/var/data/nachweise \
+              ${USER_DIR}/www/var/data/recherchierte_antraege \
+              ${USER_DIR}/www/var/data/synchro \
+              ${USER_DIR}/www/var/data/upload
 
     # download neccessary images for mysql and postgis
     docker pull mysql:5.5
-    echo "[mysqld]" > $USER_DIR/etc/mysql/docker.cnf
-    echo "user = mysql" >> $USER_DIR/etc/mysql/docker.cnf
-    echo "datadir = /var/lib/mysql" >> $USER_DIR/etc/mysql/docker.cnf
 
     docker pull mdillon/postgis:9.4
     
