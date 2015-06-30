@@ -24,7 +24,7 @@ usage() {
   echo "restart"
   echo "rebuild"
   echo "stop          Stopped alle Container."
-  echo "clear         Löscht alle beendeten Container."
+  echo "clear         Löscht alle beendeten Container und nicht getaggete images."
   echo "pgsql start   Startet nur den Container mit der PostgreSQL-Datenbank."
   echo "pgsql status  Zeigt den Status des PostgreSQL-Datenbank Containers an."
   echo "uninstall"
@@ -300,7 +300,10 @@ case "$1" in
   ;;
   
   clean)
+    # Remove all unused exited container
     docker rm $(docker ps -q -f status=exited)
+    # Remove all images without tags
+    docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
   ;;
   
   console)
