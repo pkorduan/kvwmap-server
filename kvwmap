@@ -216,7 +216,7 @@ case "$1" in
              $USER_DIR/www/apps/kvwmap/layouts/snippets/custom \
              $USER_DIR/www/apps/kvwmap/symbols/custom
     
-    ENV PHPMYADMIN_VERSION="4.4.10"
+    PHPMYADMIN_VERSION="4.4.10"
 
     mkdir -p $USER_DIR/www/apps
     cd $USER_DIR/www/apps
