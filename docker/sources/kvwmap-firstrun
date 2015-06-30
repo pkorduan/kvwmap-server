@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PMA_SECRET="blowfish_secret"
-PMA_URI="http://195.98.195.50/phpMyAdmin/"
+PMA_URI="http://${IP_EXTERN}/phpMyAdmin/"
 MYSQL_KVWMAP_USERNAME="kvwmap"
 read -s -p "Enter Password for kvwmap user on MySQL-Database: " MYSQL_KVWMAP_PASSWORD
 

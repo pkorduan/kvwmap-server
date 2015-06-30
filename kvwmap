@@ -7,6 +7,7 @@ OS_USER_EXISTS=false
 getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
 USER_DIR=/home/$OS_USER
 KVWMAP_IMAGE_VERSION=latest
+IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
 
 usage() {
   echo ""
@@ -43,8 +44,13 @@ fail_unless_root() {
   fi
 }
 
+create_www_data_volume() {
+  docker create --name wwwdata \
+    -v /var/www:/var/www \
+      pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} /bin/true
+}
+
 start_mysql_container() {
-  # run the mysql container
   read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
   docker run --name mysql-server \
     -v $USER_DIR/etc/mysql:/etc/mysql \
@@ -54,9 +60,9 @@ start_mysql_container() {
 }
 
 start_pgsql_container() {
-  # run the pgsql container
   read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
   docker run --name pgsql-server \
+    --volumes-from wwwdata \
     -v $USER_DIR/db/postgresql/data:/var/lib/postgresql/data \
     -p 5432:5432 \
     -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
@@ -67,37 +73,23 @@ start_pgsql_container() {
 # Start the web container
 #
 start_web_container() {
-  echo "Start container with docker command:"
-  echo "
-  docker run --name web \
-      --link mysql-server:mysql \
-      --link pgsql_server:pgsql \
-      -p 80:80 \
-      -p 443:443 \
-      -e "OS_USER=${OS_USER}" \
-      -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
-      -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
-      -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
-      -v $USER_DIR/data:/home/gisadmin/data \
-      -v $USER_DIR/www:/var/www \
-      -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
-  "
   docker run --name web \
       --link mysql-server:mysql \
       --link pgsql-server:pgsql \
       -p 80:80 \
       -p 443:443 \
       -e "OS_USER=${OS_USER}" \
+      -e "IP_EXTERN=${IP_EXTERN}" \
+      --volumes-from wwwdata \
       -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
       -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
       -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
-      -v $USER_DIR/data:/home/gisadmin/data \
-      -v $USER_DIR/www:/var/www \
       -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
   docker ps
 }
 
 start_all_container() {
+  create_www_data_volume
   start_mysql_container
   start_pgsql_container
   start_web_container
@@ -172,69 +164,69 @@ case "$1" in
         $USER_DIR/.bashrc
     cp $USER_DIR/.bashrc ~/.bashrc
     source ~/.bashrc
-    q
+    
     # create directories
-    mkdir -p $USER_DIR/data \
-             $USER_DIR/db/mysql \
+    mkdir -p $USER_DIR/db/mysql \
              $USER_DIR/db/postgresql/data \
              $USER_DIR/etc/apache2/sites-available \
              $USER_DIR/etc/apache2/sites-enabled \
              $USER_DIR/etc/mysql \
              $USER_DIR/etc/postgresql \
              $USER_DIR/etc/php5 \
-             $USER_DIR/www/apps \
-             $USER_DIR/www/html \
-             $USER_DIR/www/logs \
-             $USER_DIR/www/tmp \
-             $USER_DIR/www/cache \
-             $USER_DIR/www/wms \
-             $USER_DIR/www/var/data/mapfiles \
-             $USER_DIR/www/var/data/synchro \
-             $USER_DIR/www/var/data/upload \
-             $USER_DIR/www/var/data/druckrahmen \
-             $USER_DIR/www/var/data/bilder \
-             $USER_DIR/www/var/data/alb \
-             $USER_DIR/www/var/data/referencemaps \
-             $USER_DIR/www/var/data/nachweise \
-             $USER_DIR/www/var/data/recherchierte_antraege \
-             $USER_DIR/www/var/data/festpunkte/archiv
+             /var/www/apps \
+             /var/www/html \
+             /var/www/logs \
+             /var/www/tmp \
+             /var/www/cache \
+             /var/www/wms \
+             /var/www/data/mapfiles \
+             /var/www/data/synchro \
+             /var/www/data/upload \
+             /var/www/data/druckrahmen \
+             /var/www/data/bilder \
+             /var/www/data/alb \
+             /var/www/data/referencemaps \
+             /var/www/data/nachweise \
+             /var/www/data/recherchierte_antraege \
+             /var/www/data/festpunkte/archiv
 
-    cp $USER_DIR/kvwmap-server/www/html/index.php $USER_DIR/www/html/index.php
+    cp $USER_DIR/kvwmap-server/www/html/index.php /var/www/html/index.php
     cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
-    cp -R $USER_DIR/kvwmap-server/www/var/data/mapfiles/ $USER_DIR/www/var/data/
-    cp -R $USER_DIR/kvwmap-server/www/var/data/referencemaps/ $USER_DIR/www/var/data/
-    cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass $USER_DIR/www/apps/
+    cp -R $USER_DIR/kvwmap-server/www/data/mapfiles/ /var/www/data/
+    cp -R $USER_DIR/kvwmap-server/www/data/referencemaps/ /var/www/data/
+    cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass /var/www/apps/
 
-    if [ ! -d "$USER_DIR/www/apps/kvwmap" ]; then
+    if [ ! -d "/var/www/apps/kvwmap" ]; then
       # clone kvwmap repository into apps
-      git clone https://github.com/srahn/kvwmap.git $USER_DIR/www/apps/kvwmap
-      cd /$USER_DIR/www/apps/kvwmap
+      git clone https://github.com/srahn/kvwmap.git /var/www/apps/kvwmap
+      cd /var/www/apps/kvwmap
       git checkout develop
     fi
 
-    mkdir -p $USER_DIR/www/apps/kvwmap/layouts/custom \
-             $USER_DIR/www/apps/kvwmap/layouts/snippets/custom \
-             $USER_DIR/www/apps/kvwmap/symbols/custom
-    
+    mkdir -p /var/www/apps/kvwmap/fonts/custom \
+             /var/www/apps/kvwmap/graphics/custom \
+             /var/www/apps/kvwmap/layouts/custom \
+             /var/www/apps/kvwmap/layouts/snippets/custom \
+             /var/www/apps/kvwmap/symbols/custom
+
     PHPMYADMIN_VERSION="4.4.10"
 
-    mkdir -p $USER_DIR/www/apps
-    cd $USER_DIR/www/apps
+    cd /var/www/apps
     wget -O phpMyAdmin.tar.gz http://downloads.sourceforge.net/project/phpmyadmin/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz
     tar xvfz phpMyAdmin.tar.gz
-    mv $USER_DIR/www/apps/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages $USER_DIR/www/apps/phpMyAdmin
-    rm $USER_DIR/www/apps/phpMyAdmin.tar.gz
+    mv /var/www/apps/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages /var/www/apps/phpMyAdmin
+    rm /var/www/apps/phpMyAdmin.tar.gz
 
     chown -R $OS_USER.$OS_USER $USER_DIR
-    chmod g+w ${USER_DIR}/www/apps/kvwmap \
-              ${USER_DIR}/www/logs \
-              ${USER_DIR}/www/tmp \
-              ${USER_DIR}/www/var/data/bilder \
-              ${USER_DIR}/www/var/data/festpunkte \
-              ${USER_DIR}/www/var/data/nachweise \
-              ${USER_DIR}/www/var/data/recherchierte_antraege \
-              ${USER_DIR}/www/var/data/synchro \
-              ${USER_DIR}/www/var/data/upload
+    chmod g+w /var/www/apps/kvwmap/graphics/wappen \
+              /var/www/data/bilder \
+              /var/www/data/festpunkte \
+              /var/www/data/nachweise \
+              /var/www/data/recherchierte_antraege \
+              /var/www/data/synchro \
+              /var/www/data/upload \
+              /var/www/logs \
+              /var/www/tmp
 
     # download neccessary images for mysql and postgis
     docker pull mysql:5.5
