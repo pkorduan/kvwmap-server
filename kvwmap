@@ -189,6 +189,8 @@ case "$1" in
              /var/www/data/nachweise \
              /var/www/data/recherchierte_antraege \
              /var/www/data/festpunkte/archiv
+    
+    ln -s /$USER_DIR/www /var/www
 
     cp $USER_DIR/kvwmap-server/www/html/index.php /var/www/html/index.php
     cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
@@ -218,7 +220,8 @@ case "$1" in
     rm /var/www/apps/phpMyAdmin.tar.gz
 
     chown -R $OS_USER.$OS_USER $USER_DIR /var/www
-    chmod g+w /var/www/apps/kvwmap/graphics/wappen \
+    chmod g+w /var/www/apps/kvwmap \
+              /var/www/apps/kvwmap/graphics/wappen \
               /var/www/data/bilder \
               /var/www/data/festpunkte \
               /var/www/data/nachweise \
