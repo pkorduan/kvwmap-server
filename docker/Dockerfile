@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     apache2 \
     cgi-mapserver \
     dialog \
+		htop \
     imagemagick \
     less \
     mapserver-bin \
@@ -43,7 +44,7 @@ RUN useradd -ms /bin/bash ${OS_USER} && \
   sed -i "s/#alias ll=/alias ll=/g" ${USER_DIR}/.bashrc && \
   sed -i "s/alias rm='rm -i'/# alias rm='rm -i'/g" ${USER_DIR}/.bashrc && \
   usermod -G ${OS_USER} www-data && \
-  chown -R ${OS_USER}.${OS_USER} ${USER_DIR}
+  chown -R ${OS_USER}.${OS_USER} ${USER_DIR} && \
   chmod g+w ${USER_DIR}/www/apps/kvwmap
 
 EXPOSE 80
