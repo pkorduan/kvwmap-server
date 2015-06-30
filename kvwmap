@@ -217,7 +217,7 @@ case "$1" in
     mv /var/www/apps/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages /var/www/apps/phpMyAdmin
     rm /var/www/apps/phpMyAdmin.tar.gz
 
-    chown -R $OS_USER.$OS_USER $USER_DIR
+    chown -R $OS_USER.$OS_USER $USER_DIR /var/www
     chmod g+w /var/www/apps/kvwmap/graphics/wappen \
               /var/www/data/bilder \
               /var/www/data/festpunkte \
