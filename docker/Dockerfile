@@ -40,7 +40,7 @@ RUN chmod +x /usr/local/bin/kvwmap*
 ENV OS_USER="gisadmin"
 ENV USER_DIR="/home/${OS_USER}"
 
-RUN useradd -ms /bin/bash ${OS_USER}
+RUN useradd -ms /bin/bash ${OS_USER} && \
   usermod -G ${OS_USER} www-data
 
 EXPOSE 80
