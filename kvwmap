@@ -226,7 +226,8 @@ case "$1" in
     rm $USER_DIR/www/apps/phpMyAdmin.tar.gz
 
     chown -R $OS_USER.$OS_USER $USER_DIR
-    chmod g+w ${USER_DIR}/www/logs \
+    chmod g+w ${USER_DIR}/www/apps/kvwmap \
+              ${USER_DIR}/www/logs \
               ${USER_DIR}/www/tmp \
               ${USER_DIR}/www/var/data/bilder \
               ${USER_DIR}/www/var/data/festpunkte \
