@@ -21,7 +21,7 @@ packages git, wget and curl to use git and run the kvwmap script successfully.
 Clone the ``pkorduan/kvwmap-server`` repository from github in to your user
 directory. Assume you have a user directory /home/gisadmin
 
-```USER_DIR="/home/gisadmin"```
+```USER_DIR=/home/gisadmin```
 
 ```cd USER_DIR```
 
@@ -30,7 +30,7 @@ directory. Assume you have a user directory /home/gisadmin
 ### Install kvwmap-server
 Get and install all the components that uses kvwmap-server.
 
-```USER_DIR/kvwmap-server/kvwmap install```
+```kvwmap-server/kvwmap install```
 
 This scrpit should ended up with the message: Successfully built
 
@@ -48,13 +48,14 @@ Open a browser and call the kvwmap install script with the url of your host.
 
 http://yourserver/kvmwmap/install.php
 
-There should be no error messages and 
+There should be no error messages and a hint that you now can login with
 
-No you can log in with
-user: kvwmap
-password: kvmwap
+user: kvwmap and password: kvmwap
 
-We recommend to change the passwords for mysql, postgres and kvwmap users.
+We recommend to change the passwords for mysql, postgres and kvwmap users
+after the initial installation. Further configuration settings can be performed
+in config.php. See the kvwmap documentation for more information at:
+http://kvwmap.de
 
 ### Unistall kvwmap-server
 Stopp all container and remove images with the kvwmap script:
