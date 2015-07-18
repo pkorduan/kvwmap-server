@@ -52,6 +52,8 @@ There should be no error messages and a hint that you now can login with
 
 user: kvwmap and password: kvmwap
 
+Ignore the Warning: fclose(): 5 is not a valid stream resource in /var/www/apps/kvwmap/class/log.php on line 106
+
 We recommend to change the passwords for mysql, postgres and kvwmap users
 after the initial installation. Further configuration settings can be performed
 in config.php. See the kvwmap documentation for more information at:
