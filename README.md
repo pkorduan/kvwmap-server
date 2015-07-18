@@ -1,8 +1,8 @@
 # kvwmap-server
 
-A docker container that runs Web-GIS application http://kvwmap.de based on Apache web server
-mapservers phpMapScript as well as MySQL database for user and map context and
-PostgreSQL database with PostGIS extension for geodata.
+A docker container that runs Web-GIS application kvwmap from git repo ```srahn/kvwmap```
+based on Apache web server Mapservers phpMapScript as well as MySQL database for user
+and map context and PostgreSQL database with PostGIS extension for geodata.
 
 **Note:** ``mysql:5.5`` and ``postgis:9.4`` docker images are required to run
 a container based on this image ``pkorduan\kvwmap-server``
