@@ -1,19 +1,21 @@
 # kvwmap-server
 
-This repository include all files to install and run the docker image pkorduan/kvwmap-server.
+This repository include all files to install and run a container based on the docker
+image [pkorduan/kvwmap-server](https://registry.hub.docker.com/u/pkorduan/kvwmap-server/).
 
-The kvwmap-server contain a the Web-GIS application kvwmap from git repo ```srahn/kvwmap```
-an Apache web server, Mapservers phpMapScript as well as a MySQL database for user and
-map context and PostgreSQL database with PostGIS extension for geodata.
+The kvwmap-server contain a the Web-GIS application kvwmap from the git repo [srahn/kvwmap](https://github.com/srahn/kvwmap), an [http://httpd.apache.org/](Apache Web Werver),
+[MapServers](http://mapserver.org/) [phpMapScript](http://mapserver.org/mapscript/php/index.html)
+as well as a [MySQL](http://www.mysql.com/) database for user and map context and [PostgreSQL](http://www.postgres.org) database with [PostGIS](http://www.postgis.org) extension
+for geodata.
 
 ## Installation
 The preferred way to install the `pkorduan/kvwmap-server` image and run the container onto
-your system is to pull the kvwmap-server repository from github first and than install
+your system is to clone the kvwmap-server repository from github first and than install
 all required components with the included administration script `kvwmap`.
 
 ### Pull kvwmap-server
 **Note:** You must be logged in as root and have installed at least the debian
-packages git, wget and curl to use git and run the kvwmap script successfully.
+packages git, wget and curl to use git and run the kvwmap script on your host successfully.
 
 ```apt-get update && apt-get install -y apt-utils curl git wget```
 
@@ -56,7 +58,7 @@ Ignore the Warning: fclose(): 5 is not a valid stream resource in /var/www/apps/
 We recommend to change the passwords for mysql, postgres and kvwmap users
 after the initial installation. Further configuration settings can be performed
 in config.php. See the kvwmap documentation for more information at:
-http://kvwmap.de
+<http://www.kvwmap.de>
 
 ### Unistall kvwmap-server
 Stopp all container and remove images with the kvwmap script:
