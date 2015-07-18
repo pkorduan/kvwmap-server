@@ -13,22 +13,24 @@ is to pull the kvwmap-server repository from github first and than install
 all required components with the included administration script kvwmap.
 
 ### Pull kvwmap-server
-**Note:** You must have installed at least the debian packages git, wget and
-curl to use git and run the kvwmap script successfully.
+**Note:** You must be logged in as root and have installed at least the debian
+packages git, wget and curl to use git and run the kvwmap script successfully.
 
 ```apt-get update && apt-get install -y apt-utils curl git wget```
 
 Clone the ``pkorduan/kvwmap-server`` repository from github in to your user
-directory.
+directory. Assume you have a user directory /home/gisadmin
 
-```cd ~```
+```USER_DIR="/home/gisadmin"```
+
+```cd USER_DIR```
 
 ```git clone https://github.com/pkorduan/kvwmap-server.git```
 
 ### Install kvwmap-server
 Get and install all the components that uses kvwmap-server.
 
-```kvwmap-server/kvwmap install```
+```USER_DIR/kvwmap-server/kvwmap install```
 
 This scrpit should ended up with the message: Successfully built
 
@@ -61,13 +63,16 @@ Stopp all container and remove images with the kvwmap script:
 
 ```kvwmap clan```
 
-Remove the volumes for the web application kvwmap:
+Remove the volumes for the web application kvwmap. Be sure not to remove other
+files:
 
 ```rm -R /var/www```
 
-Remove the files for kvwmap-server:
+Remove the files for kvwmap-server from your user directory:
 
-```rm -R ~/db ~/etc ~/kvwmap-server ~/www```
+```cd USER_DIR```
+
+```rm -R db etc kvwmap-server www```
 
 ## Detailed installation description
 
