@@ -159,8 +159,9 @@ case "$1" in
     # create user for web gis anwendung if not exists
     $OS_USER_EXISTS || adduser $OS_USER
 
-    # uncomment bash Einstellungen for web gis user
-    echo "export PATH=\$PATH:${USER_DIR}/kvwmap-server" > $USER_DIR/.bashrc
+    # set bash settings for web gis user
+    cp /etc/skel/.bashrc $USER_DIR/.bashrc
+    echo "export PATH=\$PATH:${USER_DIR}/kvwmap-server" >> $USER_DIR/.bashrc
     sed -i \
       -e "s|#alias ll=|alias ll=|g" \
       -e "s|alias rm=|#alias rm=|g" \

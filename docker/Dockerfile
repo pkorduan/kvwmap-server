@@ -34,6 +34,7 @@ RUN apt-get update && apt-get install -y \
 ADD sources/config.inc.php /
 ADD sources/create_mysql_user.sql /
 ADD sources/kvwmap-start /usr/local/bin/
+ADD sources/kvwmap-setpghost /usr/local/bin/
 ADD sources/kvwmap-firstrun /usr/local/bin/
 ADD sources/shp2pgsql /usr/bin/
 ADD sources/pgsql2shp /usr/bin/
