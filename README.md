@@ -1,16 +1,15 @@
 # kvwmap-server
 
-A docker container that runs Web-GIS application kvwmap from git repo ```srahn/kvwmap```
-based on Apache web server Mapservers phpMapScript as well as MySQL database for user
-and map context and PostgreSQL database with PostGIS extension for geodata.
+This repository include all files to install and run the docker image pkorduan/kvwmap-server.
 
-**Note:** ``mysql:5.5`` and ``postgis:9.4`` docker images are required to run
-a container based on this image ``pkorduan\kvwmap-server``
+The kvwmap-server contain a the Web-GIS application kvwmap from git repo ```srahn/kvwmap```
+an Apache web server, Mapservers phpMapScript as well as a MySQL database for user and
+map context and PostgreSQL database with PostGIS extension for geodata.
 
 ## Installation
-The preferred way to install this image and run the container onto your system
-is to pull the kvwmap-server repository from github first and than install
-all required components with the included administration script kvwmap.
+The preferred way to install the `pkorduan/kvwmap-server` image and run the container onto
+your system is to pull the kvwmap-server repository from github first and than install
+all required components with the included administration script `kvwmap`.
 
 ### Pull kvwmap-server
 **Note:** You must be logged in as root and have installed at least the debian
