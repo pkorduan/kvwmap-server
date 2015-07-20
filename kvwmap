@@ -7,7 +7,9 @@ OS_USER_EXISTS=false
 getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
 USER_DIR=/home/$OS_USER
 KVWMAP_IMAGE_VERSION=latest
-IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
+if [ "$(id -u)" == '0' ]; then
+  IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
+fi
 
 usage() {
   echo ""
