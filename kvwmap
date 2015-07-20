@@ -21,26 +21,44 @@ usage() {
   echo "kvwmap [Option]";
   echo ""
   echo "Optionen:"
+  echo "clear         Löscht alle beendeten Container und nicht getaggete images."
+  echo "console mysql Öffnet eine Console im Mysql Container."
+  echo "console pgsql Öffnet eine Console im PostgreSQL Container."
   echo "install       - Installiert auf dem Hostrechner den Docker-Server und Utilities zum Betrieb der Container,"
   echo "              - Richtet den Nutzer gisadmin ein und konfiguriert die Bash-Einstellungen von gisadmin und root,"
   echo "              - Erzeugt die Verzeichnisse, die kvwmap auf dem Host benötigt und die als Volumes in die Container eingebunden werden,"
   echo "              - Zieht die Images für MySQL und PostgreSQL von dockerhup und macht den Build für das kvwmap-Image."
-  echo "start         Startet alle Container."
-  echo "status"
-  echo "restart"
-  echo "rebuild"
-  echo "stop          Stoppt und löscht alle Container."
-  echo "clear         Löscht alle beendeten Container und nicht getaggete images."
-  echo "pgsql start   Startet nur den Container mit der PostgreSQL-Datenbank."
+  echo "mysql client  Öffnet eine Komandozeile im mysql Client."
+  echo "mysql start   Startet nur den Container mit der MySQL-Datenbank (mysql-server)"
+  echo "mysql status  Zeigt den Status des MySQL Containers an."
+  echo "mysql stop    Stoppt den MySQL Container und zeigt alle vorhandenen an."
+  echo "mysql remove  Stoppt und löscht den MySQL Container und zeigt die verbleibenden an."
+  echo "pgsql client  Öffnet eine Komandozeile im psql Client."
+  echo "pgsql start   Startet nur den Container mit der PostgreSQL-Datenbank (pgsql-server)."
   echo "pgsql status  Zeigt den Status des PostgreSQL-Datenbank Containers an."
-  echo "uninstall     Stoppt und löscht alle Container, löscht alle Images und die Dateien in /var/www und von kvwmap-server in $USER_DIR"
-  echo "              Alle Daten gehen dabei verloren. Du wirst vorher gefragt ob Du das wirklich tuhen willst."
+  echo "pgsql stop    Stoppt den PostgreSQL Container und zeigt alle vorhandenen an."
+  echo "pgsql remove  Stoppt und löscht den PostgreSQL Container und zeigt die verbleibenden an."
+  echo "restart       Stoppt und löscht alle Container und startet sie neu wie beim Parameter start."
+  echo "rebuild       Stoppt und löscht alle Container, löscht das vorhandene kvwmap-server image, bildet es neu und startet danach alle Container neu."
+  echo "remove        Stoppt und löscht alle Container."
+  echo "start         Erzeugt das Volum für die www Daten und startet alle Container."
+  echo "status        Listet alle Container und Images auf."
+  echo "stop          Stoppt alle Container."
+  echo "uninstall     (Derzeit noch ungetestet) Vorsicht, Stoppt und löscht alle Container, löscht alle Images und deinstalliert kvwmap-server."
+  echo "              Dazu gehört alles in /var/www sowie die Verzeichnisse db, etc und kvwmap-server"
+  echo "              unter dem Installationsverzeichnis z.B. unter /home/gisadmin"
   echo ""
   echo "Beispiele:"
   echo "$0 start"
   echo "$0 stop"
   echo "$0 pgsql status"
   echo ""  
+}
+
+create_www_data_volume() {
+  docker create --name wwwdata \
+    -v /var/www:/var/www \
+      pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} /bin/true
 }
 
 fail_unless_root() {
@@ -50,10 +68,53 @@ fail_unless_root() {
   fi
 }
 
-create_www_data_volume() {
-  docker create --name wwwdata \
-    -v /var/www:/var/www \
-      pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} /bin/true
+remove_all_container() {
+  docker rm $(docker ps -a -q)
+  echo "Alle Container gelöscht."
+}
+
+remove_all_images() {
+  docker rmi $(docker images | awk "{print $3}")
+  echo "Alle Images gelöscht."
+}
+
+show_container_status() {
+  CONTAINER=$1
+  RUNNING=$(docker inspect --format="{{ .State.Running }}" $CONTAINER 2> /dev/null)
+ 
+  if [ $? -eq 1 ]; then
+    echo "UNKNOWN - Container $CONTAINER does not exist."
+    exit 3
+  fi
+ 
+  if [ "$RUNNING" == "false" ]; then
+    echo "CRITICAL - $CONTAINER is not running."
+    exit 2
+  fi
+ 
+  GHOST=$(docker inspect --format="{{ .State.Ghost }}" $container)
+ 
+  if [ "$GHOST" == "true" ]; then
+    echo "WARNING - $CONTAINER has been ghosted."
+    exit 1
+  fi
+ 
+  STARTED=$(docker inspect --format="{{ .State.StartedAt }}" $CONTAINER)
+  NETWORK=$(docker inspect --format="{{ .NetworkSettings.IPAddress }}" $CONTAINER)
+ 
+  echo "OK - $CONTAINER is running. IP: $NETWORK, StartedAt: $STARTED"
+}
+
+start_all_container() {
+  create_www_data_volume
+  start_mysql_container
+  start_pgsql_container
+  start_web_container
+}
+
+stop_all_container() {
+  docker stop $(docker ps -a -q)
+  echo "Alle Container gestopped."
 }
 
 start_mysql_container() {
@@ -94,62 +155,35 @@ start_web_container() {
   docker ps
 }
 
-start_all_container() {
-  create_www_data_volume
-  start_mysql_container
-  start_pgsql_container
-  start_web_container
-}
-
-stop_all_container() {
-  docker stop $(docker ps -a -q)
-  echo "Alle Container gestopped."
-}
-
-remove_all_container() {
-  read -p"Willst Du wirklich alle Container löschen (j/n)? " antwort
-  if [ "$antwort" == "j" ]; then
-    docker rm $(docker ps -a -q)
-    echo "Alle Container gelöscht."
-  fi
-}
-
-remove_all_images() {
-  read -p"Willst Du wirklich alle Images löschen (j/n)? " antwort
-  if [ "$antwort" == "j" ]; then
-    docker rmi $(docker images | awk "{print $3}")
-    echo "Alle Images gelöscht."
-  fi
-}
-
-show_container_status() {
-  CONTAINER=$1
-  RUNNING=$(docker inspect --format="{{ .State.Running }}" $CONTAINER 2> /dev/null)
- 
-  if [ $? -eq 1 ]; then
-    echo "UNKNOWN - Container $CONTAINER does not exist."
-    exit 3
-  fi
- 
-  if [ "$RUNNING" == "false" ]; then
-    echo "CRITICAL - $CONTAINER is not running."
-    exit 2
-  fi
- 
-  GHOST=$(docker inspect --format="{{ .State.Ghost }}" $container)
- 
-  if [ "$GHOST" == "true" ]; then
-    echo "WARNING - $CONTAINER has been ghosted."
-    exit 1
-  fi
- 
-  STARTED=$(docker inspect --format="{{ .State.StartedAt }}" $CONTAINER)
-  NETWORK=$(docker inspect --format="{{ .NetworkSettings.IPAddress }}" $CONTAINER)
- 
-  echo "OK - $CONTAINER is running. IP: $NETWORK, StartedAt: $STARTED"
-}
-
 case "$1" in
+  clean)
+    # Remove all unused exited container
+    docker rm $(docker ps -q -f status=exited)
+    # Remove all images without tags
+    docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
+  ;;
+  
+  console)
+    fail_unless_root
+    case $2 in
+      mysql)
+        echo "Öffne ein Terminal im Container in dem der MySQL-Server läuft."
+        docker exec -it mysql-server /bin/bash
+      ;;
+      pgsql)
+        echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft."
+        docker exec -it pgsql-server /bin/bash
+      ;;
+      web)
+        echo "Öffne ein Terminal im Container in dem der Web-Server läuft."
+        docker exec -it web /bin/bash
+      ;;
+      *)
+        echo "Zu welchem Container soll eine Console aufgemacht werden, mysql, pgsql oder web?"
+      ;;
+    esac
+  ;;
+  
   install)
     fail_unless_root
     
@@ -260,21 +294,34 @@ case "$1" in
     cd $USER_DIR/kvwmap-server/docker
     docker build -t pkorduan/kvwmap-server:latest .
   ;;
-  
-  uninstall)
+
+  pgsql)
     fail_unless_root
-    remove_all_container
-    remove_all_images
-    read -p"Willst Du wirklich alle Dateien im Verzeichnis /var/www löschen (j/n)? " antwort
-    if [ "$antwort" == "j" ]; then
-      rm -R /var/www/*
-      echo "Alles im Verzeichnis /var/www gelöscht."
-    fi
-    read -p"Willst Du wirklich alle Dateien von kvwmap-server im Verzeichnis $USER_DIR löschen (j/n)? " antwort
-    if [ "$antwort" == "j" ]; then
-      rm -R $USER_DIR/db $USER_DIR/etc $USER_DIR/kvwmap-server $USER_DIR/www
-      echo "Alles im Verzeichnis $USER_DIR gelöscht."
-    fi
+    case $2 in
+      client)
+        MYSQL_TCP_ADD=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql-server`
+        MYSQL_ROOT_PASSWORD=`docker inspect --format '{{index .Config.Env 0}}' mysql-server | cut -d \= -f 2`
+        docker exec -it mysql-server mysql -h ${MYSQL_TCP_ADD} -u root --password=${MYSQL_ROOT_PASSWORD} mysql
+      ;;
+      start)
+        start_mysql_container
+      ;;
+      stop)
+        docker stop mysql-server
+        docker ps -a
+      ;;
+      remove)
+        docker stop mysql-server
+        docker rm mysql-server
+        docker ps -a
+      ;;
+      status)
+        show_container_status "mysql-server"
+      ;;
+      *)
+        echo "Gib nach mysql einen der folgenden Parameter ein: client, start, stop, remove oder status."
+      ;;
+    esac
   ;;
   
   rebuild)
@@ -286,15 +333,15 @@ case "$1" in
     docker build -t pkorduan/kvwmap-server:latest .
     start_all_container
   ;;
-
-  start)
-    fail_unless_root
-    start_all_container
-  ;;
   
   pgsql)
     fail_unless_root
     case $2 in
+      client)
+        POSTGRESQL_TCP_ADD=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' pgsql-server`
+        PGPASSWORD=`docker inspect --format '{{index .Config.Env 0}}' pgsql-server | cut -d \= -f 2`
+        docker exec -it pgsql-server psql -h ${POSTGRESQL_TCP_ADD} -U postgres postgres
+      ;;
       start)
         start_pgsql_container
       ;;
@@ -311,14 +358,13 @@ case "$1" in
         show_container_status "pgsql-server"
       ;;
       *)
-        echo "Gib nach pgsql einen der folgenden Parameter ein: start stop remove status"
+        echo "Gib nach pgsql einen der folgenden Parameter ein: client, start, stop, remove oder status."
       ;;
     esac
   ;;
 
-  stop)
+  remove)
     fail_unless_root
-    stop_all_container
     remove_all_container
   ;;
 
@@ -329,52 +375,41 @@ case "$1" in
     start_all_container
   ;;
 
+  start)
+    fail_unless_root
+    start_all_container
+  ;;
+
   status)
     fail_unless_root
     docker ps -a
     docker images
   ;;
-  
-  clean)
-    # Remove all unused exited container
-    docker rm $(docker ps -q -f status=exited)
-    # Remove all images without tags
-    docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
+
+  stop)
+    fail_unless_root
+    stop_all_container
   ;;
   
-  console)
+  uninstall)
     fail_unless_root
-    case $2 in
-      mysql)
-        echo "Öffne ein Terminal im Container in dem der MySQL-Server läuft."
-        docker exec -it mysql-server /bin/bash
+    read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (j/n)? " answer
+    case ${answer:0:1} in
+      j|J )
+        stop_all_container
+        remove_all_container
+        remove_all_images
+        rm -RI /var/www/*
+    
+        if [ -z "$USER_DIR" ] ; then
+          rm -RI $USER_DIR/db $USER_DIR/etc $USER_DIR/kvwmap-server $USER_DIR/www
+        fi
+        echo "So jetzt ist alles weg."
       ;;
-      pgsql)
-        echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft."
-        docker exec -it pgsql-server /bin/bash
-      ;;
-      web)
-        echo "Öffne ein Terminal im Container in dem der Web-Server läuft."
-        docker exec -it web /bin/bash
-      ;;
-      *)
-        echo "Zu welchem Container soll eine Console aufgemacht werden, mysql, pgsql oder web?"
+      * )
+        echo "OK, nix passiert!"
       ;;
     esac
-  ;;
-  
-  mysql-client)
-    fail_unless_root
-    MYSQL_TCP_ADD=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql-server`
-    MYSQL_ROOT_PASSWORD=`docker inspect --format '{{index .Config.Env 0}}' mysql-server | cut -d \= -f 2`
-    docker exec -it mysql-server mysql -h ${MYSQL_TCP_ADD} -u root --password=${MYSQL_ROOT_PASSWORD} mysql
-  ;;
-
-  pgsql-client)
-    fail_unless_root
-    POSTGRESQL_TCP_ADD=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' pgsql-server`
-    PGPASSWORD=`docker inspect --format '{{index .Config.Env 0}}' pgsql-server | cut -d \= -f 2`
-    docker exec -it pgsql-server psql -h ${POSTGRESQL_TCP_ADD} -U postgres postgres
   ;;
   
   *)
