@@ -17,21 +17,28 @@ all required components with the included administration script `kvwmap`.
 **Note:** You must be logged in as root and have installed at least the debian
 packages git, wget and curl to use git and run the kvwmap script on your host successfully.
 
-```apt-get update && apt-get install -y apt-utils curl git wget```
+```
+apt-get update && apt-get install -y 
+  apt-utils \
+  curl \
+  git \
+  wget
+```
 
-Clone the ``pkorduan/kvwmap-server`` repository from github in to your user
+Clone the `pkorduan/kvwmap-server` repository from github in to your user
 directory. Assume you have a user directory /home/gisadmin
 
-```USER_DIR=/home/gisadmin```
-
-```cd USER_DIR```
-
-```git clone https://github.com/pkorduan/kvwmap-server.git```
-
+```
+$ USER_DIR=/home/gisadmin
+$ cd USER_DIR
+$ git clone https://github.com/pkorduan/kvwmap-server.git
+```
 ### Install kvwmap-server
 Get and install all the components that uses kvwmap-server.
 
-```kvwmap-server/kvwmap install```
+```
+$ kvwmap-server/kvwmap install
+```
 
 This scrpit should ended up with the message: Successfully built
 
@@ -39,19 +46,21 @@ This scrpit should ended up with the message: Successfully built
 Start the containers with volumes and link it together. You will be asked to
 choose passwords for the MySQL root and PostgreSQL postgres super user.
 
-```kvwmap start```
+```
+$ kvwmap start
+```
 
 After this step the container named web, pgsql-server and mysql-server shoud be
-set up and run. The output of ```docker ps -a``` is shown.
+set up and run. The output of `docker ps -a` is shown.
 
 ### Install kvwmap web application
 Open a browser and call the kvwmap install script with the url of your host.
 
-http://yourserver/kvmwmap/install.php
+`http://yourserver/kvmwmap/install.php`
 
 There should be no error messages and a hint that you now can login with
 
-user: kvwmap and password: kvmwap
+`user: kvwmap and password: kvmwap`
 
 Ignore the Warning: fclose(): 5 is not a valid stream resource in /var/www/apps/kvwmap/class/log.php on line 106
 
@@ -63,20 +72,24 @@ in config.php. See the kvwmap documentation for more information at:
 ### Unistall kvwmap-server
 Stopp all container and remove images with the kvwmap script:
 
-```kvwmap stop```
-
-```kvwmap clan```
+```
+$ kvwmap stop
+$ kvwmap clean
+```
 
 Remove the volumes for the web application kvwmap. Be sure not to remove other
 files:
 
-```rm -R /var/www```
+```
+$ rm -R /var/www
+```
 
 Remove the files for kvwmap-server from your user directory:
 
-```cd USER_DIR```
-
-```rm -R db etc kvwmap-server www```
+```
+$ cd USER_DIR
+$ rm -R db etc kvwmap-server www
+```
 
 ## Detailed installation description
 
