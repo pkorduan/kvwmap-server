@@ -18,7 +18,7 @@ all required components with the included administration script `kvwmap`.
 packages git, wget and curl to use git and run the kvwmap script on your host successfully.
 
 ```
-apt-get update && apt-get install -y 
+apt-get update && apt-get install -y \
   apt-utils \
   curl \
   git \
