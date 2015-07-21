@@ -263,10 +263,10 @@ case "$1" in
              /var/www/apps/kvwmap/layouts/snippets/custom \
              /var/www/apps/kvwmap/symbols/custom
 
-    PHPMYADMIN_VERSION="4.4.10"
+    PHPMYADMIN_VERSION="4.4.12"
 
     cd /var/www/apps
-    wget -O phpMyAdmin.tar.gz http://downloads.sourceforge.net/project/phpmyadmin/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz
+    wget -O phpMyAdmin.tar.gz --no-check-certificate https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz
     tar xvfz phpMyAdmin.tar.gz
     mv /var/www/apps/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages /var/www/apps/phpMyAdmin
     rm /var/www/apps/phpMyAdmin.tar.gz
