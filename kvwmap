@@ -69,11 +69,13 @@ fail_unless_root() {
 }
 
 remove_all_container() {
+  echo "Lösche alle Container."
   docker rm $(docker ps -a -q)
   echo "Alle Container gelöscht."
 }
 
 remove_all_images() {
+  echo "Lösche alle Images."
   docker rmi $(docker images | awk "{print $3}")
   echo "Alle Images gelöscht."
 }
@@ -113,6 +115,7 @@ start_all_container() {
 }
 
 stop_all_container() {
+  echo "Stoppe alle Container."
   docker stop $(docker ps -a -q)
   echo "Alle Container gestopped."
 }
@@ -157,9 +160,10 @@ start_web_container() {
 
 case "$1" in
   clean)
-    # Remove all unused exited container
+    echo "Lösche alle nicht genutzten Container."
     docker rm $(docker ps -q -f status=exited)
-    # Remove all images without tags
+    
+    echo "Lösche alle Images mit Namen <none>."
     docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
   ;;
   
@@ -399,9 +403,11 @@ case "$1" in
         stop_all_container
         remove_all_container
         remove_all_images
+        echo "Lösche alles in /var/www "
         rm -RI /var/www/*
     
-        if [ -z "$USER_DIR" ] ; then
+        if [ ! -z "$USER_DIR" ] ; then
+          echo "Lösche $USER_DIR/db, $USER_DIR/etc, $USER_DIR/kvwmap-server und $USER_DIR/www"
           rm -RI $USER_DIR/db $USER_DIR/etc $USER_DIR/kvwmap-server $USER_DIR/www
         fi
         echo "So jetzt ist alles weg."
