@@ -133,6 +133,8 @@ start_pgsql_container() {
   read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
   docker run --name pgsql-server \
     --volumes-from wwwdata \
+    -v $USER_DIR/etc/postgresql/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf \
+    -v $USER_DIR/etc/postgresql/postgresql.conf:/var/lib/postgresql/data/postgresql.conf \
     -v $USER_DIR/db/postgresql/data:/var/lib/postgresql/data \
     -p 5432:5432 \
     -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
@@ -292,11 +294,11 @@ case "$1" in
 
     docker pull mdillon/postgis:9.4
     
-    #docker pull pkorduan/kvwmap-server:latest
+    docker pull pkorduan/kvwmap-server:latest
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-    cd $USER_DIR/kvwmap-server/docker
-    docker build -t pkorduan/kvwmap-server:latest .
+    #cd $USER_DIR/kvwmap-server/docker
+    #docker build -t pkorduan/kvwmap-server:latest .
   ;;
 
   pgsql)
