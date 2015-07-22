@@ -16,9 +16,9 @@ RUN apt-get update && apt-get install -y \
     apache2 \
     cgi-mapserver \
     dialog \
-		htop \
+    htop \
     imagemagick \
-		libjson0 \
+    libjson0 \
     less \
     mapserver-bin \
     mysql-client \
