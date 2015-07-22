@@ -29,7 +29,8 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     vim \
     wget \
-    zip
+    zip \
+    ntp
 
 ADD sources/config.inc.php /
 ADD sources/create_mysql_user.sql /
