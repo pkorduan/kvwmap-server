@@ -133,8 +133,6 @@ start_pgsql_container() {
   read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
   docker run --name pgsql-server \
     --volumes-from wwwdata \
-    -v $USER_DIR/etc/postgresql/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf \
-    -v $USER_DIR/etc/postgresql/postgresql.conf:/var/lib/postgresql/data/postgresql.conf \
     -v $USER_DIR/db/postgresql/data:/var/lib/postgresql/data \
     -p 5432:5432 \
     -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
@@ -249,6 +247,11 @@ case "$1" in
              /var/www/data/festpunkte/archiv
     
     ln -s /var/www $USER_DIR/www
+    ln -s $USER_DIR/db/postgresql/data/pg_hba.conf $USER_DIR/etc/postgresql/pg_hba.conf
+    ln -s $USER_DIR/db/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
+    chown -R $OS_USER.$OS_USER \
+      $USER_DIR/db/postgresql/data/pg_hba.conf \
+      $USER_DIR/db/postgresql/data/postgresql.conf
 
     cp $USER_DIR/kvwmap-server/www/html/index.php /var/www/html/index.php
     cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
@@ -301,7 +304,7 @@ case "$1" in
     #docker build -t pkorduan/kvwmap-server:latest .
   ;;
 
-  pgsql)
+  mysql)
     fail_unless_root
     case $2 in
       client)
@@ -329,17 +332,7 @@ case "$1" in
       ;;
     esac
   ;;
-  
-  rebuild)
-    fail_unless_root
-    stop_all_container
-    remove_all_container
-    docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
-    cd $USER_DIR/kvwmap-server/docker
-    docker build -t pkorduan/kvwmap-server:latest .
-    start_all_container
-  ;;
-  
+
   pgsql)
     fail_unless_root
     case $2 in
@@ -368,7 +361,17 @@ case "$1" in
       ;;
     esac
   ;;
-
+  
+  rebuild)
+    fail_unless_root
+    stop_all_container
+    remove_all_container
+    docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
+    cd $USER_DIR/kvwmap-server/docker
+    docker build -t pkorduan/kvwmap-server:latest .
+    start_all_container
+  ;;
+  
   remove)
     fail_unless_root
     remove_all_container
@@ -419,7 +422,31 @@ case "$1" in
       ;;
     esac
   ;;
-  
+
+  web)
+    fail_unless_root
+    case $2 in
+      start)
+        start_web_container
+      ;;
+      stop)
+        docker stop web
+        docker ps -a
+      ;;
+      remove)
+        docker stop web
+        docker rm web
+        docker ps -a
+      ;;
+      status)
+        show_container_status "web"
+      ;;
+      *)
+        echo "Gib nach web einen der folgenden Parameter ein: start, stop, remove oder status."
+      ;;
+    esac
+  ;;
+
   *)
     usage
     exit 1
