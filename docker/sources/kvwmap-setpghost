@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # This script set the host ip of the postgresql docker container into the connection setting of the layers in kvwmap's mysql database.
 # It replaces the former ip with the new ip of the pgsql container and set the new ip in the log file pgsql_container.ip
