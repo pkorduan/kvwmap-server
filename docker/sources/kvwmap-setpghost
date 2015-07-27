@@ -12,4 +12,7 @@ fi
 mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD --database="kvwmapdb" \
 -e "UPDATE layer SET connection = REPLACE(connection, 'host=$(<$PGSQL_IP_FILE)', 'host=${PGSQL_PORT_5432_TCP_ADDR}');"
 
+mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD --database="kvwmapdb" \
+-e "UPDATE rollenlayer SET connection = REPLACE(connection, 'host=$(<$PGSQL_IP_FILE)', 'host=${PGSQL_PORT_5432_TCP_ADDR}');"
+
 echo "$PGSQL_PORT_5432_TCP_ADDR" > $PGSQL_IP_FILE
