@@ -5,6 +5,4 @@ then
 	/usr/local/bin/kvwmap-firstrun
 fi
 
-/usr/local/bin/kvwmap-setpghost
-
 /usr/sbin/apache2ctl -d /etc/apache2 -DFOREGROUND
