@@ -21,6 +21,7 @@ usage() {
   echo "kvwmap [Option]";
   echo ""
   echo "Optionen:"
+  echo "build <tag>   Erzeugt einen neuen build des kvwmap-server images mit dem übergebenen tag."
   echo "clear         Löscht alle beendeten Container und nicht getaggete images."
   echo "console mysql Öffnet eine Console im Mysql Container."
   echo "console pgsql Öffnet eine Console im PostgreSQL Container."
@@ -53,6 +54,12 @@ usage() {
   echo "$0 stop"
   echo "$0 pgsql status"
   echo ""  
+}
+
+build() {
+  TAG=$1
+  cd $USER_DIR/kvwmap-server/docker
+  docker build -t pkorduan/kvwmap-server:${TAG} .
 }
 
 create_www_data_volume() {
