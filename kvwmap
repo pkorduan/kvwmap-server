@@ -41,7 +41,7 @@ usage() {
   echo "restart       Stoppt und löscht alle Container und startet sie neu wie beim Parameter start."
   echo "rebuild       Stoppt und löscht alle Container, löscht das vorhandene kvwmap-server image, bildet es neu und startet danach alle Container neu."
   echo "reload        Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
-  echo "remove        Stoppt und löscht alle Container."
+  echo "remove        Löscht alle Container."
   echo "start         Erzeugt das Volum für die www Daten und startet alle Container."
   echo "status        Listet alle Container und Images auf."
   echo "stop          Stoppt alle Container."
