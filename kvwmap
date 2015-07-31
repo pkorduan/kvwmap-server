@@ -21,8 +21,7 @@ usage() {
   echo "kvwmap [Option]";
   echo ""
   echo "Optionen:"
-  echo "build <tag>   Erzeugt einen neuen build des kvwmap-server images mit dem übergebenen tag."
-  echo "clear         Löscht alle beendeten Container und nicht getaggete images."
+  echo "clean         Löscht alle beendeten Container und nicht getaggete images."
   echo "console mysql Öffnet eine Console im Mysql Container."
   echo "console pgsql Öffnet eine Console im PostgreSQL Container."
   echo "install       - Installiert auf dem Hostrechner den Docker-Server und Utilities zum Betrieb der Container,"
@@ -41,6 +40,7 @@ usage() {
   echo "pgsql remove  Stoppt und löscht den PostgreSQL Container und zeigt die verbleibenden an."
   echo "restart       Stoppt und löscht alle Container und startet sie neu wie beim Parameter start."
   echo "rebuild       Stoppt und löscht alle Container, löscht das vorhandene kvwmap-server image, bildet es neu und startet danach alle Container neu."
+  echo "reload        Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
   echo "remove        Stoppt und löscht alle Container."
   echo "start         Erzeugt das Volum für die www Daten und startet alle Container."
   echo "status        Listet alle Container und Images auf."
@@ -58,6 +58,9 @@ usage() {
 
 build() {
   TAG=$1
+  if [ -z "$TAG" ] ; then
+    TAG="latest"
+  fi
   cd $USER_DIR/kvwmap-server/docker
   docker build -t pkorduan/kvwmap-server:${TAG} .
 }
@@ -307,8 +310,7 @@ case "$1" in
     docker pull pkorduan/kvwmap-server:latest
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-    #cd $USER_DIR/kvwmap-server/docker
-    #docker build -t pkorduan/kvwmap-server:latest .
+    # build "latest"
   ;;
 
   mysql)
@@ -374,8 +376,16 @@ case "$1" in
     stop_all_container
     remove_all_container
     docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
-    cd $USER_DIR/kvwmap-server/docker
-    docker build -t pkorduan/kvwmap-server:latest .
+    build "latest"
+    start_all_container
+  ;;
+
+  reload)
+    fail_unless_root
+    stop_all_container
+    remove_all_container
+    docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
+    docker pull pkorduan/kvwmap-server:latest
     start_all_container
   ;;
   
@@ -423,6 +433,12 @@ case "$1" in
           rm -RI $USER_DIR/db $USER_DIR/etc $USER_DIR/kvwmap-server $USER_DIR/www
         fi
         echo "So jetzt ist alles weg."
+        echo "Zum neu installieren folgende Befehle eingeben:"
+        echo "git clone https://github.com/pkorduan/kvwmap-server.git"
+        echo "kvwmap-server/kvwmap install"
+        echo "kvwmap start"
+        echo "und im Browser:"
+        echo "http://meineserverip/kvwmap/install.php"
       ;;
       * )
         echo "OK, nix passiert!"
