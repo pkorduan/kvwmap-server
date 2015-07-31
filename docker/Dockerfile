@@ -1,5 +1,6 @@
 FROM debian
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
+LABEL version="1.0.0"
 
 RUN echo "deb http://ftp.de.debian.org/debian/ jessie main contrib non-free" > /etc/apt/sources.list && \
     echo "deb-src http://ftp.de.debian.org/debian/ jessie main contrib non-free" >> /etc/apt/sources.list && \
