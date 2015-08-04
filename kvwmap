@@ -375,7 +375,7 @@ case "$1" in
     fail_unless_root
     stop_all_container
     remove_all_container
-    docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
+    docker rmi -f $(docker images -q pkorduan/kvwmap-server)
     build "latest"
     start_all_container
   ;;
@@ -384,7 +384,7 @@ case "$1" in
     fail_unless_root
     stop_all_container
     remove_all_container
-    docker rmi -f $(docker images -q pkorduan/kvwmap-server:latest)
+    docker rmi -f $(docker images -q pkorduan/kvwmap-server)
     docker pull pkorduan/kvwmap-server:latest
     start_all_container
   ;;
