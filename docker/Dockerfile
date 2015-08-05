@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y \
     zip \
     ntp
 
-RUN a2enmod cgi \
+RUN a2enmod cgi; \
     a2enmod authz_groupfile
 
 ADD sources/config.inc.php /
