@@ -7,6 +7,7 @@ OS_USER_EXISTS=false
 getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
 USER_DIR=/home/$OS_USER
 KVWMAP_IMAGE_VERSION=latest
+SERVER_NAME=`hostname`
 if [ "$(id -u)" == '0' ]; then
   IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
 fi
@@ -265,6 +266,7 @@ case "$1" in
 
     cp $USER_DIR/kvwmap-server/www/html/index.php /var/www/html/index.php
     cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
+    sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" $USER_DIR/etc/apache2/sites-available/000-default.conf
     cp -R $USER_DIR/kvwmap-server/www/data/mapfiles/ /var/www/data/
     cp -R $USER_DIR/kvwmap-server/www/data/referencemaps/ /var/www/data/
     cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass /var/www/apps/
