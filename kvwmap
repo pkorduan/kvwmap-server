@@ -25,6 +25,7 @@ usage() {
   echo "clean         Löscht alle beendeten Container und nicht getaggete images."
   echo "console mysql Öffnet eine Console im Mysql Container."
   echo "console pgsql Öffnet eine Console im PostgreSQL Container."
+  echo "console web   Öffnet eine Console im Web Container"
   echo "install       - Installiert auf dem Hostrechner den Docker-Server und Utilities zum Betrieb der Container,"
   echo "              - Richtet den Nutzer gisadmin ein und konfiguriert die Bash-Einstellungen von gisadmin und root,"
   echo "              - Erzeugt die Verzeichnisse, die kvwmap auf dem Host benötigt und die als Volumes in die Container eingebunden werden,"
@@ -33,22 +34,52 @@ usage() {
   echo "mysql start   Startet nur den Container mit der MySQL-Datenbank (mysql-server)"
   echo "mysql status  Zeigt den Status des MySQL Containers an."
   echo "mysql stop    Stoppt den MySQL Container und zeigt alle vorhandenen an."
-  echo "mysql remove  Stoppt und löscht den MySQL Container und zeigt die verbleibenden an."
+  echo "mysql remove  Löscht den MySQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
+  echo "mysql run     Erzeugt und startet den MySQL Container mit dem Namen mysql-server."
   echo "pgsql client  Öffnet eine Komandozeile im psql Client."
   echo "pgsql start   Startet nur den Container mit der PostgreSQL-Datenbank (pgsql-server)."
   echo "pgsql status  Zeigt den Status des PostgreSQL-Datenbank Containers an."
   echo "pgsql stop    Stoppt den PostgreSQL Container und zeigt alle vorhandenen an."
-  echo "pgsql remove  Stoppt und löscht den PostgreSQL Container und zeigt die verbleibenden an."
-  echo "restart       Stoppt und löscht alle Container und startet sie neu wie beim Parameter start."
-  echo "rebuild       Stoppt und löscht alle Container, löscht das vorhandene kvwmap-server image, bildet es neu und startet danach alle Container neu."
+  echo "pgsql remove  Löscht den PostgreSQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
+  echo "pgsql run     Erzeugt und startet den PostgreSQL Container mit dem Namen pgsql-server."
+  echo "rebuild       Stoppt und löscht alle Container, löscht das vorhandene kvwmap-server image, bildet es neu und erzeugt und startet danach alle Container neu."
   echo "reload        Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
   echo "remove        Löscht alle Container."
-  echo "start         Erzeugt das Volum für die www Daten und startet alle Container."
-  echo "status        Listet alle Container und Images auf."
-  echo "stop          Stoppt alle Container."
-  echo "uninstall     (Derzeit noch ungetestet) Vorsicht, Stoppt und löscht alle Container, löscht alle Images und deinstalliert kvwmap-server."
+  echo "remove mysql  Löscht nur den Container mysql-server."
+  echo "remove pgsql  Löscht nur den Container pgsql-server."
+  echo "remove web    Löscht nur den Container web."
+  echo "restart       Stoppt und löscht alle Container und erzeugt und startet sie neu wie beim Parameter run."
+  echo "run           Erzeugt und startet alle oder den angegebenen Container."
+  echo "run all       Erzeugt und startet alle Container."
+  echo "run mysql     Erzeugt und startet nur den Container mysql-server."
+  echo "run pgsql     Erzeugt und startet nur den Container pgsql-server."
+  echo "run web       Erzeugt und startet nur den Container web."
+  echo "run wwwdata   Erzeug den Volume Container wwwdata."
+  echo "start         Startet alle oder den angegebenen Container."
+  echo "start all     Startet alle Container."
+  echo "start mysql   Startet nur den Container mysql-server."
+  echo "start pgsql   Startet nur den Container pgsql-server."
+  echo "start web     Startet nur den Container web."
+  echo "status        Listet Status der angegebenen Container auf."
+  echo "status all    Listet den Status aller Container auf."
+  echo "status mysql  Listet den Status des Containers mysql-server."
+  echo "status pgsql  Listet den Status des Containers pgsql-server."
+  echo "status web    Listet den Status des Containers web"
+  echo "stop          Stoppt alle oder einen der angegebenen Container."
+  echo "stop all      Stoppt alle Container."
+  echo "stop mysql    Stoppt nur den Container mysql-server."
+  echo "stop pgsql    Stoppt nur den Container pgsql-server."
+  echo "stop web      Stoppt nur den Container web."
+  echo "uninstall     Vorsicht, Stoppt und löscht alle Container, löscht alle Images und deinstalliert kvwmap-server."
   echo "              Dazu gehört alles in /var/www sowie die Verzeichnisse db, etc und kvwmap-server"
   echo "              unter dem Installationsverzeichnis z.B. unter /home/gisadmin"
+  echo "              Damit werden auch alle Daten und Datenbankinhalte gelöscht."
+  echo "web console   Öffnet ein Terminal im Container web in dem der Web-Server läuft."
+  echo "web start     Startet den Container web."
+  echo "web status    Zeigt den Status des Web-Containers mit dem Namen web."
+  echo "web stop      Stoppt den Container web."
+  echo "web remove    Löscht den Web Container und zeigt alle verbleibenden an. Der Container muss vorher gestoppt worden sein."
+  echo "web run       Erzeugt und startet den Web-Server Container mit dem Namen web."
   echo ""
   echo "Beispiele:"
   echo "$0 start"
@@ -91,47 +122,15 @@ remove_all_images() {
   echo "Alle Images gelöscht."
 }
 
-show_container_status() {
-  CONTAINER=$1
-  RUNNING=$(docker inspect --format="{{ .State.Running }}" $CONTAINER 2> /dev/null)
- 
-  if [ $? -eq 1 ]; then
-    echo "UNKNOWN - Container $CONTAINER does not exist."
-    exit 3
-  fi
- 
-  if [ "$RUNNING" == "false" ]; then
-    echo "CRITICAL - $CONTAINER is not running."
-    exit 2
-  fi
- 
-  GHOST=$(docker inspect --format="{{ .State.Ghost }}" $container)
- 
-  if [ "$GHOST" == "true" ]; then
-    echo "WARNING - $CONTAINER has been ghosted."
-    exit 1
-  fi
- 
-  STARTED=$(docker inspect --format="{{ .State.StartedAt }}" $CONTAINER)
-  NETWORK=$(docker inspect --format="{{ .NetworkSettings.IPAddress }}" $CONTAINER)
- 
-  echo "OK - $CONTAINER is running. IP: $NETWORK, StartedAt: $STARTED"
-}
-
-start_all_container() {
+run_all_container() {
+  echo "Starte alle Container."
   create_www_data_volume
-  start_mysql_container
-  start_pgsql_container
-  start_web_container
+  run_mysql_container
+  run_pgsql_container
+  run_web_container
 }
 
-stop_all_container() {
-  echo "Stoppe alle Container."
-  docker stop $(docker ps -a -q)
-  echo "Alle Container gestopped."
-}
-
-start_mysql_container() {
+run_mysql_container() {
   read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
   docker run --name mysql-server \
     -v $USER_DIR/etc/mysql:/etc/mysql \
@@ -140,7 +139,7 @@ start_mysql_container() {
     -d mysql:5.5
 }
 
-start_pgsql_container() {
+run_pgsql_container() {
   read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
   docker run --name pgsql-server \
     --volumes-from wwwdata \
@@ -153,7 +152,7 @@ start_pgsql_container() {
 #
 # Start the web container
 #
-start_web_container() {
+run_web_container() {
   docker run --name web \
       --link mysql-server:mysql \
       --link pgsql-server:pgsql \
@@ -166,7 +165,49 @@ start_web_container() {
       -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
       -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
       -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
+}
+
+show_container_status() {
+  CONTAINER=$1
+  echo "Status des Containers $CONTAINER:"
+  RUNNING=$(docker inspect --format="{{ .State.Running }}" $CONTAINER 2> /dev/null)
+ 
+  if [ $? -eq 1 ]; then
+    echo "UNKNOWN - Container $CONTAINER does not exist."
+    return 3
+  fi
+ 
+  if [ "$RUNNING" == "false" ]; then
+    echo "CRITICAL - $CONTAINER is not running."
+    return 2
+  fi
+ 
+  GHOST=$(docker inspect --format="{{ .State.Ghost }}" $CONTAINER)
+ 
+  if [ "$GHOST" == "true" ]; then
+    echo "WARNING - $CONTAINER has been ghosted."
+    return 1
+  fi
+ 
+  STARTED=$(docker inspect --format="{{ .State.StartedAt }}" $CONTAINER)
+  NETWORK=$(docker inspect --format="{{ .NetworkSettings.IPAddress }}" $CONTAINER)
+ 
+  echo "OK - $CONTAINER is running. IP: $NETWORK, StartedAt: $STARTED"
+}
+
+start_all_container() {
+  echo "Startet alle existierenden Container."
+  docker start wwwdata
+  docker start mysql-server
+  docker start pgsql-server
+  docker start web
   docker ps
+}
+
+stop_all_container() {
+  echo "Stoppe alle Container."
+  docker stop $(docker ps -a -q)
+  echo "Alle Container gestopped."
 }
 
 case "$1" in
@@ -324,22 +365,25 @@ case "$1" in
         docker exec -it mysql-server mysql -h ${MYSQL_TCP_ADD} -u root --password=${MYSQL_ROOT_PASSWORD} mysql
       ;;
       start)
-        start_mysql_container
+        docker start mysql-server
+        docker ps
+      ;;
+      status)
+        show_container_status "mysql-server"
       ;;
       stop)
         docker stop mysql-server
         docker ps -a
       ;;
       remove)
-        docker stop mysql-server
         docker rm mysql-server
         docker ps -a
       ;;
-      status)
-        show_container_status "mysql-server"
+      run)
+        run_mysql_container
       ;;
       *)
-        echo "Gib nach mysql einen der folgenden Parameter ein: client, start, stop, remove oder status."
+        echo "Gib nach mysql einen der folgenden Parameter ein: client, start, status, stop, remove oder run."
       ;;
     esac
   ;;
@@ -353,22 +397,25 @@ case "$1" in
         docker exec -it pgsql-server psql -h ${POSTGRESQL_TCP_ADD} -U postgres postgres
       ;;
       start)
-        start_pgsql_container
+        docker start pgsql-server
+        docker ps
+      ;;
+      status)
+        show_container_status "pgsql-server"
       ;;
       stop)
         docker stop pgsql-server
         docker ps -a
       ;;
       remove)
-        docker stop pgsql-server
         docker rm pgsql-server
         docker ps -a
       ;;
-      status)
-        show_container_status "pgsql-server"
+      run)
+        run_pgsql_container
       ;;
       *)
-        echo "Gib nach pgsql einen der folgenden Parameter ein: client, start, stop, remove oder status."
+        echo "Gib nach pgsql einen der folgenden Parameter ein: client, start, status, stop, remove oder run."
       ;;
     esac
   ;;
@@ -379,7 +426,7 @@ case "$1" in
     remove_all_container
     docker rmi -f $(docker images -q pkorduan/kvwmap-server)
     build "latest"
-    start_all_container
+    run_all_container
   ;;
 
   reload)
@@ -388,35 +435,135 @@ case "$1" in
     remove_all_container
     docker rmi -f $(docker images -q pkorduan/kvwmap-server)
     docker pull pkorduan/kvwmap-server:latest
-    start_all_container
+    run_all_container
   ;;
   
   remove)
     fail_unless_root
-    remove_all_container
+    case $2 in
+      mysql)
+        echo "Remove container mysql-server."
+        docker rm mysql-server
+      ;;
+      pgsql)
+        echo "Remove container pgsql-server."
+        docker rm pgsql-server
+      ;;
+      web)
+        echo "Remove container web."
+        docker rm web
+      ;;
+      * )
+        remove_all_container
+      ;;
+    esac
+    docker ps -a
   ;;
 
   restart)
     fail_unless_root
     stop_all_container
     remove_all_container
-    start_all_container
+    run_all_container
+  ;;
+  
+  run)
+    fail_unless_root
+    case $2 in
+      all)
+        run_all_container
+        docker ps -a
+      ;;
+      mysql)
+        run_mysql_container
+        docker ps
+      ;;
+      pgsql)
+        run_pgsql_container
+        docker ps
+      ;;
+      web)
+        run_web_container
+        docker ps
+      ;;
+      wwwdata)
+        run_wwwdata_container
+        docker ps -a
+      ;;
+      * )
+        echo "Gib nach run einen der folgenden Parameter ein um den Container zu erzeugen: all, mysql, pgsql oder web."
+      ;;
+    esac
   ;;
 
   start)
     fail_unless_root
-    start_all_container
+    case $2 in
+      all)
+        start_all_container
+      ;;
+      mysql)
+        docker start mysql-server
+      ;;
+      pgsql)
+        docker start pgsql-server
+      ;;
+      web)
+        docker start web
+      ;;
+      * )
+        echo "Gib nach start einen der folgenden Parameter ein um den Container zu starten: all, mysql, pgsql oder all."
+      ;;
+    esac
   ;;
 
   status)
     fail_unless_root
-    docker ps -a
-    docker images
+    case $2 in
+      all)
+        show_container_status "wwwdata"
+        show_container_status "mysql-server"
+        show_container_status "pgsql-server"
+        show_container_status "web"
+      ;;
+      mysql)
+        show_container_status "mysql-server"
+      ;;
+      pgsql)
+        show_container_status "pgsql-server"
+      ;;
+      web)
+        show_container_status "web"
+      ;;
+      wwwdata)
+        show_container_status "wwwdata"
+      ;;
+      *)
+        echo "Gib nach status einen der folgenden Parameter ein: wwwdata, mysql, pgsql, web oder all."
+      ;;
+    esac
   ;;
 
   stop)
     fail_unless_root
-    stop_all_container
+    case $2 in
+      all)
+        stop_all_container
+      ;;
+      mysql)
+        docker stop mysql-server
+      ;;
+      pgsql)
+        docker stop pgsql-server
+      ;;
+      web)
+        docker stop web
+      ;;
+      *)
+        echo "Gib nach stop einen der folgenden Parameter ein um container zustoppen: all, mysql, pgsql oder web."
+      ;;
+    esac
+    docker ps -a
   ;;
   
   uninstall)
@@ -451,23 +598,30 @@ case "$1" in
   web)
     fail_unless_root
     case $2 in
+      console)
+        echo "Öffne ein Terminal im Container in dem der Web-Server läuft."
+        docker exec -it web /bin/bash
+      ;;
       start)
-        start_web_container
+        docker start web
+        docker ps
+      ;;
+      status)
+        show_container_status "web"
       ;;
       stop)
         docker stop web
         docker ps -a
       ;;
       remove)
-        docker stop web
         docker rm web
         docker ps -a
       ;;
-      status)
-        show_container_status "web"
+      run)
+        run_web_container
       ;;
       *)
-        echo "Gib nach web einen der folgenden Parameter ein: start, stop, remove oder status."
+        echo "Gib nach web einen der folgenden Parameter ein: console, start, status, stop, remove oder run."
       ;;
     esac
   ;;
