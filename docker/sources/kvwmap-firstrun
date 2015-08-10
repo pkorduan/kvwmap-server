@@ -23,6 +23,8 @@ mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=r
 rm /create_mysql_user.sql
 
 cd /etc/apache2/sites-enabled
+ln -s ../sites-available/000-default.conf 000-default.conf
+ln -s ../sites-available/default-ssl.conf default-ssl.conf
 ln -s ../sites-available/kvwmap.conf kvwmap.conf
 ln -s ../sites-available/mapserver.conf mapserver.conf
 ln -s ../sites-available/phpmyadmin.conf phpmyadmin.conf
