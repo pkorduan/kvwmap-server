@@ -40,14 +40,14 @@ Get and install all the components that uses kvwmap-server.
 $ kvwmap-server/kvwmap install
 ```
 
-This scrpit should ended up with the message: Successfully built
+This scrpit should ended up with the message: Successfully built or a message that the image pkorduan/kvwmap-server has been successfull pulled.
 
 ### Start kvwmap-server
 Start the containers with volumes and link it together. You will be asked to
 choose passwords for the MySQL root and PostgreSQL postgres super user.
 
 ```
-$ kvwmap start
+$ kvwmap run all
 ```
 
 After this step the container named web, pgsql-server and mysql-server shoud be
@@ -70,25 +70,18 @@ in config.php. See the kvwmap documentation for more information at:
 <http://www.kvwmap.de>
 
 ### Unistall kvwmap-server
-Stopp all container and remove images with the kvwmap script:
+This stoped all container, remove it, remove all images and remove the volumes inclusive of the database volumes.
+Be careful with this command, because it will remove also the data in the directories /var/www and db, etc, kvwmap-server in your home directory.
 
 ```
-$ kvwmap stop
-$ kvwmap clean
+$ kvwmap uninstall
 ```
 
-Remove the volumes for the web application kvwmap. Be sure not to remove other
-files:
+If you only whant to remove the container and images use this commands:
 
 ```
-$ rm -R /var/www
-```
-
-Remove the files for kvwmap-server from your user directory:
-
-```
-$ cd USER_DIR
-$ rm -R db etc kvwmap-server www
+$ kvwmap stop all
+$ kvwmap remove all
 ```
 
 ## Detailed installation description
