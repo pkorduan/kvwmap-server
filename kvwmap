@@ -521,7 +521,6 @@ case "$1" in
     fail_unless_root
     case $2 in
       all)
-        show_container_status "wwwdata"
         show_container_status "mysql-server"
         show_container_status "pgsql-server"
         show_container_status "web"
@@ -535,11 +534,8 @@ case "$1" in
       web)
         show_container_status "web"
       ;;
-      wwwdata)
-        show_container_status "wwwdata"
-      ;;
       *)
-        echo "Gib nach status einen der folgenden Parameter ein: wwwdata, mysql, pgsql, web oder all."
+        echo "Gib nach status einen der folgenden Parameter ein: all, mysql, pgsql oder web."
       ;;
     esac
   ;;
