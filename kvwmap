@@ -474,8 +474,8 @@ case "$1" in
       ;;
       web)
         docker stop web
-        docker remove web
-        docker run web
+        docker rm web
+        run_web_container
         docker ps
       ;;
       *)
