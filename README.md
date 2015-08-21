@@ -108,6 +108,33 @@ Pull a new version of the repo by typing
 $ git pull origin master
 ```
 in your directory $USER_DIR/kvwmad-server. This will download all changes in files of this repository, but not the container itself or the images from which the containers has been run. Consider that the downloaded files will have the owner of the user that pull the repo. All files in kvwmap-server should be owned by gisadmin and group gisadmin.
+A known problem when download an repo is, that files has been changed without commiting it to the repo.
+```
+error: Your local changes to the following files would be overwritten by merge:
+```
+In this case you can find the difference between the local file and the previous version of this file by:
+```
+$ git diff <file_name_that_has_been_changed>
+```
+If you whant to commit this change add the file to the stage
+```
+$ git add <file_name_that_has_been_changed>
+```
+and commit it with an appropriated message.
+```
+$ git commit -m "Changed the file: <file_name_that_has_been_changed> because there was a typo inside."
+```
+Than you should be able to pull the new version from the remote repo.
+```
+$ git pull origin master
+```
+When you do so, the remote master will be merged into the local changed repo. Therefor you will be asked to leave a merge message. Do can it leave as it is and quit with Cntl.-X.
+But do not forget to push your committed change also to the remote repo, so that outher can also benefit from it.
+```
+$ git push origin master
+```
+Therefore you must be a contributor to this repo. Ask the maintainer to become a contributor to this repo.
+
 To rebuild the kvwmap container run the following command:
 ```
 $ kvwmap rebuild
