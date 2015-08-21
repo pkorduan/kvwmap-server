@@ -107,7 +107,8 @@ Pull a new version of the repo by typing
 ```
 $ git pull origin master
 ```
-in your directory USER_DIR/kvwmad-server. This will download all changes in files of this repository, but not the container itself or the images from which the containers has been run. To rebuild the kvwmap container run the following command:
+in your directory $USER_DIR/kvwmad-server. This will download all changes in files of this repository, but not the container itself or the images from which the containers has been run. Consider that the downloaded files will have the owner of the user that pull the repo. All files in kvwmap-server should be owned by gisadmin and group gisadmin.
+To rebuild the kvwmap container run the following command:
 ```
 $ kvwmap rebuild
 ```
@@ -120,7 +121,7 @@ $ kvwmap rebuild
 ```
 Replace <new_version_number> by the version you want to have for your postgres-container. Remember that this number will be overwritten when you next time pull the repo from master. Checkout this change with:
 ```
-$ cd $USER_DIR
+$ cd $USER_DIR/kvwmap-server
 $ git checkout kvwmap
 ```
 before you pull the repo and rechange it to the new version back if you want.
