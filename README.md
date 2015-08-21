@@ -115,13 +115,11 @@ The install command of the kvwmap script make use of the install script at get.d
 Generally you could have installed docker also as a debian package as described in docker docu [here] (https://docs.docker.com/installation/debian/#installation) But the package must not include the newest version. Therefor it is recommended to use the docker install script from get.docker.com, as we do in the kvwmap install command.
 
 ### Update docker
-To update the docker Engine run the following commands on your host system:
+To update the docker Engine run the following command on your host system:
 ```
-$ service docker stop
 $ curl -sSL https://get.docker.com/ | sh
-$ kvwmap start all
 ```
-To see the new version of docker run
+You will see the new version of docker client and server after installing with this script. To find the current version of docker engine and client you can allways use the command:
 ```
 $ docker version
 ```
