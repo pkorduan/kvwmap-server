@@ -84,7 +84,30 @@ $ kvwmap stop all
 $ kvwmap remove all
 ```
 
-## Detailed installation description
+## Server status
+To check if everything works well, you have different options.
+```
+$ kvwmap status all
+```
+shows the status of the containers. Good is a message like this:
+```
+Status des Containers mysql-server:
+OK - mysql-server is running. IP: 172.17.0.1, StartedAt: 2015-08-21T14:24:08.637094394Z
+Status des Containers pgsql-server:
+OK - pgsql-server is running. IP: 172.17.0.2, StartedAt: 2015-08-21T14:24:10.691315837Z
+Status des Containers web:
+OK - web is running. IP: 172.17.0.3, StartedAt: 2015-08-21T14:24:11.059835363Z
+```
+To see the containers you also can use the regularly docker command ps. 
+```
+$ docker ps -a
+```
+The parameter -a shows you also the not running container. The command inspect shows you the parameter of a container. Use the name of the container to get detailed information about it.
+```
+$ docker inspect web
+```
+
+## Detailed installation and update description
 
 ### Install docker
 The installation of docker will be performed in the script kvwmap which has been downloaded with this repository.
