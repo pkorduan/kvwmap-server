@@ -359,6 +359,9 @@ case "$1" in
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
     # build "latest"
+    
+    #mkdir /etc/systemd/system/docker.service.d
+    #cp docker/sources/kvwmap-container.conf /etc/systemd/system/docker.service.d/kvwmap-container.conf
   ;;
 
   mysql)
