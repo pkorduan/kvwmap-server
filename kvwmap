@@ -6,6 +6,8 @@ OS_USER="gisadmin"
 OS_USER_EXISTS=false
 getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
 USER_DIR=/home/$OS_USER
+MYSQL_IMAGE_VERSION=5.5
+POSTGRESQL_IMAGE_VERSION=9.4
 KVWMAP_IMAGE_VERSION=latest
 SERVER_NAME=`hostname`
 if [ "$(id -u)" == '0' ]; then
@@ -139,7 +141,7 @@ run_mysql_container() {
     -v $USER_DIR/etc/mysql:/etc/mysql \
     -v $USER_DIR/db/mysql:/var/lib/mysql \
     -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
-    -d mysql:5.5
+    -d mysql:${MYSQL_IMAGE_VERSION}
 }
 
 run_pgsql_container() {
@@ -149,7 +151,7 @@ run_pgsql_container() {
     -v $USER_DIR/db/postgresql/data:/var/lib/postgresql/data \
     -p 5432:5432 \
     -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
-    -d mdillon/postgis:9.4
+    -d mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
 }
 
 #
@@ -349,9 +351,9 @@ case "$1" in
               /var/www/tmp
 
     # download neccessary images for mysql and postgis
-    docker pull mysql:5.5
+    docker pull mysql:${MYSQL_IMAGE_VERSION}
 
-    docker pull mdillon/postgis:9.4
+    docker pull mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
     
     docker pull pkorduan/kvwmap-server:latest
 

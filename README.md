@@ -86,4 +86,42 @@ $ kvwmap remove all
 
 ## Detailed installation description
 
-Is comming soon.
+### Install docker
+The installation of docker will be performed in the script kvwmap which has been downloaded with this repository.
+The install command of the kvwmap script make use of the install script at get.docker.com
+Generally you could have installed docker also as a debian package as described in docker docu [here] (https://docs.docker.com/installation/debian/#installation) But the package must not include the newest version. Therefor it is recommended to use the docker install script from get.docker.com, as we do in the kvwmap install command.
+
+### Update docker
+To update the docker Engine run the following commands on your host system:
+```
+$ service docker stop
+$ curl -sSL https://get.docker.com/ | sh
+$ kvwmap start all
+```
+To see the new version of docker run
+```
+$ docker version
+```
+### Update this repo on your host system
+Pull a new version of the repo by typing
+```
+$ git pull origin master
+```
+in your directory $USER_DIR/kvwmad-server. This will download all changes in files of this repository, but not the container itself or the images from which the containers has been run. Consider that the downloaded files will have the owner of the user that pull the repo. All files in kvwmap-server should be owned by gisadmin and group gisadmin.
+To rebuild the kvwmap container run the following command:
+```
+$ kvwmap rebuild
+```
+This will stop and remove the running container, remove the kvwmap-server image, pull the image kvwmap-server:latest from [dockerhub](https://hub.docker.com/r/pkorduan/kvwmap-server/) and run all container as when you start first. The only difference to the start procedure is, that the images for debian, mysql-server and pgsql-server as been pulled allready except when the versions for the images in kvwmap script has been changed. When for example the version of postgis images has been changed to 9.5, a new image will be downloaded with the name mdillon/postgis:9.5 before start of the postgres container.
+To manually rebuild the kvwmap container with another version of mysql or postgres change the version numbers in kvwmap script for the constants MYSQL_IMAGE_VERSION or POSTGRES_IMAGE_VERSION before typing the above rebuild command. You also can download the new version manually before restarting the kvwmap container. This will save some downtime of the kvwmap application.
+```
+$ docker pull mdillon/postgis:<new_version_number>
+$ sed -i -e "s|POSTGRESQL_IMAGE_VERSION=9.4|POSTGRESQL_IMAGE_VERSION=<new_version_number>|g" $USER_DIR/kvwmap-server/kvwmap
+$ kvwmap rebuild
+```
+Replace <new_version_number> by the version you want to have for your postgres-container. Remember that this number will be overwritten when you next time pull the repo from master. Checkout this change with:
+```
+$ cd $USER_DIR/kvwmap-server
+$ git checkout kvwmap
+```
+before you pull the repo and rechange it to the new version back if you want.
