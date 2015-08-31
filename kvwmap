@@ -367,6 +367,26 @@ case "$1" in
     #mkdir /etc/systemd/system/docker.service.d
     #cp docker/sources/kvwmap-container.conf /etc/systemd/system/docker.service.d/kvwmap-container.conf
   ;;
+  
+  log)
+    fail_unless_root
+    case $2 in
+      pgsql)
+        # Logging settings to postgresql
+        sed -i \
+          -e "s|#logging_collector = off|logging_collector = on|g" \
+          -e "s|#log_directory = 'pg_log'|log_directory = 'pg_log'|g" \
+          -e "s|#log_truncate_on_rotation = off|log_truncate_on_rotation = off|g" \
+          -e "s|#log_rotation_age = 1d|log_rotation_age = 1d|g" \
+          -e "s|#checkpoint_segments = 3|checkpoint_segments = 30|g" \
+          -e "s|#checkpoint_timeout = 5min|checkpoint_timeout = 10min|g" \
+          $USER_DIR/db/postgresql/data/postgresql.conf
+      ;;
+      *)
+        echo "Gib nach log einen der folgenden Parameter ein: pgsql."
+      ;;
+    esac
+  ;;
 
   mysql)
     fail_unless_root

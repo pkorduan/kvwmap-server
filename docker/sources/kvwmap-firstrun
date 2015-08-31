@@ -29,13 +29,4 @@ ln -s ../sites-available/kvwmap.conf kvwmap.conf
 ln -s ../sites-available/mapserver.conf mapserver.conf
 ln -s ../sites-available/phpmyadmin.conf phpmyadmin.conf
 
-# Logging settings to postgresql
-sed -i \
-    -e "s|#logging_collector = off|logging_collector = on|g" \
-    -e "s|#log_directory = 'pg_log'|log_directory = 'pg_log'|g" \
-    -e "s|#log_truncate_on_rotation = off|log_truncate_on_rotation = off|g" \
-    -e "s|#log_rotation_age = 1d|log_rotation_age = 1d|g" \
-    -e "s|#checkpoint_segments = 3|checkpoint_segments = 30|g" \
-    -e "s|#checkpoint_timeout = 5min|checkpoint_timeout = 10min|g"
-
 mv /usr/local/bin/kvwmap-firstrun /usr/local/bin/kvwmap-firstrun-executed
