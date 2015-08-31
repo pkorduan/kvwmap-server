@@ -14,7 +14,7 @@
  * This is needed for cookie based authentication to encrypt password in
  * cookie
  */
-$cfg['blowfish_secret'] = "$PMA_SECRET"; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
+$cfg['blowfish_secret'] = "blowfish_secret"; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
 
 /*
  * Absolute URI
@@ -46,8 +46,8 @@ $cfg['Servers'][$i]['AllowNoPassword'] = false;
  */
 
 /* User used to manipulate with storage */
-$cfg['Servers'][$i]['controluser'] = "root";
-$cfg['Servers'][$i]['controlpass'] = getenv('MYSQL_ENV_MYSQL_ROOT_PASSWORD');
+$cfg['Servers'][$i]['controluser'] = "kvwmap";
+$cfg['Servers'][$i]['controlpass'] = getenv('KVWMAP_INIT_PASSWORD');
 
 /* Storage database and tables */
 $cfg['Servers'][$i]['pmadb'] = 'phpmyadmin';
