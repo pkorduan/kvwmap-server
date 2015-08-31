@@ -352,9 +352,13 @@ case "$1" in
 
     # download neccessary images for mysql and postgis
     docker pull mysql:${MYSQL_IMAGE_VERSION}
-
     docker pull mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
     
+    # download gdal image for NAS Imports
+    # this can be used to execute ogr2ogr like in the following example
+    # docker run --rm --volumes-from wwwdata --link pgsql-server:pgsql geodata/gdal /bin/bash -c "/ogr2ogr -f PostgreSQL --config PG_USE_COPY YES -skipfailures -nlt CONVERT_TO_LINEAR -append PG:\"dbname=<POSTNASDB> active_schema=alkis user=<DBUSER> host=pgsql\" -a_srs EPSG:25833  /PFAD/ZU/DEN/NASDATEN.XML 2>> /var/www/logs/postnas_err.log"
+    docker pull geodata/gdal
+
     docker pull pkorduan/kvwmap-server:latest
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
