@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     apache2 \
     cgi-mapserver \
     dialog \
+    git \
     htop \
     imagemagick \
     libjson0 \
@@ -28,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     php5-mysql \
     php5-pgsql \
     postgresql-client \
+    sudo \
     vim \
     wget \
     zip \
@@ -62,6 +64,8 @@ ENV USER_DIR="/home/${OS_USER}"
 
 RUN useradd -ms /bin/bash ${OS_USER} && \
   usermod -G ${OS_USER} www-data
+
+RUN echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
 
 EXPOSE 80
 EXPOSE 443
