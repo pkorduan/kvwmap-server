@@ -631,9 +631,9 @@ case "$1" in
         fi
         echo "So jetzt ist alles weg."
         echo "Zum neu installieren folgende Befehle eingeben:"
-        echo "git clone https://github.com/pkorduan/kvwmap-server.git"
-        echo "kvwmap-server/kvwmap install"
-        echo "kvwmap start"
+        echo "$ git clone https://github.com/pkorduan/kvwmap-server.git"
+        echo "$ kvwmap-server/kvwmap install"
+        echo "$ kvwmap run all"
         echo "und im Browser:"
         echo "http://meineserverip/kvwmap/install.php"
       ;;

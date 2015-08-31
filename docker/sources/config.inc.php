@@ -33,8 +33,8 @@ $i++;
 /* Authentication type */
 $cfg['Servers'][$i]['auth_type'] = 'cookie';
 /* Server parameters */
-$cfg['Servers'][$i]['host'] = "$MYSQL_PORT_3306_TCP_ADDR";
-$cfg['Servers'][$i]['port'] = "$MYSQL_PORT_3306_TCP_PORT";
+$cfg['Servers'][$i]['host'] = getenv('MYSQL_PORT_3306_TCP_ADDR');
+$cfg['Servers'][$i]['port'] = getenv('MYSQL_PORT_3306_TCP_PORT');
 $cfg['Servers'][$i]['connect_type'] = 'tcp';
 $cfg['Servers'][$i]['compress'] = true;
 /* Select mysql if your server does not have mysqli */
@@ -46,8 +46,8 @@ $cfg['Servers'][$i]['AllowNoPassword'] = false;
  */
 
 /* User used to manipulate with storage */
-$cfg['Servers'][$i]['controluser'] = "$MYSQL_KVWMAP_USERNAME";
-$cfg['Servers'][$i]['controlpass'] = "$MYSQL_KVWMAP_PASSWORD";
+$cfg['Servers'][$i]['controluser'] = "root";
+$cfg['Servers'][$i]['controlpass'] = getenv('MYSQL_ENV_MYSQL_ROOT_PASSWORD');
 
 /* Storage database and tables */
 $cfg['Servers'][$i]['pmadb'] = 'phpmyadmin';
