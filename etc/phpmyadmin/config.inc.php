@@ -19,7 +19,7 @@ $cfg['blowfish_secret'] = "blowfish_secret"; /* YOU MUST FILL IN THIS FOR COOKIE
 /*
  * Absolute URI
  */
-$cfg['PmaAbsoluteUri'] = "$PMA_URI";
+$cfg['PmaAbsoluteUri'] = 'http://' . getenv('IP_EXTERN') . '/userDbAdmin/';
 
 /*
  * Servers configuration

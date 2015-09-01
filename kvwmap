@@ -171,6 +171,7 @@ run_web_container() {
       -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
       -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
       -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
+      -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
       -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
 }
 
@@ -254,6 +255,7 @@ case "$1" in
     apt-get update && apt-get install -y \
       apt-utils \
       curl \
+      unzip \
       wget
 
     case `docker --version` in
@@ -288,6 +290,7 @@ case "$1" in
              $USER_DIR/etc/mysql \
              $USER_DIR/etc/postgresql \
              $USER_DIR/etc/php5 \
+             $USER_DIR/etc/phpmyadmin \
              /var/www/apps \
              /var/www/html \
              /var/www/logs \
@@ -309,9 +312,9 @@ case "$1" in
     # create links to have access to the postgres config files, even if the files do not exist yet
     ln -s $USER_DIR/db/postgresql/data/pg_hba.conf $USER_DIR/etc/postgresql/pg_hba.conf
     ln -s $USER_DIR/db/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
-    chown -R $OS_USER.$OS_USER \
-      $USER_DIR/db/postgresql/data/pg_hba.conf \
-      $USER_DIR/db/postgresql/data/postgresql.conf
+  #  chown -R $OS_USER.$OS_USER \
+  #    $USER_DIR/db/postgresql/data/pg_hba.conf \
+  #    $USER_DIR/db/postgresql/data/postgresql.conf
 
     cp $USER_DIR/kvwmap-server/www/html/index.php /var/www/html/index.php
     cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
@@ -333,13 +336,7 @@ case "$1" in
              /var/www/apps/kvwmap/layouts/snippets/custom \
              /var/www/apps/kvwmap/symbols/custom
 
-    PHPMYADMIN_VERSION="4.4.12"
-
     cd /var/www/apps
-    wget -O phpMyAdmin.tar.gz --no-check-certificate https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz
-    tar xvfz phpMyAdmin.tar.gz
-    mv /var/www/apps/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages /var/www/apps/phpMyAdmin
-    rm /var/www/apps/phpMyAdmin.tar.gz
 
     chown -R $OS_USER.$OS_USER $USER_DIR /var/www
     chmod g+w /var/www/apps/kvwmap \

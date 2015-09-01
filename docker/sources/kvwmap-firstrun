@@ -2,16 +2,10 @@
 
 MYSQL_KVWMAP_USERNAME="kvwmap"
 
-mv /config.inc.php /var/www/apps/phpMyAdmin/
+mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /srv/www/phpMyAdmin/sql/create_tables.sql
 
-sed -i \
-    -e "s|\$PMA_URI|http://${IP_EXTERN}/phpMyAdmin/|g" \
-    /var/www/apps/phpMyAdmin/config.inc.php
-
-mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /var/www/apps/phpMyAdmin/sql/create_tables.sql
-
-mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /create_mysql_user.sql
-rm /create_mysql_user.sql
+mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /usr/local/bin/create_pmacontrol_user.sql
+rm /usr/local/bin/create_pmacontrol_user.sql
 
 cd /etc/apache2/sites-enabled
 ln -s ../sites-available/000-default.conf 000-default.conf
