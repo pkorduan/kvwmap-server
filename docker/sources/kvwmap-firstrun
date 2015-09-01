@@ -2,7 +2,7 @@
 
 MYSQL_KVWMAP_USERNAME="kvwmap"
 
-mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /srv/www/phpMyAdmin/sql/create_tables.sql
+mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /srv/www/phpmyadmin/sql/create_tables.sql
 
 mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /usr/local/bin/create_pmacontrol_user.sql
 rm /usr/local/bin/create_pmacontrol_user.sql

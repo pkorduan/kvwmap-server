@@ -44,8 +44,12 @@ usage() {
   echo "pgsql stop    Stoppt den PostgreSQL Container und zeigt alle vorhandenen an."
   echo "pgsql remove  Löscht den PostgreSQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
   echo "pgsql run     Erzeugt und startet den PostgreSQL Container mit dem Namen pgsql-server."
-  echo "rebuild       Stoppt und löscht alle Container, löscht das vorhandene kvwmap-server image, bildet es neu und erzeugt und startet danach alle Container neu."
+  echo "rebuild       Stoppt und löscht Container, löscht das vorhandene kvwmap-server image, bildet es neu und erzeugt und startet danach Container neu."
+  echo "rebuild all   Stoppt, löscht und restartet zum rebuild des Web Containers alle Container."
+  echo "rebuild web   Stoppt, löscht und restartet zum rebuild des Web Containers nur den Web Container."
   echo "reload        Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
+  echo "reload all    Läd alle Container neu."
+  echo "reload web    Läd nur den Web Container neu."
   echo "remove        Löscht alle Container."
   echo "remove mysql  Löscht nur den Container mysql-server."
   echo "remove pgsql  Löscht nur den Container pgsql-server."
@@ -208,14 +212,24 @@ start_all_container() {
   docker start wwwdata
   docker start mysql-server
   docker start pgsql-server
-  docker start web
+  start_web_container
   docker ps
 }
 
+start_web_container() {
+  echo "Starte web Container."
+  docker start web
+}
+
 stop_all_container() {
-  echo "Stoppe alle Container."
+  echo "Stoppe alle Container. Bitte warten ..."
   docker stop $(docker ps -a -q)
   echo "Alle Container gestopped."
+}
+
+stop_web_container() {
+  echo "Stoppe web Container. Bitte warten ..."
+  docker stop web
 }
 
 case "$1" in
@@ -362,7 +376,7 @@ case "$1" in
     docker pull pkorduan/kvwmap-server:latest
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-    # build "latest"
+    build $KVWMAP_IMAGE_VERSION
     
     #mkdir /etc/systemd/system/docker.service.d
     #cp docker/sources/kvwmap-container.conf /etc/systemd/system/docker.service.d/kvwmap-container.conf
@@ -454,20 +468,49 @@ case "$1" in
   
   rebuild)
     fail_unless_root
-    stop_all_container
-    remove_all_container
-    docker rmi -f $(docker images -q pkorduan/kvwmap-server)
-    build "latest"
-    run_all_container
+    case $2 in
+      web)
+        stop_web_container
+        docker rm web
+        docker rmi -f $(docker images -q pkorduan/kvwmap-server)
+        build "latest"
+        run_web_container
+      ;;
+      *)
+        stop_all_container
+        remove_all_container
+        docker rmi -f $(docker images -q pkorduan/kvwmap-server)
+        build "latest"
+        run_all_container
+      ;;
+    esac
+    docker images
+    docker ps -a
   ;;
 
   reload)
     fail_unless_root
-    stop_all_container
-    remove_all_container
-    docker rmi -f $(docker images -q pkorduan/kvwmap-server)
-    docker pull pkorduan/kvwmap-server:latest
-    run_all_container
+    case $2 in
+      all)
+        stop_all_container
+        remove_all_container
+        docker rmi -f $(docker images -q pkorduan/kvwmap-server)
+        docker pull pkorduan/kvwmap-server:latest
+        run_all_container
+      ;;
+      web)
+        stop_web_container
+        docker rm web
+        docker rmi -f $(docker images -q pkorduan/kvwmap-server)
+        docker pull pkorduan/kvwmap-server:latest
+        run_web_container
+      ;;
+      *)
+        echo "Gib nach reload einen der folgenden Parameter ein: all oder web."
+      ;;
+    esac
+    docker images
+    docker ps -a
   ;;
   
   remove)
@@ -502,7 +545,7 @@ case "$1" in
         docker ps -a
       ;;
       web)
-        docker stop web
+        stop_web_container
         docker rm web
         run_web_container
         docker ps
@@ -515,8 +558,20 @@ case "$1" in
 
   restart)
     fail_unless_root
-    stop_all_container
-    start_all_container
+    case $2 in
+      all)
+        stop_all_container
+        start_all_container
+      ;;
+      web)
+        stop_web_container
+        start_web_container
+      ;;
+      *)
+        echo "Gib nach restart einen der folgenden Parameter ein: all oder web."
+      ;;
+    esac
+    docker ps -a
   ;;
   
   run)
@@ -561,12 +616,13 @@ case "$1" in
         docker start pgsql-server
       ;;
       web)
-        docker start web
+        start_web_container
       ;;
       * )
         echo "Gib nach start einen der folgenden Parameter ein um den Container zu starten: all, mysql, pgsql oder all."
       ;;
     esac
+    docker ps -a
   ;;
 
   status)
@@ -588,6 +644,7 @@ case "$1" in
       ;;
       *)
         echo "Gib nach status einen der folgenden Parameter ein: all, mysql, pgsql oder web."
+        docker ps -a
       ;;
     esac
   ;;
@@ -605,7 +662,7 @@ case "$1" in
         docker stop pgsql-server
       ;;
       web)
-        docker stop web
+        stop_web_container
       ;;
       *)
         echo "Gib nach stop einen der folgenden Parameter ein um container zustoppen: all, mysql, pgsql oder web."
@@ -651,14 +708,14 @@ case "$1" in
         docker exec -it web /bin/bash
       ;;
       start)
-        docker start web
+        start_web_container
         docker ps
       ;;
       status)
         show_container_status "web"
       ;;
       stop)
-        docker stop web
+        stop_web_container
         docker ps -a
       ;;
       remove)

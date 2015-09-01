@@ -36,10 +36,16 @@ RUN apt-get update && apt-get install -y \
     zip \
     ntp
 
-RUN a2enmod cgi && \
-    a2enmod authz_groupfile
-
 ADD sources /usr/local/bin
+
+RUN chmod +x /usr/local/bin/kvwmap* /usr/local/bin/shp2pgsql /usr/local/bin/pgsql2shp
+
+RUN a2enmod authz_groupfile && \
+    a2enmod cgi && \
+    a2enmod rewrite && \
+    a2enmod ssl && \
+    make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt && \
+    echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 ADD https://github.com/phpmyadmin/phpmyadmin/archive/STABLE.zip /tmp/phpmyadmin.zip
 
@@ -49,6 +55,15 @@ RUN unzip -q phpmyadmin.zip && \
     rm phpmyadmin.zip && \
     mkdir -p /srv/www/ && \
     mv `ls` /srv/www/phpmyadmin
+
+ENV OS_USER="gisadmin"
+ENV USER_DIR="/home/${OS_USER}"
+
+RUN useradd -ms /bin/bash ${OS_USER} && \
+  usermod -G ${OS_USER} www-data && \
+  chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin
+
+RUN echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
 
 RUN sed -i "s|<2397>|#<2397>|g" /usr/share/proj/epsg && \
 sed -i "s|<2398>|#<2398>|g" /usr/share/proj/epsg && \
@@ -61,17 +76,9 @@ sed -i "1s|^|# Pulkovo 1942(83) / 3-degree Gauss-Kruger zone 5\n<2399> +proj=tme
 sed -i "1s|^|# Pulkovo 1942(83) / 3-degree Gauss-Kruger zone 4\n<2398> +proj=tmerc +lat_0=0 +lon_0=12 +k=1 +x_0=4500000 +y_0=0 +ellps=krass +towgs84=24,-123,-94,0.02,-0.25,-0.13,1.1 +units=m +no_defs  <>\n|" /usr/share/proj/epsg && \
 sed -i "1s|^|# Pulkovo 1942(83) / 3-degree Gauss-Kruger zone 3\n<2397> +proj=tmerc +lat_0=0 +lon_0=9  +k=1 +x_0=3500000 +y_0=0 +ellps=krass +towgs84=24,-123,-94,0.02,-0.25,-0.13,1.1 +units=m +no_defs  <>\n|" /usr/share/proj/epsg
 
-RUN chmod +x /usr/local/bin/kvwmap* /usr/local/bin/shp2pgsql /usr/local/bin/pgsql2shp
-
-ENV OS_USER="gisadmin"
-ENV USER_DIR="/home/${OS_USER}"
-
-RUN useradd -ms /bin/bash ${OS_USER} && \
-  usermod -G ${OS_USER} www-data
-
-RUN echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
-
 EXPOSE 80
 EXPOSE 443
+
+WORKDIR $USER_DIR
 
 CMD /usr/local/bin/kvwmap-start
