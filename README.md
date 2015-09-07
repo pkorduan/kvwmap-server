@@ -3,10 +3,10 @@
 This repository include all files to install and run a container based on the docker
 image [pkorduan/kvwmap-server](https://registry.hub.docker.com/u/pkorduan/kvwmap-server/).
 
-The kvwmap-server contain a the Web-GIS application kvwmap from the git repo [srahn/kvwmap](https://github.com/srahn/kvwmap), an [http://httpd.apache.org/](Apache Web Werver),
+The kvwmap-server contain a the Web-GIS application kvwmap from the git repo [srahn/kvwmap](https://github.com/srahn/kvwmap), an [Apache Web Werver](http://httpd.apache.org/),
 [MapServers](http://mapserver.org/) [phpMapScript](http://mapserver.org/mapscript/php/index.html)
 as well as a [MySQL](http://www.mysql.com/) database for user and map context and [PostgreSQL](http://www.postgres.org) database with [PostGIS](http://www.postgis.org) extension
-for geodata.
+for geodata. For loading and exporting geodata with ogr2ogr the image [geodata/gdal](https://hub.docker.com/r/geodata/gdal/) will be used.
 
 ## Installation
 The preferred way to install the `pkorduan/kvwmap-server` image and run the container onto
@@ -44,7 +44,7 @@ This scrpit should ended up with the message: Successfully built or a message th
 
 ### Start kvwmap-server
 Start the containers with volumes and link it together. You will be asked to
-choose passwords for the MySQL root and PostgreSQL postgres super user.
+choose passwords for the MySQL root and PostgreSQL postgres super user as well as for a kvwmap user. The Password for kvwmap user will be used as initial password for the database access to the kvwmap databases, for the phpMyAdmin web client which has the alias userDbAdmin and for the admin page of the web application kvwmap itself.
 
 ```
 $ kvwmap run all
@@ -156,16 +156,22 @@ $ git push origin master
 ```
 Therefore you must be a contributor to this repo. Ask the maintainer to become a contributor to this repo.
 
+A new image can be created localy with the build command of docker. But to run the new image the old container must be stopped and the new one created. Therefore the script kvwmap can be used with the following parameters.
 To rebuild the kvwmap container run the following command:
 ```
-$ kvwmap rebuild
+$ kvwmap rebuild web
 ```
-This will stop and remove the running container, remove the kvwmap-server image, pull the image kvwmap-server:latest from [dockerhub](https://hub.docker.com/r/pkorduan/kvwmap-server/) and run all container as when you start first. The only difference to the start procedure is, that the images for debian, mysql-server and pgsql-server as been pulled allready except when the versions for the images in kvwmap script has been changed. When for example the version of postgis images has been changed to 9.5, a new image will be downloaded with the name mdillon/postgis:9.5 before start of the postgres container.
-To manually rebuild the kvwmap container with another version of mysql or postgres change the version numbers in kvwmap script for the constants MYSQL_IMAGE_VERSION or POSTGRES_IMAGE_VERSION before typing the above rebuild command. You also can download the new version manually before restarting the kvwmap container. This will save some downtime of the kvwmap application.
+This will stop and remove only the web container, remove the kvwmap-server image, pull the image kvwmap-server:latest from [dockerhub](https://hub.docker.com/r/pkorduan/kvwmap-server/) and run again the web container as when you start first.
+To not build the image, but download the latest from dockerhub you can use the kvwmap script with reload option
+```
+$ kvwmap reload web
+```
+To manually rebuild the kvwmap container with another version of mysql or postgres change the version numbers in kvwmap script for the constants MYSQL_IMAGE_VERSION or POSTGRES_IMAGE_VERSION and call the kvwmap script with the parameter rebuild all. You can download the new version manually before restarting the kvwmap container. This will save some downtime of the kvwmap application.
 ```
 $ docker pull mdillon/postgis:<new_version_number>
-$ sed -i -e "s|POSTGRESQL_IMAGE_VERSION=9.4|POSTGRESQL_IMAGE_VERSION=<new_version_number>|g" $USER_DIR/kvwmap-server/kvwmap
-$ kvwmap rebuild
+$ sed -i -e "s|POSTGRESQL_IMAGE_VERSION=9.4|POSTGRESQL_IMAGE_VERSION=<new_version_number>|g" \
+$USER_DIR/kvwmap-server/kvwmap
+$ kvwmap rebuild all
 ```
 Replace <new_version_number> by the version you want to have for your postgres-container. Remember that this number will be overwritten when you next time pull the repo from master. Checkout this change with:
 ```
