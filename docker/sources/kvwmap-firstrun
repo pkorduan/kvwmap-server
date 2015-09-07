@@ -14,4 +14,8 @@ ln -s ../sites-available/kvwmap.conf kvwmap.conf
 ln -s ../sites-available/mapserver.conf mapserver.conf
 ln -s ../sites-available/phpmyadmin.conf phpmyadmin.conf
 
+# copy the public key in /home/gisadmin/.ssh/id_rsa.pub to /home/gisadmin/.ssh/authorized_keys in gdal container
+su gisadmin
+cat ~/.ssh/id_rsa.pub | ssh gisadmin@$GDAL_PORT_22_TCP_ADDR 'cat >> .ssh/authorized_keys'
+
 mv /usr/local/bin/kvwmap-firstrun /usr/local/bin/kvwmap-firstrun-executed

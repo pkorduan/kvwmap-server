@@ -2,6 +2,9 @@ FROM debian
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
 LABEL version="1.0.0"
 
+ENV OS_USER="gisadmin"
+ENV USER_DIR="/home/${OS_USER}"
+
 RUN echo "deb http://ftp.de.debian.org/debian/ jessie main contrib non-free" > /etc/apt/sources.list && \
     echo "deb-src http://ftp.de.debian.org/debian/ jessie main contrib non-free" >> /etc/apt/sources.list && \
     sed -i \
@@ -40,12 +43,12 @@ ADD sources /usr/local/bin
 
 RUN chmod +x /usr/local/bin/kvwmap* /usr/local/bin/shp2pgsql /usr/local/bin/pgsql2shp
 
-RUN a2enmod authz_groupfile && \
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
+    a2enmod authz_groupfile && \
     a2enmod cgi && \
     a2enmod rewrite && \
     a2enmod ssl && \
-    make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt && \
-    echo "ServerName localhost" >> /etc/apache2/apache2.conf
+    make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
 
 ADD https://github.com/phpmyadmin/phpmyadmin/archive/STABLE.zip /tmp/phpmyadmin.zip
 
@@ -56,14 +59,14 @@ RUN unzip -q phpmyadmin.zip && \
     mkdir -p /srv/www/ && \
     mv `ls` /srv/www/phpmyadmin
 
-ENV OS_USER="gisadmin"
-ENV USER_DIR="/home/${OS_USER}"
-
 RUN useradd -ms /bin/bash ${OS_USER} && \
   usermod -G ${OS_USER} www-data && \
-  chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin
-
-RUN echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
+  chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin && \
+  mkdir -p $USER_DIR/.ssh && \
+  ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
+  chown -R $OS_USER.$OS_USER $USER_DIR/.ssh && \
+  sed -i "s|#   IdentityFile ~/.ssh/id_rsa|    IdentityFile ~/.ssh/id_rsa|g" /etc/ssh/ssh_config && \
+  echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
 
 RUN sed -i "s|<2397>|#<2397>|g" /usr/share/proj/epsg && \
 sed -i "s|<2398>|#<2398>|g" /usr/share/proj/epsg && \
