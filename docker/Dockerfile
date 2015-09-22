@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y \
     php5-mapscript \
     php5-mysql \
     php5-pgsql \
+    php5-curl \
     postgresql-client \
     sudo \
     unzip \
