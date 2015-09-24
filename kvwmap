@@ -147,6 +147,16 @@ remove_gdal_container() {
   docker rm gdal
 }
 
+remove_mysql_container() {
+  echo "Lösche mysql container."
+  docker rm mysql-server
+}
+
+remove_pgsql_container() {
+  echo "Lösche pgsql container."
+  docker rm pgsql-server
+}
+
 remove_web_container() {
   echo "Lösche web Container."
   docker rm web
@@ -604,19 +614,23 @@ case "$1" in
   
   remove)
     case $2 in
+      all)
+        remove_all_container
+      ;;
+      gdal)
+        remove_gdal_container
+      ;;
       mysql)
-        echo "Remove container mysql-server."
-        docker rm mysql-server
+        remove_mysql_container
       ;;
       pgsql)
-        echo "Remove container pgsql-server."
-        docker rm pgsql-server
+        remove_pgsql_container
       ;;
       web)
         remove_web_container
       ;;
       * )
-        remove_all_container
+        echo "Gib nach remove einen der folgenden Parameter ein: all, mysql, pgsql, web."
       ;;
     esac
     docker ps -a
