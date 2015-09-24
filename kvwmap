@@ -51,7 +51,8 @@ usage() {
   echo "reload        Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
   echo "reload all    Läd alle Container neu."
   echo "reload web    Läd nur den Web Container neu."
-  echo "remove        Löscht alle Container."
+  echo "remove        Löscht Container."
+  echo "remove all    Löscht alle Container."
   echo "remove mysql  Löscht nur den Container mysql-server."
   echo "remove pgsql  Löscht nur den Container pgsql-server."
   echo "remove web    Löscht nur den Container web."
@@ -468,7 +469,7 @@ case "$1" in
     # download gdal image for NAS Imports
     # this can be used to execute ogr2ogr like in the following example
     # docker run --rm --volumes-from wwwdata --link pgsql-server:pgsql geodata/gdal /bin/bash -c "/ogr2ogr -f PostgreSQL --config PG_USE_COPY YES -skipfailures -nlt CONVERT_TO_LINEAR -append PG:\"dbname=<POSTNASDB> active_schema=alkis user=<DBUSER> host=pgsql\" -a_srs EPSG:25833  /PFAD/ZU/DEN/NASDATEN.XML 2>> /var/www/logs/postnas_err.log"
-    docker pull geodata/gdal-sshd:latest
+    docker pull pkorduan/gdal-sshd:latest
 
     docker pull pkorduan/kvwmap-server:latest
 
@@ -477,6 +478,9 @@ case "$1" in
     
     #mkdir /etc/systemd/system/docker.service.d
     #cp docker/sources/kvwmap-container.conf /etc/systemd/system/docker.service.d/kvwmap-container.conf
+    echo "Nächste Schritte zum installieren von kvwmap:"
+    echo "$ kvwmap run all"
+    echo "Browser öffnen mit der Adresse: http://#{IP_EXTERN}/kvwmap/install.php"
   ;;
   
   log)
@@ -615,6 +619,7 @@ case "$1" in
   remove)
     case $2 in
       all)
+        echo "Entfernt alle Container"
         remove_all_container
       ;;
       gdal)
@@ -630,7 +635,7 @@ case "$1" in
         remove_web_container
       ;;
       * )
-        echo "Gib nach remove einen der folgenden Parameter ein: all, mysql, pgsql, web."
+        echo "Gib nach remove einen der folgenden Parameter ein: mysql, pgsql, web oder all."
       ;;
     esac
     docker ps -a
@@ -726,7 +731,7 @@ case "$1" in
         start_web_container
       ;;
       * )
-        echo "Gib nach start einen der folgenden Parameter ein um den Container zu starten: all, mysql, pgsql oder all."
+        echo "Gib nach start einen der folgenden Parameter ein um den Container zu starten: mysql, pgsql, web oder all."
       ;;
     esac
     docker ps -a
