@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y \
     php5-mysql \
     php5-pgsql \
     php5-curl \
-		php5-gd \n
+		php5-gd \
     postgresql-client \
     sudo \
     unzip \
