@@ -435,10 +435,7 @@ case "$1" in
 
     # Servername in Apache default Konfiguration eintragen
     sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" $USER_DIR/etc/apache2/sites-available/000-default.conf
-        
-    # HTTPS support konfigurieren
-    sed -i -e "s|= localhost|= ${IP_EXTERN}|g" $USER_DIR/etc/apache2/ssl/ssl-cert-localhost.cnf
-    
+
     cp -R $USER_DIR/kvwmap-server/www/data/mapfiles/ /var/www/data/
     cp -R $USER_DIR/kvwmap-server/www/data/referencemaps/ /var/www/data/
     cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass /var/www/apps/
