@@ -227,10 +227,11 @@ run_web_container() {
       --volumes-from wwwdata \
       -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
       -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
+      -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \
       -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
       -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
-      --add-host=$SERVER_NAME.d10643.imv.de:195.98.195.53 \
-      --add-host=$SERVER_NAME:195.98.195.53 \
+      --add-host=$SERVER_NAME.d10643.imv.de:${IP_EXTERN} \
+      --add-host=$SERVER_NAME:${IP_EXTERN} \
       -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
 }
 
@@ -339,20 +340,20 @@ case "$1" in
   console)
     case $2 in
       gdal)
-        echo "Öffne ein Terminal im Container in dem gdal mit ogr2ogr läuft."
+        echo "Öffne ein Terminal im Container in dem gdal mit ogr2ogr läuft..."
         echo "In diesen Container ist /var/www/data auf /data im Container gemappt und der postgres Container gelinkt."
         docker exec -it gdal /bin/bash
       ;;
       mysql)
-        echo "Öffne ein Terminal im Container in dem der MySQL-Server läuft."
+        echo "Öffne ein Terminal im Container in dem der MySQL-Server läuft..."
         docker exec -it mysql-server /bin/bash
       ;;
       pgsql)
-        echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft."
+        echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft..."
         docker exec -it pgsql-server /bin/bash
       ;;
       web)
-        echo "Öffne ein Terminal im Container in dem der Web-Server läuft."
+        echo "Öffne ein Terminal im Container in dem der Web-Server läuft..."
         docker exec -it web /bin/bash
       ;;
       *)
@@ -399,6 +400,7 @@ case "$1" in
              $USER_DIR/db/postgresql/data \
              $USER_DIR/etc/apache2/sites-available \
              $USER_DIR/etc/apache2/sites-enabled \
+             $USER_DIR/etc/apache2/ssl \
              $USER_DIR/etc/mysql \
              $USER_DIR/etc/postgresql \
              $USER_DIR/etc/php5 \
@@ -430,7 +432,13 @@ case "$1" in
 
     cp $USER_DIR/kvwmap-server/www/html/index.php /var/www/html/index.php
     cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
+
+    # Servername in Apache default Konfiguration eintragen
     sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" $USER_DIR/etc/apache2/sites-available/000-default.conf
+        
+    # HTTPS support konfigurieren
+    sed -i -e "s|= localhost|= ${IP_EXTERN}|g" $USER_DIR/etc/apache2/ssl/ssl-cert-localhost.cnf
+    
     cp -R $USER_DIR/kvwmap-server/www/data/mapfiles/ /var/www/data/
     cp -R $USER_DIR/kvwmap-server/www/data/referencemaps/ /var/www/data/
     cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass /var/www/apps/
