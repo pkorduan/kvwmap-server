@@ -14,7 +14,7 @@ req_extensions          = v3_req
 x509_extensions         = v3_req
 
 [ req_distinguished_name ]
-commonName              = localhost 
+commonName              = localhost
 
 [ v3_req ]
 basicConstraints        = CA:FALSE
