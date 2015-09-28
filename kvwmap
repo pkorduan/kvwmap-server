@@ -125,6 +125,7 @@ build_gdal_image() {
 create_www_data_volume() {
   docker create --name wwwdata \
     -v /var/www:/var/www \
+    --restart=always \
     pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} /bin/true
 }
 
@@ -184,6 +185,7 @@ run_gdal_container() {
     -h ${SERVER_NAME}_gdal-container \
     -v /var/www/data:/data \
     --link pgsql-server:pgsql \
+    --restart=always \
     -P \
     -d pkorduan/gdal-sshd:latest
 }
@@ -195,6 +197,7 @@ run_mysql_container() {
     -v $USER_DIR/etc/mysql:/etc/mysql \
     -v $USER_DIR/db/mysql:/var/lib/mysql \
     -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
+    --restart=always \
     -d mysql:${MYSQL_IMAGE_VERSION}
 }
 
@@ -206,6 +209,7 @@ run_pgsql_container() {
     -v $USER_DIR/db/postgresql/data:/var/lib/postgresql/data \
     -p 5432:5432 \
     -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
+    --restart=always \
     -d mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
 }
 
@@ -232,6 +236,7 @@ run_web_container() {
       -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
       --add-host=$SERVER_NAME.d10643.imv.de:${IP_EXTERN} \
       --add-host=$SERVER_NAME:${IP_EXTERN} \
+      --restart=always \
       -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
 }
 
