@@ -65,6 +65,7 @@ usage() {
   echo "restart web   Führt es nur für den web Container aus."
   echo "run           Erzeugt und startet alle oder den angegebenen Container."
   echo "run all       Erzeugt und startet alle Container."
+  echo "run gdal      Erzeugt und startet nur den Container gdal."
   echo "run mysql     Erzeugt und startet nur den Container mysql-server."
   echo "run pgsql     Erzeugt und startet nur den Container pgsql-server."
   echo "run web       Erzeugt und startet nur den Container web."
@@ -207,6 +208,9 @@ run_pgsql_container() {
     -h ${SERVER_NAME}_pgsql-container \
     --volumes-from wwwdata \
     -v $USER_DIR/db/postgresql/data:/var/lib/postgresql/data \
+    -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
+    -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
+    -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
     -p 5432:5432 \
     -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
     --restart=always \
@@ -234,6 +238,9 @@ run_web_container() {
       -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \
       -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
       -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
+      -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
+      -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
+      -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
       --add-host=$SERVER_NAME.d10643.imv.de:${IP_EXTERN} \
       --add-host=$SERVER_NAME:${IP_EXTERN} \
       --restart=always \
@@ -410,6 +417,7 @@ case "$1" in
              $USER_DIR/etc/postgresql \
              $USER_DIR/etc/php5 \
              $USER_DIR/etc/phpmyadmin \
+             $USER_DIR/etc/proj \
              /var/www/apps \
              /var/www/html \
              /var/www/logs \
@@ -700,6 +708,10 @@ case "$1" in
         run_all_container
         docker ps -a
       ;;
+      gdal)
+        run_gdal_container
+        docker ps
+      ;;
       mysql)
         run_mysql_container
         docker ps
@@ -713,11 +725,11 @@ case "$1" in
         docker ps
       ;;
       wwwdata)
-        run_wwwdata_container
+        create_www_data_volume
         docker ps -a
       ;;
       * )
-        echo "Gib nach run einen der folgenden Parameter ein um den Container zu erzeugen: all, mysql, pgsql oder web."
+        echo "Gib nach run einen der folgenden Parameter ein um den Container zu erzeugen: all, gdal, mysql, pgsql, web oder wwwdata."
       ;;
     esac
   ;;
