@@ -70,15 +70,6 @@ RUN useradd -ms /bin/bash ${OS_USER} && \
   sed -i "s|#   IdentityFile ~/.ssh/id_rsa|    IdentityFile ~/.ssh/id_rsa|g" /etc/ssh/ssh_config && \
   echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
 
-RUN sed -i "s|<2397>|#<2397>|g" /usr/share/proj/epsg && \
-sed -i "s|<2398>|#<2398>|g" /usr/share/proj/epsg && \
-sed -i "s|<2399>|#<2399>|g" /usr/share/proj/epsg && \
-sed -i "1s|^|# ETRS89 / UTM zone 33N mit fuehrenden 33\n<35833> +proj=tmerc +lat_0=0 +towgs84=0,0,0 +lon_0=15 +k=0.9996 +x_0=33500000 +y_0=0 +ellps=GRS80 +units=m +no_defs <>\n|" /usr/share/proj/epsg && \
-sed -i "1s|^|# ETRS89 / UTM zone 33N (zE-N)\n<5650> +proj=tmerc +lat_0=0 +towgs84=0,0,0,0,0,0,0 +lon_0=15 +k=0.9996 +x_0=33500000 +y_0=0 +ellps=GRS80 +units=m +no_defs <>\n|" /usr/share/proj/epsg && \
-sed -i "1s|^|# ETRS89 / UTM zone 33N mit fuehrenden 3\n<325833> +proj=tmerc +lat_0=0 +towgs84=0,0,0 +lon_0=15 +k=0.9996 +x_0=3500000 +y_0=0 +ellps=GRS80 +units=m +no_defs <>\n|" /usr/share/proj/epsg && \
-sed -i "1s|^|# Pulkovo 1942(83) / 3-degree Gauss-Kruger zone 5\n<2399> +proj=tmerc +lat_0=0 +lon_0=15 +k=1 +x_0=5500000 +y_0=0 +ellps=krass +towgs84=24,-123,-94,0.02,-0.25,-0.13,1.1 +units=m +no_defs  <>\n|" /usr/share/proj/epsg && \
-sed -i "1s|^|# Pulkovo 1942(83) / 3-degree Gauss-Kruger zone 4\n<2398> +proj=tmerc +lat_0=0 +lon_0=12 +k=1 +x_0=4500000 +y_0=0 +ellps=krass +towgs84=24,-123,-94,0.02,-0.25,-0.13,1.1 +units=m +no_defs  <>\n|" /usr/share/proj/epsg && \
-sed -i "1s|^|# Pulkovo 1942(83) / 3-degree Gauss-Kruger zone 3\n<2397> +proj=tmerc +lat_0=0 +lon_0=9  +k=1 +x_0=3500000 +y_0=0 +ellps=krass +towgs84=24,-123,-94,0.02,-0.25,-0.13,1.1 +units=m +no_defs  <>\n|" /usr/share/proj/epsg
 
 EXPOSE 80
 EXPOSE 443
