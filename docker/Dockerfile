@@ -44,7 +44,9 @@ RUN apt-get update && apt-get install -y \
 ADD sources /usr/local/bin
 
 RUN mv /usr/local/bin/liblwgeom-2.1.7.so /usr/lib/liblwgeom-2.1.7.so && \
-		chmod +x /usr/local/bin/kvwmap* /usr/local/bin/shp2pgsql /usr/local/bin/pgsql2shp
+  chmod +x /usr/local/bin/kvwmap* /usr/local/bin/shp2pgsql /usr/local/bin/pgsql2shp && \
+  mv /usr/local/bin/shp2pgsql /usr/bin && \
+  mv /usr/local/bin/pgsql2shp /usr/bin
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod authz_groupfile && \
