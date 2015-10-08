@@ -2,8 +2,7 @@ FROM debian
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
 LABEL version="1.0.0"
 
-ENV OS_USER="gisadmin"
-ENV USER_DIR="/home/${OS_USER}"
+ENV OS_USER="gisadmin" USER_DIR="/home/${OS_USER}" TZ="Europe/Berlin"
 
 RUN echo "deb http://ftp.de.debian.org/debian/ jessie main contrib non-free" > /etc/apt/sources.list && \
     echo "deb-src http://ftp.de.debian.org/debian/ jessie main contrib non-free" >> /etc/apt/sources.list && \
@@ -11,9 +10,10 @@ RUN echo "deb http://ftp.de.debian.org/debian/ jessie main contrib non-free" > /
         -e "s|# alias ls=|alias ls=|g" \
         -e "s|# alias ll=|alias ll=|g" \
         -e "s|# alias rm=|alias rm=|g" \
-        ~/.bashrc
-
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+        ~/.bashrc && \
+    echo $TZ > /etc/timezone && \
+    dpkg-reconfigure -f noninteractive tzdata && \
+    echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 RUN apt-get update && apt-get install -y \
     apt-utils \
