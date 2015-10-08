@@ -24,6 +24,8 @@ usage() {
   echo "kvwmap [Option]";
   echo ""
   echo "Optionen:"
+  echo "build gdal    Erzeugt ein neues Image pkorduan/gdal:latest an Hand des lokalen Dockerfiles."
+  echo "build kvwmap  Erzeugt ein neues Image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
   echo "clean         Löscht alle beendeten Container und nicht getaggete images."
   echo "console mysql Öffnet eine Console im Mysql Container."
   echo "console pgsql Öffnet eine Console im PostgreSQL Container."
@@ -104,7 +106,7 @@ usage() {
   echo ""  
 }
 
-build() {
+build_kvwmap_server() {
   TAG=$1
   if [ -z "$TAG" ] ; then
     TAG="latest"
@@ -333,7 +335,7 @@ case "$1" in
       ;;
       kvwmap-server)
         echo "Build the image pkorduan/kvwmap-server:latest"
-        build $KVWMAP_IMAGE_VERSION
+        build_kvwmap_server $KVWMAP_IMAGE_VERSION
       ;;
       *)
         echo "Gebe das Image an das gebaut werden soll. gdal oder kvwmap-server"
@@ -492,7 +494,7 @@ case "$1" in
     docker pull pkorduan/kvwmap-server:latest
 
     # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-    build $KVWMAP_IMAGE_VERSION
+    #build_kvwmap_server $KVWMAP_IMAGE_VERSION
     
     #mkdir /etc/systemd/system/docker.service.d
     #cp docker/sources/kvwmap-container.conf /etc/systemd/system/docker.service.d/kvwmap-container.conf
@@ -595,14 +597,15 @@ case "$1" in
         stop_web_container
         remove_web_container
         docker rmi -f $(docker images -q pkorduan/kvwmap-server)
-        build "latest"
+        build_kvwmap_server "latest"
         run_web_container
       ;;
       *)
         stop_all_container
         remove_all_container
         docker rmi -f $(docker images -q pkorduan/kvwmap-server)
-        build "latest"
+        build_gdal_image 
+        build_kvwmap_server "latest"
         run_all_container
       ;;
     esac
