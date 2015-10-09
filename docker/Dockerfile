@@ -67,11 +67,13 @@ RUN unzip -q phpmyadmin.zip && \
 RUN useradd -ms /bin/bash ${OS_USER} && \
   usermod -G ${OS_USER} www-data && \
   chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin && \
-  mkdir -p $USER_DIR/.ssh && \
+  echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git && \
+  sed -i "s|#includedir /etc/sudoers.d|includedir /etc/sudoers.d|g" /etc/sudoers
+
+RUN mkdir -p $USER_DIR/.ssh && \
   ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
   chown -R $OS_USER.$OS_USER $USER_DIR/.ssh && \
-  sed -i "s|#   IdentityFile ~/.ssh/id_rsa|    IdentityFile ~/.ssh/id_rsa|g" /etc/ssh/ssh_config && \
-  echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
+  sed -i "s|#   IdentityFile ~/.ssh/id_rsa|    IdentityFile ~/.ssh/id_rsa|g" /etc/ssh/ssh_config
 
 
 EXPOSE 80
