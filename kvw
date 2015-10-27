@@ -189,7 +189,7 @@ run_gdal_container() {
   echo "Erzeuge und Starte den gdal Container."
   docker run --name gdal \
     -h ${SERVER_NAME}_gdal-container \
-    -v /var/docker/www/data:/data \
+    --volumes-from wwwdata \
     --link pgsql-server:pgsql \
     --restart=always \
     -P \
@@ -389,16 +389,25 @@ case "$1" in
       unzip \
       wget
 
+    # install docker demon and client on host system if not exists already
     case `docker --version` in
       *Docker*)
         echo 'Docker allready installed!' 
         ;;
       *)
-        # install docker
         echo 'Install docker.'
         curl -sSL https://get.docker.com/ | sh
       ;;
     esac
+    
+    # enable memory and swap accounting. This prevent from
+    # WARNING: Your kernel does not support cgroup swap limit. and
+    # WARNING: Your kernel does not support swap limit capabilities. Limitation discarded.
+    # This setting affects only after rebooting the system
+    sed -i \
+      -e "s|GRUB_CMDLINE_LINUX=\"\"|GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"|g" \
+      /etc/default/grub
+    update-grub
 
     # create user for web gis anwendung if not exists
     $OS_USER_EXISTS || adduser $OS_USER
@@ -409,7 +418,7 @@ case "$1" in
     sed -i \
       -e "s|#alias ll=|alias ll=|g" \
       -e "s|alias rm=|#alias rm=|g" \
-        $USER_DIR/.bashrc
+      $USER_DIR/.bashrc
     cp $USER_DIR/.bashrc ~/.bashrc
     source ~/.bashrc
     
