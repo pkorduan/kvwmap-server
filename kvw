@@ -10,7 +10,9 @@ MYSQL_IMAGE_VERSION=5.5
 POSTGRESQL_IMAGE_VERSION=9.4
 KVWMAP_IMAGE_VERSION=latest
 SERVER_NAME=`hostname`
-WWW_ROOT="/var/docker/www"
+DOCKER_ROOT="/var/docker"
+WWW_ROOT="${DOCKER_ROOT}/www"
+DB_ROOT="${DOCKER_ROOT}/db"
 
 if [ "$(id -u)" == '0' ]; then
   IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
@@ -231,8 +233,8 @@ install_kvwmap_images() {
   echo "
   Erzeuge Verzeichnisstruktur für die Datenbank und Web-Anwendungen von kvwmap ..."
   # create directories
-  mkdir -p /var/docker/db/mysql \
-           /var/docker/db/postgresql/data \
+  mkdir -p $DB_ROOT/mysql \
+           $DB_ROOT/postgresql/data \
            $USER_DIR/etc/apache2/sites-available \
            $USER_DIR/etc/apache2/sites-enabled \
            $USER_DIR/etc/apache2/ssl \
@@ -255,16 +257,17 @@ install_kvwmap_images() {
            $WWW_ROOT/data/alb \
            $WWW_ROOT/data/referencemaps \
            $WWW_ROOT/data/nachweise \
-           $WWW_ROOT/data/recherchierte_antraege \   
+           $WWW_ROOT/data/recherchierte_antraege \
            $WWW_ROOT/data/festpunkte/archiv
-  
+
   ln -s $WWW_ROOT $USER_DIR/www
+  ln -s $DB_ROOT $USER_DIR/db
 
   echo "
   Erzeuge Links für den Zugriff auf die Datenbankverzeichnisse ..."
   # create links to have access to the postgres config files, even if the files do not exist yet
-  ln -s /var/docker/db/postgresql/data/pg_hba.conf $USER_DIR/etc/postgresql/pg_hba.conf
-  ln -s /var/docker/db/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
+  ln -s $DB_ROOT/postgresql/data/pg_hba.conf $USER_DIR/etc/postgresql/pg_hba.conf
+  ln -s $DB_ROOT/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
 
   echo "
   Kopiere index.php und Konfigurationsdateien für Apache Web-Server ..."
@@ -405,7 +408,7 @@ run_mysql_container() {
   docker run --name mysql-server \
     -h ${SERVER_NAME}_mysql-container \
     -v $USER_DIR/etc/mysql:/etc/mysql \
-    -v /var/docker/db/mysql:/var/lib/mysql \
+    -v $DB_ROOT/mysql:/var/lib/mysql \
     -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
     --restart=always \
     -d mysql:${MYSQL_IMAGE_VERSION}
@@ -416,7 +419,7 @@ run_pgsql_container() {
   docker run --name pgsql-server \
     -h ${SERVER_NAME}_pgsql-container \
     --volumes-from wwwdata \
-    -v /var/docker/db/postgresql/data:/var/lib/postgresql/data \
+    -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
     -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
     -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
     -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
@@ -574,16 +577,17 @@ uninstall_kvwmap() {
       remove_all_container
       remove_all_images
       echo "Lösche alles in ${WWW_ROOT} "
+      ls -l $WWW_ROOT
       rm -RI $WWW_ROOT/*
 
       if [ ! -z "$USER_DIR" ] ; then
-        echo "Lösche /var/docker/db, $USER_DIR/etc, $USER_DIR/kvwmap-server und ${WWW_ROOT}"
-        rm -RI /var/docker/db $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT
+        echo "Lösche $DB_ROOT, $USER_DIR/etc, $USER_DIR/kvwmap-server, ${WWW_ROOT} und die links db und www in $USER_DIR"
+        rm -RI $DB_ROOT $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT $USER_DIR/db $USER_DIR/www
       fi
       echo "So jetzt ist alles weg."
-      echo "Zum neu installieren folgende Befehle eingeben:"
+      echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
       echo "$ git clone https://github.com/pkorduan/kvwmap-server.git"
-      echo "$ kvwmap-server/kvwmap install"
+      echo "$ kvwmap-server/kvw install kvwmap"
       echo "$ kvwmap run all"
       echo "und im Browser:"
       echo "http://meineserverip/kvwmap/install.php"
@@ -694,7 +698,7 @@ case "$1" in
           -e "s|#log_rotation_age = 1d|log_rotation_age = 1d|g" \
           -e "s|#checkpoint_segments = 3|checkpoint_segments = 30|g" \
           -e "s|#checkpoint_timeout = 5min|checkpoint_timeout = 10min|g" \
-          /var/docker/db/postgresql/data/postgresql.conf
+          $DB_ROOT/postgresql/data/postgresql.conf
       ;;
       *)
         echo "Gib nach log einen der folgenden Parameter ein: pgsql."
