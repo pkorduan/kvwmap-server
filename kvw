@@ -333,6 +333,11 @@ install_kvwmap_images() {
   echo "    Browser öffnen mit der Adresse: http://#{IP_EXTERN}/kvwmap/install.php"
 }
 
+install_pydio_image() {
+  echo "Installiere pydio Image ..."
+  docker pull kdelfour/pydio-docker:latest
+}
+
 remove_all_container() {
   echo "Lösche alle Container ..."
   docker rm $(docker ps -a -q)
