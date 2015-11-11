@@ -343,6 +343,8 @@ install_kvwmap_images() {
 
 install_pydio_image() {
   echo "Installiere pydio Image ..."
+  mkdir -p $USER_DIR/pydio
+  chown $OS_USER.$OS_USER $USER_DIR/pydio
   docker pull kdelfour/pydio-docker:latest
 }
 
@@ -439,9 +441,8 @@ run_pydio_container() {
     -h ${SERVER_NAME}_pydio-container \
     -p 80:80 \
     -p 443:443 \
-    -v ${USER_DIR}/pydio/files/:/pydio-data/files/ \
-    -v ${USER_DIR}/pydio/personal/:/pydio-data/personal/ \
-    -v ${USER_DIR}/pydio/conf/sites-enabled:/etc/nginx/sites-enabled \
+    -v $USER_DIR/pydio/data:/var/www/pydio-core/data \
+    -v $USER_DIR/etc/pydio/sites-enabled:/etc/nginx/sites-enabled \
     -d kdelfour/pydio-docker
 }
 
@@ -842,11 +843,14 @@ case "$1" in
       pgsql)
         remove_pgsql_container
       ;;
+      pydio)
+        remove_pydio_container
+      ;;
       web)
         remove_web_container
       ;;
       * )
-        echo "Gib nach remove einen der folgenden Parameter ein: mysql, pgsql, web oder all."
+        echo "Gib nach remove einen der folgenden Parameter ein: mysql, pgsql, pydio, web oder all."
       ;;
     esac
     docker ps -a
