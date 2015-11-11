@@ -350,7 +350,10 @@ install_pydio_image() {
   echo "Installiere pydio Image ..."
   mkdir -p $USER_DIR/pydio
   cp $USER_DIR/kvwmap-server/pydio $USER_DIR/pydio 
-  cp -R $USER_DIR/kvwmap-server/etc/nginx $USER_DIR/etc/ 
+  cp $USER_DIR/kvwmap-server/etc/nginx $USER_DIR/etc/nginx 
+  cp $USER_DIR/kvwmap-server/pydio/pydio.conf $USER_DIR/etc/apache2/sites_available/pydio.conf 
+  ln -s $USER_DIR/etc/apache2/sites_available/pydio.conf $USER_DIR/etc/apache2/sites_enabled/pydio.conf 
+  chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites_available/pydio.conf 
   chown $OS_USER.$OS_USER $USER_DIR/etc/nginx 
   chown $OS_USER.$OS_USER $USER_DIR/pydio
   docker pull kdelfour/pydio-docker:latest
