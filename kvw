@@ -273,7 +273,11 @@ install_kvwmap_images() {
   echo "
   Kopiere index.php und Konfigurationsdateien für Apache Web-Server ..."
   cp $USER_DIR/kvwmap-server/www/html/index.php $WWW_ROOT/html/index.php
-  cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
+  cp -R $USER_DIR/kvwmap-server/etc/apache2 $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/pgsql $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/mysql $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/php5 $USER_DIR/etc/
 
   echo "
   Setze Servername für Apache default Konfiguration ..."
@@ -345,6 +349,9 @@ install_kvwmap_images() {
 install_pydio_image() {
   echo "Installiere pydio Image ..."
   mkdir -p $USER_DIR/pydio
+  cp $USER_DIR/kvwmap-server/pydio $USER_DIR/pydio 
+  cp -R $USER_DIR/kvwmap-server/etc/nginx $USER_DIR/etc/ 
+  chown $OS_USER.$OS_USER $USER_DIR/etc/nginx 
   chown $OS_USER.$OS_USER $USER_DIR/pydio
   docker pull kdelfour/pydio-docker:latest
 }
@@ -444,7 +451,7 @@ run_pydio_container() {
     -h ${SERVER_NAME}_pydio-container \
     -p 8080:80 \
     -p 8443:443 \
-    -v $USER_DIR/etc/pydio/sites-enabled:/etc/nginx/sites-enabled \
+    -v $USER_DIR/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \
     -v $USER_DIR/pydio/files/:/pydio-data/files/ \
     -v $USER_DIR/pydio/personal/:/pydio-data/personal/ \
     -v $USER_DIR/pydio/bootstrap.json:/pydio-data/plugins/boot.conf/bootstrap.json \
