@@ -523,6 +523,7 @@ start_all_container() {
   docker start wwwdata
   docker start mysql-server
   docker start pgsql-server
+  start_pydio_container
   start_web_container
   docker ps
 }
@@ -530,6 +531,11 @@ start_all_container() {
 start_gdal_container() {
   echo "Starte gdal Container."
   docker start gdal
+}
+
+start_pydio_container() {
+  echo "Starte pydio Container."
+  docker start pydio
 }
 
 start_web_container() {
@@ -945,6 +951,9 @@ case "$1" in
       ;;
       pgsql)
         docker start pgsql-server
+      ;;
+      pydio)
+        start_pydio_container
       ;;
       web)
         start_web_container
