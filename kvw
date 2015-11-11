@@ -97,10 +97,15 @@ Verzeichnisse und lokale Dateien für den Betrieb von Containern auf der Basis d
   echo "stop mysql     Stoppt nur den Container mysql-server."
   echo "stop pgsql     Stoppt nur den Container pgsql-server."
   echo "stop web       Stoppt nur den Container web."
-  echo "uninstall      Vorsicht, Stoppt und löscht alle Container, löscht alle Images und deinstalliert kvwmap-server."
+  echo "uninstall      Vorsicht, Stoppt und löscht Container, löscht Images und deinstalliert eingerichtete Verzeichnisse auf dem Host-Rechner."
+  echo "uninstall all  Deinstalliert alle images."
+  echo "uninsall gdal  Deinstalliert das gdal image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+  echo "uninsall geoserver Deinstalliert das geoserver image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+  echo "uninstall kvwmap Deinstalliert kvwmap-server."
   echo "               Dazu gehört alles in  ${WWW_ROOT} sowie die Verzeichnisse db, etc und kvwmap-server"
   echo "               unter dem Installationsverzeichnis z.B. unter /home/gisadmin"
   echo "               Damit werden auch alle Daten und Datenbankinhalte gelöscht."
+  echo "uninstall pydio Deinstalliert das pydio image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner." 
   echo "web console    Öffnet ein Terminal im Container web in dem der Web-Server läuft."
   echo "web start      Startet den Container web."
   echo "web status     Zeigt den Status des Web-Containers mit dem Namen web."
@@ -550,6 +555,50 @@ stop_web_container() {
   docker stop web
 }
 
+uninstall_gdal() {
+  echo "Deinstalliere das gdal image ..."
+  echo "Funktion ist noch nicht implementiert!!!"
+}
+
+uninstall_geoserver() {
+  echo "Deinstalliere das geoserver image ..."
+  echo "Funktion ist noch nicht implementiert!!!"
+}
+
+uninstall_kvwmap() {
+  echo "Deinstalliere das kvwmap und dazugehörige images."
+  read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (j/n)? " answer
+  case ${answer:0:1} in
+    j|J )
+      stop_all_container
+      remove_all_container
+      remove_all_images
+      echo "Lösche alles in ${WWW_ROOT} "
+      rm -RI $WWW_ROOT/*
+
+      if [ ! -z "$USER_DIR" ] ; then
+        echo "Lösche /var/docker/db, $USER_DIR/etc, $USER_DIR/kvwmap-server und ${WWW_ROOT}"
+        rm -RI /var/docker/db $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT
+      fi
+      echo "So jetzt ist alles weg."
+      echo "Zum neu installieren folgende Befehle eingeben:"
+      echo "$ git clone https://github.com/pkorduan/kvwmap-server.git"
+      echo "$ kvwmap-server/kvwmap install"
+      echo "$ kvwmap run all"
+      echo "und im Browser:"
+      echo "http://meineserverip/kvwmap/install.php"
+    ;;
+    * )
+      echo "OK, nix passiert!"
+    ;;
+  esac
+}
+
+uninstall_pydio() {
+  echo "Deinstalliere das pydio image ..."
+  echo "Funktion ist noch nicht implementiert!!!"
+}
+
 fail_unless_root
 
 case "$1" in
@@ -951,29 +1000,27 @@ case "$1" in
   ;;
   
   uninstall)
-    read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (j/n)? " answer
-    case ${answer:0:1} in
-      j|J )
-        stop_all_container
-        remove_all_container
-        remove_all_images
-        echo "Lösche alles in ${WWW_ROOT} "
-        rm -RI $WWW_ROOT/*
-    
-        if [ ! -z "$USER_DIR" ] ; then
-          echo "Lösche /var/docker/db, $USER_DIR/etc, $USER_DIR/kvwmap-server und ${WWW_ROOT}"
-          rm -RI /var/docker/db $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT
-        fi
-        echo "So jetzt ist alles weg."
-        echo "Zum neu installieren folgende Befehle eingeben:"
-        echo "$ git clone https://github.com/pkorduan/kvwmap-server.git"
-        echo "$ kvwmap-server/kvwmap install"
-        echo "$ kvwmap run all"
-        echo "und im Browser:"
-        echo "http://meineserverip/kvwmap/install.php"
+    case $2 in
+      all)
+        uninstall_gdal
+        uninstall_geoserver
+        uninstall_kvwmap
+        uninstall_pydio
       ;;
-      * )
-        echo "OK, nix passiert!"
+      gdal)
+        uninstall_gdal
+      ;;
+      geoserver)
+        uninstall_geoserver
+      ;;
+      kvwmap)
+        uninstall_kvwmap
+      ;;
+      pydio)
+        uninstall_pydio
+      ;;
+      *)
+        echo "Gib nach uninstall einen der folgenden Parameter ein: all, kvwmap, gdal, pydio, geoserver."
       ;;
     esac
   ;;
