@@ -88,6 +88,7 @@ Verzeichnisse und lokale Dateien für den Betrieb von Containern auf der Basis d
   echo "start all      Startet alle Container."
   echo "start mysql    Startet nur den Container mysql-server."
   echo "start pgsql    Startet nur den Container pgsql-server."
+  echo "start pydio    Startet nur den Container pydio."
   echo "start web      Startet nur den Container web."
   echo "status         Listet Status der angegebenen Container auf."
   echo "status all     Listet den Status aller Container auf."
@@ -391,6 +392,7 @@ run_all_container() {
   run_mysql_container
   run_pgsql_container
   run_gdal_container
+  run_pydio_container
   run_web_container
 }
 
@@ -403,6 +405,11 @@ run_gdal_container() {
     --restart=always \
     -P \
     -d pkorduan/gdal-sshd:latest
+}
+
+run_geoserver_container() {
+  echo "Erzeuge und Starte den geoserver Container ..."
+  echo "Noch nicht implementiert!"
 }
 
 run_mysql_container() {
@@ -431,28 +438,27 @@ run_pgsql_container() {
     -d mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
 }
 
-#
-# Derzeit werden die Konfigurationseinstellungen, die beim Installieren der
-# Anwendung erzeugt werden überschrieben wenn der Container neu gestartet wird.
-#
 run_pydio_container() {
   echo "Erzeuge und starte den pydio Container ..."
   docker run --name pydio \
     -h ${SERVER_NAME}_pydio-container \
-    -p 80:80 \
-    -p 443:443 \
-    -v $USER_DIR/pydio/data:/var/www/pydio-core/data \
+    -p 8080:80 \
+    -p 8443:443 \
     -v $USER_DIR/etc/pydio/sites-enabled:/etc/nginx/sites-enabled \
+    -v $USER_DIR/pydio/files/:/pydio-data/files/ \
+    -v $USER_DIR/pydio/personal/:/pydio-data/personal/ \
+    -v $USER_DIR/pydio/bootstrap.json:/pydio-data/plugins/boot.conf/bootstrap.json \
+    -v $USER_DIR/pydio/first_run_passed:/pydio-data/cache/first_run_passed \
+    -v $USER_DIR/pydio/de_plugins_messages.ser:/pydio-data/cache/i18n/de_plugins_messages.ser \
+    --restart=always \
     -d kdelfour/pydio-docker
 }
 
-#
-# Start the web container
-#
 run_web_container() {
   read -s -p "Enter password for kvwmap user. It is used as initial password to grant php access to the mysql and postgres databases of kvwmap, to phpMyAdmin db web client and to the Administrator-Stelle of the web application kvwmap itself. Passwords can be canged later when the container is running.: " KVWMAP_INIT_PASSWORD
   docker run --name web \
       -h ${SERVER_NAME}_web-container \
+      --link pydio:pydio \
       --link mysql-server:mysql \
       --link pgsql-server:pgsql \
       --link gdal:gdal \
@@ -524,7 +530,8 @@ start_all_container() {
   docker start wwwdata
   docker start mysql-server
   docker start pgsql-server
-  start_pydio_container
+  docker start pydio
+  start_gdal_container
   start_web_container
   docker ps
 }
@@ -532,11 +539,6 @@ start_all_container() {
 start_gdal_container() {
   echo "Starte gdal Container."
   docker start gdal
-}
-
-start_pydio_container() {
-  echo "Starte pydio Container."
-  docker start pydio
 }
 
 start_web_container() {
@@ -915,6 +917,14 @@ case "$1" in
         run_gdal_container
         docker ps
       ;;
+      kvwmap)
+        create_www_data_volume
+        run_mysql_container
+        run_pgsql_container
+        run_gdal_container
+        run_web_container
+        docker ps
+      ;;
       mysql)
         run_mysql_container
         docker ps
@@ -956,9 +966,6 @@ case "$1" in
       pgsql)
         docker start pgsql-server
       ;;
-      pydio)
-        start_pydio_container
-      ;;
       web)
         start_web_container
       ;;
@@ -998,6 +1005,11 @@ case "$1" in
         stop_all_container
       ;;
       mysql)
+        stop_mysql_container
+      ;;
+      kvwmap)
+        stop_web_container
+        stop_pgsql_container
         stop_mysql_container
       ;;
       pgsql)

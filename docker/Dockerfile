@@ -54,6 +54,9 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod cgi && \
     a2enmod rewrite && \
     a2enmod ssl && \
+    a2enmod proxy && \
+    a2enmod proxy_http && \
+    a2enmod proxy_html && \
     make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
 
 ADD https://github.com/phpmyadmin/phpmyadmin/archive/STABLE.zip /tmp/phpmyadmin.zip
