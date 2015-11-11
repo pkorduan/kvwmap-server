@@ -10,6 +10,8 @@ MYSQL_IMAGE_VERSION=5.5
 POSTGRESQL_IMAGE_VERSION=9.4
 KVWMAP_IMAGE_VERSION=latest
 SERVER_NAME=`hostname`
+WWW_ROOT="/var/docker/www"
+
 if [ "$(id -u)" == '0' ]; then
   IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
 fi
@@ -92,7 +94,7 @@ usage() {
   echo "stop pgsql    Stoppt nur den Container pgsql-server."
   echo "stop web      Stoppt nur den Container web."
   echo "uninstall     Vorsicht, Stoppt und löscht alle Container, löscht alle Images und deinstalliert kvwmap-server."
-  echo "              Dazu gehört alles in /var/docker/www sowie die Verzeichnisse db, etc und kvwmap-server"
+  echo "              Dazu gehört alles in  ${WWW_ROOT} sowie die Verzeichnisse db, etc und kvwmap-server"
   echo "              unter dem Installationsverzeichnis z.B. unter /home/gisadmin"
   echo "              Damit werden auch alle Daten und Datenbankinhalte gelöscht."
   echo "web console   Öffnet ein Terminal im Container web in dem der Web-Server läuft."
@@ -130,7 +132,7 @@ build_gdal_image() {
 
 create_www_data_volume() {
   docker create --name wwwdata \
-    -v /var/docker/www:/var/www \
+    -v  $WWW_ROOT:/var/www \
     --restart=always \
     pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} /bin/true
 }
@@ -142,6 +144,189 @@ fail_unless_root() {
     echo ""
     exit 1
   fi
+}
+
+install_all_images() {
+  install_kvwmap_images
+  install_gdal_image
+  install_pydio_image
+  install_geoserver_image
+}
+
+install_docker() {
+  echo "Install docker auf dem Hostrechner ..."
+  # Update debian repo
+  apt-get update && apt-get install -y \
+    apt-utils \
+    curl \
+    unzip \
+    wget
+
+  # install docker demon and client on host system if not exists already
+  case `docker --version` in
+    *Docker*)
+      echo 'Docker schon installiert!'
+      ;;
+    *)
+      echo 'Installiere docker ....'
+      curl -sSL https://get.docker.com/ | sh
+    ;;
+  esac
+  
+  # enable memory and swap accounting. This prevent from
+  # WARNING: Your kernel does not support cgroup swap limit. and
+  # WARNING: Your kernel does not support swap limit capabilities. Limitation discarded.
+  # This setting affects only after rebooting the system
+  sed -i \
+    -e "s|GRUB_CMDLINE_LINUX=\"\"|GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"|g" \
+    /etc/default/grub
+  update-grub
+}
+
+install_gdal_image() {
+  echo "Installiere gdal Image ..."
+  echo "
+  Pull GDAL image mit integriertem sshd von docker hup ..."
+  # download gdal image for NAS Imports
+  # this can be used to execute ogr2ogr like in the following example
+  # docker run --rm --volumes-from wwwdata --link pgsql-server:pgsql geodata/gdal /bin/bash -c "/ogr2ogr -f PostgreSQL --config PG_USE_COPY YES -skipfailures -nlt CONVERT_TO_LINEAR -append PG:\"dbname=<POSTNASDB> active_schema=alkis user=<DBUSER> host=pgsql\" -a_srs EPSG:25833  /PFAD/ZU/DEN/NASDATEN.XML 2>> /var/www/logs/postnas_err.log"
+  docker pull pkorduan/gdal-sshd:latest
+}
+
+install_geoserver_image() {
+  echo "Installiere geoserver image ..."
+  docker pull kartoza/geoserver
+}
+
+install_kvwmap_images() {
+  echo "Installiere kvwmap images ..."
+  
+  echo "
+  Erzeuge user: ${OS_USER} ..."
+  # create user for web gis anwendung if not exists
+  $OS_USER_EXISTS || adduser $OS_USER
+  
+  echo "
+  Setze bash Einstellungen für user: ${OS_USER} ..."
+  # set bash settings for web gis user
+  cp /etc/skel/.bashrc $USER_DIR/.bashrc
+  echo "
+  export PATH=\$PATH:${USER_DIR}/kvwmap-server" >> $USER_DIR/.bashrc
+  sed -i \
+    -e "s|#alias ll=|alias ll=|g" \
+    -e "s|alias rm=|#alias rm=|g" \
+    $USER_DIR/.bashrc
+  cp $USER_DIR/.bashrc ~/.bashrc
+  source ~/.bashrc
+  
+  echo "
+  Erzeuge Verzeichnisstruktur für die Datenbank und Web-Anwendungen von kvwmap ..."
+  # create directories
+  mkdir -p /var/docker/db/mysql \
+           /var/docker/db/postgresql/data \
+           $USER_DIR/etc/apache2/sites-available \
+           $USER_DIR/etc/apache2/sites-enabled \
+           $USER_DIR/etc/apache2/ssl \
+           $USER_DIR/etc/mysql \
+           $USER_DIR/etc/postgresql \
+           $USER_DIR/etc/php5 \
+           $USER_DIR/etc/phpmyadmin \
+           $USER_DIR/etc/proj \
+           $WWW_ROOT/apps \
+           $WWW_ROOT/html \
+           $WWW_ROOT/logs \
+           $WWW_ROOT/tmp \
+           $WWW_ROOT/cache \
+           $WWW_ROOT/wms \
+           $WWW_ROOT/data/mapfiles \
+           $WWW_ROOT/data/synchro \
+           $WWW_ROOT/data/upload \
+           $WWW_ROOT/data/druckrahmen \
+           $WWW_ROOT/data/bilder \
+           $WWW_ROOT/data/alb \
+           $WWW_ROOT/data/referencemaps \
+           $WWW_ROOT/data/nachweise \
+           $WWW_ROOT/data/recherchierte_antraege \   
+           $WWW_ROOT/data/festpunkte/archiv
+  
+  ln -s $WWW_ROOT $USER_DIR/www
+
+  echo "
+  Erzeuge Links für den Zugriff auf die Datenbankverzeichnisse ..."
+  # create links to have access to the postgres config files, even if the files do not exist yet
+  ln -s /var/docker/db/postgresql/data/pg_hba.conf $USER_DIR/etc/postgresql/pg_hba.conf
+  ln -s /var/docker/db/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
+
+  echo "
+  Kopiere index.php und Konfigurationsdateien für Apache Web-Server ..."
+  cp $USER_DIR/kvwmap-server/www/html/index.php $WWW_ROOT/html/index.php
+  cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
+
+  echo "
+  Setze Servername für Apache default Konfiguration ..."
+  # Servername in Apache default Konfiguration eintragen
+  sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" $USER_DIR/etc/apache2/sites-available/000-default.conf
+
+  echo "
+  Kopiere Mapfiles, Referenzkarten und PDFClass Dateien ..."
+  cp -R $USER_DIR/kvwmap-server/www/data/mapfiles/ $WWW_ROOT/data/
+  cp -R $USER_DIR/kvwmap-server/www/data/referencemaps/ $WWW_ROOT/data/
+  cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass $WWW_ROOT/apps/
+
+  echo "
+  Clone kvwmap von github ins Web-Verzeichnis ..."
+  if [ ! -d "${WWW_ROOT}/apps/kvwmap" ]; then
+    # clone kvwmap repository into apps
+    git clone https://github.com/srahn/kvwmap.git $WWW_ROOT/apps/kvwmap
+    cd $WWW_ROOT/apps/kvwmap
+    git checkout develop
+  fi
+
+  echo "
+  Erzeuge kvwmap Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
+  mkdir -p $WWW_ROOT/apps/kvwmap/fonts/custom \
+           $WWW_ROOT/apps/kvwmap/graphics/custom \
+           $WWW_ROOT/apps/kvwmap/layouts/custom \
+           $WWW_ROOT/apps/kvwmap/layouts/snippets/custom \
+           $WWW_ROOT/apps/kvwmap/symbols/custom
+
+  cd $WWW_ROOT/apps
+
+  echo "
+  Setze Rechte auf kvwmap Datenverzeichnisse ..."
+  chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
+  chmod g+w $WWW_ROOT/apps/kvwmap \
+            $WWW_ROOT/apps/kvwmap/graphics/wappen \
+            $WWW_ROOT/data/bilder \
+            $WWW_ROOT/data/festpunkte \
+            $WWW_ROOT/data/nachweise \
+            $WWW_ROOT/data/recherchierte_antraege \
+            $WWW_ROOT/data/synchro \
+            $WWW_ROOT/data/upload \
+            $WWW_ROOT/logs \
+            $WWW_ROOT/tmp
+
+  echo "
+  Pull MySQL image von docker hup ..."
+  docker pull mysql:${MYSQL_IMAGE_VERSION}
+  
+  echo "
+  Pull PostgreSQL image mit PostGIS von docker hup ..."
+  docker pull mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
+
+  echo "
+  Pull kvwmap-server image mit Apache, PHP, MapServer etc. von docker hup ..."
+  docker pull pkorduan/kvwmap-server:latest
+
+  # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
+  #build_kvwmap_server $KVWMAP_IMAGE_VERSION
+  
+  #mkdir /etc/systemd/system/docker.service.d
+  #cp docker/sources/kvwmap-container.conf /etc/systemd/system/docker.service.d/kvwmap-container.conf
+  echo "
+  Nächste Schritte zum installieren von kvwmap:"
+  echo "    $ kvwmap run all"
+  echo "    Browser öffnen mit der Adresse: http://#{IP_EXTERN}/kvwmap/install.php"
 }
 
 remove_all_container() {
@@ -411,136 +596,33 @@ case "$1" in
   ;;
   
   install)
-    
-    # Update debian repo
-    apt-get update && apt-get install -y \
-      apt-utils \
-      curl \
-      unzip \
-      wget
-
-    # install docker demon and client on host system if not exists already
-    case `docker --version` in
-      *Docker*)
-        echo 'Docker allready installed!' 
-        ;;
+    install_docker
+    case $2 in
+      all)
+        install_all_images
+      ;;
+      gdal)
+        install_gdal_image
+      ;;
+      geoserver)
+        install_geoserver_image
+      ;;
+      kvwmap)
+        install_kvwmap_images
+        install_gdal_image
+      ;;
+      pydio)
+        install_pydio_image
+      ;;
       *)
-        echo 'Install docker.'
-        curl -sSL https://get.docker.com/ | sh
+        echo "Gib im zweiten Parameter an was installiert werden soll.
+  all ......... installiert alle images für kvwmap sowie pydio und geoserver.
+  kvwmap ...... installiert nur die images, die für kvwmap gebraucht werden und gdal-ssh.
+  gdal-ssh .... installiert nur das gdal image.
+  pysio ....... installiert nur das pydio image.
+  geoserver ... installiert nur das geoserver image."
       ;;
     esac
-    
-    # enable memory and swap accounting. This prevent from
-    # WARNING: Your kernel does not support cgroup swap limit. and
-    # WARNING: Your kernel does not support swap limit capabilities. Limitation discarded.
-    # This setting affects only after rebooting the system
-    sed -i \
-      -e "s|GRUB_CMDLINE_LINUX=\"\"|GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"|g" \
-      /etc/default/grub
-    update-grub
-
-    # create user for web gis anwendung if not exists
-    $OS_USER_EXISTS || adduser $OS_USER
-
-    # set bash settings for web gis user
-    cp /etc/skel/.bashrc $USER_DIR/.bashrc
-    echo "export PATH=\$PATH:${USER_DIR}/kvwmap-server" >> $USER_DIR/.bashrc
-    sed -i \
-      -e "s|#alias ll=|alias ll=|g" \
-      -e "s|alias rm=|#alias rm=|g" \
-      $USER_DIR/.bashrc
-    cp $USER_DIR/.bashrc ~/.bashrc
-    source ~/.bashrc
-    
-    # create directories
-    mkdir -p /var/docker/db/mysql \
-             /var/docker/db/postgresql/data \
-             $USER_DIR/etc/apache2/sites-available \
-             $USER_DIR/etc/apache2/sites-enabled \
-             $USER_DIR/etc/apache2/ssl \
-             $USER_DIR/etc/mysql \
-             $USER_DIR/etc/postgresql \
-             $USER_DIR/etc/php5 \
-             $USER_DIR/etc/phpmyadmin \
-             $USER_DIR/etc/proj \
-             /var/docker/www/apps \
-             /var/docker/www/html \
-             /var/docker/www/logs \
-             /var/docker/www/tmp \
-             /var/docker/www/cache \
-             /var/docker/www/wms \
-             /var/docker/www/data/mapfiles \
-             /var/docker/www/data/synchro \
-             /var/docker/www/data/upload \
-             /var/docker/www/data/druckrahmen \
-             /var/docker/www/data/bilder \
-             /var/docker/www/data/alb \
-             /var/docker/www/data/referencemaps \
-             /var/docker/www/data/nachweise \
-             /var/docker/www/data/recherchierte_antraege \   
-             /var/docker/www/data/festpunkte/archiv
-    
-    ln -s /var/docker/www $USER_DIR/www
-    # create links to have access to the postgres config files, even if the files do not exist yet
-    ln -s /var/docker/db/postgresql/data/pg_hba.conf $USER_DIR/etc/postgresql/pg_hba.conf
-    ln -s /var/docker/db/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
-
-    cp $USER_DIR/kvwmap-server/www/html/index.php /var/docker/www/html/index.php
-    cp -R $USER_DIR/kvwmap-server/etc/ $USER_DIR/
-
-    # Servername in Apache default Konfiguration eintragen
-    sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" $USER_DIR/etc/apache2/sites-available/000-default.conf
-
-    cp -R $USER_DIR/kvwmap-server/www/data/mapfiles/ /var/docker/www/data/
-    cp -R $USER_DIR/kvwmap-server/www/data/referencemaps/ /var/docker/www/data/
-    cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass /var/docker/www/apps/
-
-    if [ ! -d "/var/docker/www/apps/kvwmap" ]; then
-      # clone kvwmap repository into apps
-      git clone https://github.com/srahn/kvwmap.git /var/docker/www/apps/kvwmap
-      cd /var/docker/www/apps/kvwmap
-      git checkout develop
-    fi
-
-    mkdir -p /var/docker/www/apps/kvwmap/fonts/custom \
-             /var/docker/www/apps/kvwmap/graphics/custom \
-             /var/docker/www/apps/kvwmap/layouts/custom \
-             /var/docker/www/apps/kvwmap/layouts/snippets/custom \
-             /var/docker/www/apps/kvwmap/symbols/custom
-
-    cd /var/docker/www/apps
-
-    chown -R $OS_USER.$OS_USER $USER_DIR /var/docker/www
-    chmod g+w /var/docker/www/apps/kvwmap \
-              /var/docker/www/apps/kvwmap/graphics/wappen \
-              /var/docker/www/data/bilder \
-              /var/docker/www/data/festpunkte \
-              /var/docker/www/data/nachweise \
-              /var/docker/www/data/recherchierte_antraege \
-              /var/docker/www/data/synchro \
-              /var/docker/www/data/upload \
-              /var/docker/www/logs \
-              /var/docker/www/tmp
-
-    # download neccessary images for mysql and postgis
-    docker pull mysql:${MYSQL_IMAGE_VERSION}
-    docker pull mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
-    
-    # download gdal image for NAS Imports
-    # this can be used to execute ogr2ogr like in the following example
-    # docker run --rm --volumes-from wwwdata --link pgsql-server:pgsql geodata/gdal /bin/bash -c "/ogr2ogr -f PostgreSQL --config PG_USE_COPY YES -skipfailures -nlt CONVERT_TO_LINEAR -append PG:\"dbname=<POSTNASDB> active_schema=alkis user=<DBUSER> host=pgsql\" -a_srs EPSG:25833  /PFAD/ZU/DEN/NASDATEN.XML 2>> /var/www/logs/postnas_err.log"
-    docker pull pkorduan/gdal-sshd:latest
-
-    docker pull pkorduan/kvwmap-server:latest
-
-    # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-    #build_kvwmap_server $KVWMAP_IMAGE_VERSION
-    
-    #mkdir /etc/systemd/system/docker.service.d
-    #cp docker/sources/kvwmap-container.conf /etc/systemd/system/docker.service.d/kvwmap-container.conf
-    echo "Nächste Schritte zum installieren von kvwmap:"
-    echo "$ kvwmap run all"
-    echo "Browser öffnen mit der Adresse: http://#{IP_EXTERN}/kvwmap/install.php"
   ;;
   
   log)
@@ -866,12 +948,12 @@ case "$1" in
         stop_all_container
         remove_all_container
         remove_all_images
-        echo "Lösche alles in /var/docker/www "
-        rm -RI /var/docker/www/*
+        echo "Lösche alles in ${WWW_ROOT} "
+        rm -RI $WWW_ROOT/*
     
         if [ ! -z "$USER_DIR" ] ; then
-          echo "Lösche /var/docker/db, $USER_DIR/etc, $USER_DIR/kvwmap-server und /var/docker/www"
-          rm -RI /var/docker/db $USER_DIR/etc $USER_DIR/kvwmap-server /var/docker/www
+          echo "Lösche /var/docker/db, $USER_DIR/etc, $USER_DIR/kvwmap-server und ${WWW_ROOT}"
+          rm -RI /var/docker/db $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT
         fi
         echo "So jetzt ist alles weg."
         echo "Zum neu installieren folgende Befehle eingeben:"
