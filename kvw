@@ -145,39 +145,44 @@ fail_unless_root() {
 }
 
 remove_all_container() {
-  echo "Lösche alle Container."
+  echo "Lösche alle Container ..."
   docker rm $(docker ps -a -q)
   echo "Alle Container gelöscht."
 }
 
 remove_gdal_container() {
-  echo "Lösche gdal Container."
+  echo "Lösche gdal Container ..."
   docker rm gdal
 }
 
 remove_mysql_container() {
-  echo "Lösche mysql container."
+  echo "Lösche mysql Container ..."
   docker rm mysql-server
 }
 
 remove_pgsql_container() {
-  echo "Lösche pgsql container."
+  echo "Lösche pgsql Container ..."
   docker rm pgsql-server
 }
 
+remove_pydio_container() {
+  echo "Lösche pydio Container ..."
+  docker rm pydio
+}
+
 remove_web_container() {
-  echo "Lösche web Container."
+  echo "Lösche web Container ..."
   docker rm web
 }
 
 remove_all_images() {
-  echo "Lösche alle Images."
+  echo "Lösche alle Images ..."
   docker rmi $(docker images | awk "{print $3}")
   echo "Alle Images gelöscht."
 }
 
 run_all_container() {
-  echo "Erzeuge und Starte alle Container."
+  echo "Erzeuge und Starte alle Container ..."
   create_www_data_volume
   run_mysql_container
   run_pgsql_container
@@ -186,7 +191,7 @@ run_all_container() {
 }
 
 run_gdal_container() {
-  echo "Erzeuge und Starte den gdal Container."
+  echo "Erzeuge und Starte den gdal Container ..."
   docker run --name gdal \
     -h ${SERVER_NAME}_gdal-container \
     --volumes-from wwwdata \
@@ -220,6 +225,22 @@ run_pgsql_container() {
     -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
     --restart=always \
     -d mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
+}
+
+#
+# Derzeit werden die Konfigurationseinstellungen, die beim Installieren der
+# Anwendung erzeugt werden überschrieben wenn der Container neu gestartet wird.
+#
+run_pydio_container() {
+  echo "Erzeuge und starte den pydio Container ..."
+  docker run --name pydio \
+    -h ${SERVER_NAME}_pydio-container \
+    -p 80:80 \
+    -p 443:443 \
+    -v ${USER_DIR}/pydio/files/:/pydio-data/files/ \
+    -v ${USER_DIR}/pydio/personal/:/pydio-data/personal/ \
+    -v ${USER_DIR}/pydio/conf/sites-enabled:/etc/nginx/sites-enabled \
+    -d kdelfour/pydio-docker
 }
 
 #
@@ -259,6 +280,7 @@ show_container_ip() {
     show_container_ip 'gdal'
     show_container_ip 'mysql-server'
     show_container_ip 'pgsql-server'
+    show_container_ip 'pydio'
     show_container_ip 'web'
   else
     CONTAINER_IP=`docker inspect --format='{{.NetworkSettings.IPAddress}}' $CONTAINER`
@@ -324,6 +346,11 @@ stop_gdal_container() {
   docker stop gdal
 }
 
+stop_pydio_container() {
+  echo "Stoppe pydio Container. Bitte warten ..."
+  docker stop pydio
+}
+
 stop_web_container() {
   echo "Stoppe web Container. Bitte warten ..."
   docker stop web
@@ -359,7 +386,6 @@ case "$1" in
     case $2 in
       gdal)
         echo "Öffne ein Terminal im Container in dem gdal mit ogr2ogr läuft..."
-        echo "In diesen Container ist /var/docker/www/data auf /data im Container gemappt und der postgres Container gelinkt."
         docker exec -it gdal /bin/bash
       ;;
       mysql)
@@ -369,6 +395,10 @@ case "$1" in
       pgsql)
         echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft..."
         docker exec -it pgsql-server /bin/bash
+      ;;
+      pydio)
+        echo "Öffne ein Terminal im Container in dem der Pydio-Server läuft..."
+        docker exec -it pydio /bin/bash
       ;;
       web)
         echo "Öffne ein Terminal im Container in dem der Web-Server läuft..."
@@ -686,6 +716,12 @@ case "$1" in
         run_gdal_container
         docker ps
       ;;
+      pydio)
+        stop_pydio_container
+        remove_pydio_container
+        run_pydio_container
+        docker ps
+      ;;
       web)
         stop_web_container
         remove_web_container
@@ -731,6 +767,10 @@ case "$1" in
       ;;
       pgsql)
         run_pgsql_container
+        docker ps
+      ;;
+      pydio)
+        run_pydio_container
         docker ps
       ;;
       web)
@@ -801,10 +841,13 @@ case "$1" in
         stop_all_container
       ;;
       mysql)
-        docker stop mysql-server
+        stop_mysql_container
       ;;
       pgsql)
-        docker stop pgsql-server
+        stop_pgsql_container
+      ;;
+      pydio)
+        stop_pydio_container
       ;;
       web)
         stop_web_container
