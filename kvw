@@ -350,7 +350,9 @@ install_pydio_image() {
   echo "Installiere pydio Image ..."
   echo "
   Kopiere Dateien aus kvwmap-server Verzeichnis." 
-  cp -R $USER_DIR/kvwmap-server/pydio $WWW_ROOT/apps/pydio 
+  cp $USER_DIR/kvwmap-server/pydio/data/* $WWW_ROOT/apps/pydio/* 
+  mkdir -p $WWW_ROOT/apps/pydio/files
+  mkdir -p $WWW_ROOT/apps/pydio/personal 
   cp -R $USER_DIR/kvwmap-server/etc/nginx $USER_DIR/etc/nginx 
   cp $USER_DIR/kvwmap-server/pydio/pydio.conf $USER_DIR/etc/apache2/sites-available/pydio.conf 
   echo "
@@ -361,7 +363,7 @@ install_pydio_image() {
   chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-enabled/pydio.conf 
   chown -R $OS_USER.$OS_USER $USER_DIR/etc/nginx 
   chown -R $OS_USER.$OS_USER $WWW_ROOT/apps/pydio
-  chown -R www-data.www-data $www_ROOT/apps/pydio/files
+  chown -R www-data.www-data $WWW_ROOT/apps/pydio/files
   chown -R www-data.www-data $WWW_ROOT/apps/pydio/personal  
   echo "
   Ziehe pydio-docker image." 
