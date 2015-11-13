@@ -1,6 +1,6 @@
 server {
         listen 80;
-        server_name http://geo4.d10643.imv.de;
+        server_name localhost;
         #rewrite ^ https://$server_name$request_uri? permanent;
         #rewrite ^ http://$server_name/pydio/$request_uri? permanent; 
         root /var/www/pydio-core;
@@ -93,7 +93,7 @@ server {
 server {
         listen 443 ssl;
         ### Change the following line to match your website name
-        server_name http://geo4.d10643.imv.de;
+        server_name localhost;
         root /var/www/pydio-core;
         index index.php;
 
