@@ -348,15 +348,33 @@ install_kvwmap_images() {
 
 install_pydio_image() {
   echo "Installiere pydio Image ..."
-  mkdir -p $USER_DIR/pydio
-  cp -R $USER_DIR/kvwmap-server/pydio $USER_DIR/pydio 
+  echo "
+  Kopiere Dateien aus kvwmap-server Verzeichnis." 
+  cp -R $USER_DIR/kvwmap-server/pydio $WWW_ROOT/apps/pydio 
   cp -R $USER_DIR/kvwmap-server/etc/nginx $USER_DIR/etc/nginx 
   cp $USER_DIR/kvwmap-server/pydio/pydio.conf $USER_DIR/etc/apache2/sites-available/pydio.conf 
+  echo "
+  Enable pydio Web-Site in Apache Konfiguration." 
   ln -s ../sites-available/pydio.conf $USER_DIR/etc/apache2/sites-enabled/pydio.conf 
+  echo "
+  Setze Nutzerrechte auf Dateien." 
   chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-enabled/pydio.conf 
   chown -R $OS_USER.$OS_USER $USER_DIR/etc/nginx 
-  chown -R $OS_USER.$OS_USER $USER_DIR/pydio
+  chown -R $OS_USER.$OS_USER $WWW_ROOT/apps/pydio
+  chown -R www-data.www-data $www_ROOT/apps/pydio/files
+  chown -R www-data.www-data $WWW_ROOT/apps/pydio/personal  
+  echo "
+  Ziehe pydio-docker image." 
   docker pull kdelfour/pydio-docker:latest
+  echo "
+  Richte MySQL Datenbank und Nutzer für pydio ein.
+  Setzt voraus, dass root Zugang vorhanden ist."
+  docker run --name pydio -d kdelfour/pydio-docker 
+  docker exec pydio mysql -u root -e "CREATE DATABASE IF NOT EXISTS pydio;"
+  docker exec pydio mysql -u root -e "CREATE USER 'pydio'@'pydio' IDENTIFIED BY 'pydio';"
+  docker exec pydio mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'pydio'@'pydio' WITH GRANT OPTION;"
+  docker exec pydio mysql -u root -e "FLUSH PRIVILEGES;"
+  docker rm -f pydio
 }
 
 remove_all_container() {
@@ -455,11 +473,11 @@ run_pydio_container() {
     -p 8080:80 \
     -p 8443:443 \
     -v $USER_DIR/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \
-    -v $USER_DIR/pydio/files/:/pydio-data/files/ \
-    -v $USER_DIR/pydio/personal/:/pydio-data/personal/ \
-    -v $USER_DIR/pydio/bootstrap.json:/pydio-data/plugins/boot.conf/bootstrap.json \
-    -v $USER_DIR/pydio/first_run_passed:/pydio-data/cache/first_run_passed \
-    -v $USER_DIR/pydio/de_plugins_messages.ser:/pydio-data/cache/i18n/de_plugins_messages.ser \
+    -v $WWW_ROOT/apps/pydio/files/:/pydio-data/files/ \
+    -v $WWW_ROOT/apps/pydio/personal/:/pydio-data/personal/ \
+    -v $WWW_ROOT/apps/pydio/bootstrap.json:/pydio-data/plugins/boot.conf/bootstrap.json \
+    -v $WWW_ROOT/apps/pydio/first_run_passed:/pydio-data/cache/first_run_passed \
+    -v $WWW_ROOT/apps/pydio/de_plugins_messages.ser:/pydio-data/cache/i18n/de_plugins_messages.ser \
     --restart=always \
     -d kdelfour/pydio-docker
 }
