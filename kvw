@@ -241,7 +241,8 @@ install_kvwmap_images() {
            $USER_DIR/etc/apache2/ssl \
            $USER_DIR/etc/mysql \
            $USER_DIR/etc/postgresql \
-           $USER_DIR/etc/php5 \
+           $USER_DIR/etc/php5/apache2 \
+          $USER_DIR/etc/php5/cli \
            $USER_DIR/etc/phpmyadmin \
            $USER_DIR/etc/proj \
            $WWW_ROOT/apps \
@@ -502,7 +503,8 @@ run_web_container() {
       -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
       -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
       -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \
-      -v $USER_DIR/etc/php5/php.ini:/etc/php5/apache2/php.ini \
+      -v $USER_DIR/etc/php5/apache2/php.ini:/etc/php5/apache2/php.ini \
+      -v $USER_DIR/etc/php5/cli/php.ini:/etc/php5/cli/php.ini \
       -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
       -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
       -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
