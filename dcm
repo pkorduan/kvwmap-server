@@ -1,0 +1,1097 @@
+#!/bin/bash
+
+#settings
+DEBUG=true
+OS_USER="gisadmin"
+OS_USER_EXISTS=false
+getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
+USER_DIR=/home/$OS_USER
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+MYSQL_IMAGE_VERSION=5.5
+POSTGRESQL_IMAGE_VERSION=9.4
+KVWMAP_IMAGE_VERSION=latest
+SERVER_NAME=`hostname`
+DOCKER_ROOT="/var/docker"
+WWW_ROOT="${DOCKER_ROOT}/www"
+DB_ROOT="${DOCKER_ROOT}/db"
+CARGOPATH="$SCRIPTPATH/cargo-enabled"
+CARGOS=()
+
+if [ "$(id -u)" == '0' ]; then
+  IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
+fi
+if [ -f $USER_DIR/etc/apache2/domain ]; then
+  DOMAIN_EXTERN=$(head -n 1 $USER_DIR/etc/apache2/domain)
+fi
+
+usage() {
+  echo ""
+  echo "Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden.";
+  echo "Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos."
+  echo "Kontakt: peter.korduan@gdi-service.de"
+  echo ""
+  echo "Aufruf:";
+  echo "kvwmap [Option]";
+  echo ""
+  echo "Optionen:"
+  echo "build gdal     Erzeugt ein neues Image pkorduan/gdal:latest an Hand des lokalen Dockerfiles."
+  echo "build kvwmap   Erzeugt ein neues Image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
+  echo "clean          Löscht alle beendeten Container und nicht getaggete images."
+  echo "console mysql  Öffnet eine Console im Mysql Container."
+  echo "console pgsql  Öffnet eine Console im PostgreSQL Container."
+  echo "console web    Öffnet eine Console im Web Container"
+  echo "install        - Installiert auf dem Hostrechner den Docker-Server und Utilities zum Betrieb der Container,"
+  echo "               - Zieht die im zweiten Parameter angegebenen Images von docker hup und richtet ggf. benötigte
+Verzeichnisse und lokale Dateien für den Betrieb von Containern auf der Basis dier Images."
+  echo "install all    Installiert alle Images."
+  echo "install gdal   Installiert ein gdal Image."
+  echo "install kvwmap Installieirt kvwmap-server Image sowie von ihm benötigten images für MySQL und PostgreSQL."
+  echo "install pydio  Installiert pydio Image."
+  echo "mysql client   Öffnet eine Komandozeile im mysql Client."
+  echo "mysql start    Startet nur den Container mit der MySQL-Datenbank (mysql-server)"
+  echo "mysql status   Zeigt den Status des MySQL Containers an."
+  echo "mysql stop     Stoppt den MySQL Container und zeigt alle vorhandenen an."
+  echo "mysql remove   Löscht den MySQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
+  echo "mysql run      Erzeugt und startet den MySQL Container mit dem Namen mysql-server."
+  echo "pgsql client   Öffnet eine Komandozeile im psql Client."
+  echo "pgsql start    Startet nur den Container mit der PostgreSQL-Datenbank (pgsql-server)."
+  echo "pgsql status   Zeigt den Status des PostgreSQL-Datenbank Containers an."
+  echo "pgsql stop     Stoppt den PostgreSQL Container und zeigt alle vorhandenen an."
+  echo "pgsql remove   Löscht den PostgreSQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
+  echo "pgsql run      Erzeugt und startet den PostgreSQL Container mit dem Namen pgsql-server."
+  echo "rebuild        Stoppt und löscht Container, löscht images, die neu gebildet werden sollen, bildet diese neu und erzeugt und startet danach Container neu."
+  echo "rebuild all    Stoppt, löscht und restartet zum rebuild des Web Containers alle Container."
+  echo "rebuild gdal   Stoppt und löscht den gdal Container, löscht und rebuild das image pkorduan/gdal neu und run gdal Container neu."
+  echo "rebuild web    Macht ein Rebuild vom image kvwmap-server:#{KVWMAP_IMAGE_VERSION}."
+  echo "reload         Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
+  echo "reload all     Läd alle Container neu."
+  echo "reload web     Läd nur den Web Container neu."
+  echo "remove         Löscht Container."
+  echo "remove all     Löscht alle Container."
+  echo "remove mysql   Löscht nur den Container mysql-server."
+  echo "remove pgsql   Löscht nur den Container pgsql-server."
+  echo "remove web     Löscht nur den Container web."
+  echo "rerun          Stoppt und löscht alle oder die angegebenen Container und erzeugt und startet sie danach wieder."
+  echo "rerun all      Rerun für alle Container."
+  echo "rerun gdal     Stopped und löscht nur den gdal Container und erzeugt und startet ihn anschließend neu."
+  echo "rerun web      Stopped und löscht nur den web Container und erzeugt und startet ihn anschließend neu."
+  echo "restart        Stoppt und löscht Container und erzeugt und startet sie neu wie beim Parameter run."
+  echo "restart all    Führt es für alle Container aus."
+  echo "restart web    Führt es nur für den web Container aus."
+  echo "run            Erzeugt und startet alle oder den angegebenen Container."
+  echo "run all        Erzeugt und startet alle Container."
+  echo "run gdal       Erzeugt und startet nur den Container gdal."
+  echo "run mysql      Erzeugt und startet nur den Container mysql-server."
+  echo "run pgsql      Erzeugt und startet nur den Container pgsql-server."
+  echo "run web        Erzeugt und startet nur den Container web."
+  echo "run wwwdata    Erzeug den Volume Container wwwdata."
+  echo "show_ip        Zeigt die IP Adressen der Container an. Der Containername als zusätzlicher Parameter zeigt nur die IP dieses Containers an."
+  echo "start          Startet alle oder den angegebenen Container."
+  echo "start all      Startet alle Container."
+  echo "start mysql    Startet nur den Container mysql-server."
+  echo "start pgsql    Startet nur den Container pgsql-server."
+  echo "start pydio    Startet nur den Container pydio."
+  echo "start web      Startet nur den Container web."
+  echo "status         Listet Status der angegebenen Container auf."
+  echo "status all     Listet den Status aller Container auf."
+  echo "status mysql   Listet den Status des Containers mysql-server."
+  echo "status pgsql   Listet den Status des Containers pgsql-server."
+  echo "status web     Listet den Status des Containers web"
+  echo "stop           Stoppt alle oder einen der angegebenen Container."
+  echo "stop all       Stoppt alle Container."
+  echo "stop mysql     Stoppt nur den Container mysql-server."
+  echo "stop pgsql     Stoppt nur den Container pgsql-server."
+  echo "stop web       Stoppt nur den Container web."
+  echo "uninstall      Vorsicht, Stoppt und löscht Container, löscht Images und deinstalliert eingerichtete Verzeichnisse auf dem Host-Rechner."
+  echo "uninstall all  Deinstalliert alle images."
+  echo "uninsall gdal  Deinstalliert das gdal image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+  echo "uninstall kvwmap Deinstalliert kvwmap-server."
+  echo "               Dazu gehört alles in  ${WWW_ROOT} sowie die Verzeichnisse db, etc und kvwmap-server"
+  echo "               unter dem Installationsverzeichnis z.B. unter /home/gisadmin"
+  echo "               Damit werden auch alle Daten und Datenbankinhalte gelöscht."
+  echo "uninstall pydio Deinstalliert das pydio image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner." 
+  echo "web console    Öffnet ein Terminal im Container web in dem der Web-Server läuft."
+  echo "web start      Startet den Container web."
+  echo "web status     Zeigt den Status des Web-Containers mit dem Namen web."
+  echo "web stop       Stoppt den Container web."
+  echo "web remove     Löscht den Web Container und zeigt alle verbleibenden an. Der Container muss vorher gestoppt worden sein."
+  echo "web run        Erzeugt und startet den Web-Server Container mit dem Namen web."
+  echo ""
+  echo "Beispiele:"
+  echo "$0 start"
+  echo "$0 stop"
+  echo "$0 pgsql status"
+  echo ""
+  echo "Je nach dem welche Erweiterungen in cargo-enabeld eingestellt sind gibt es weitere Befehle. Folgende sind derzeit aktiviert:"
+}
+
+usage_cargos() {
+  #echo "Show usage of cargos."
+  for cargo in "${CARGOS[@]}"
+  do
+    #echo "usage_$cargo"
+    usage_$cargo
+  done
+}
+
+debug() {
+  if $DEBUG ; then
+    echo $1
+  fi
+}
+
+build_kvwmap_server() {
+  TAG=$1
+  if [ -z "$TAG" ] ; then
+    TAG="latest"
+  fi
+  cd $USER_DIR/kvwmap-server/docker
+  docker build -t pkorduan/kvwmap-server:${TAG} .
+}
+
+build_gdal_image() {
+  TAG=$1
+  if [ -z "$TAG" ] ; then
+    TAG="latest"
+  fi
+  echo "Build the image pkorduan/gdal-sshd:$TAG"
+  cd $USER_DIR/gdal-sshd
+  docker build -t pkorduan/gdal-sshd:$TAG .
+}
+
+create_www_data_volume() {
+  docker create --name wwwdata \
+    -v  $WWW_ROOT:/var/www \
+    --restart=always \
+    pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} /bin/true
+}
+
+fail_unless_root() {
+  if [ "$(id -u)" != '0' ]; then
+    echo "This script must be run as root!"
+    echo ""
+    echo ""
+    exit 1
+  fi
+}
+
+load_cargo() {
+  #echo "Load cargo source code."
+  dcmfiles=($(find -L $CARGOPATH -name dcm))
+  for dcmfile in ${dcmfiles[@]}
+  do
+    #echo "Load dcmfile: " $dcmfile
+    source $dcmfile
+  done
+  #echo "CARGOS: "
+  #printf '%s\n' "${CARGOS[@]}"
+  #echo ""
+}
+
+install_cargos() {
+  for cargo in "${CARGOS[@]}"
+  do :
+    install_$cargo
+  done
+}
+
+install_docker() {
+  echo "Install docker auf dem Hostrechner ..."
+  # Update debian repo
+  apt-get update && apt-get install -y \
+    apt-utils \
+    curl \
+    unzip \
+    wget
+
+  # install docker demon and client on host system if not exists already
+  case `docker --version` in
+    *Docker*)
+      echo 'Docker schon installiert!'
+      ;;
+    *)
+      echo 'Installiere docker ....'
+      curl -sSL https://get.docker.com/ | sh
+    ;;
+  esac
+  
+  # enable memory and swap accounting. This prevent from
+  # WARNING: Your kernel does not support cgroup swap limit. and
+  # WARNING: Your kernel does not support swap limit capabilities. Limitation discarded.
+  # This setting affects only after rebooting the system
+  sed -i \
+    -e "s|GRUB_CMDLINE_LINUX=\"\"|GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"|g" \
+    /etc/default/grub
+  update-grub
+}
+
+install_gdal_image() {
+  echo "Installiere gdal Image ..."
+  echo "
+  Pull GDAL image mit integriertem sshd von docker hup ..."
+  # download gdal image for NAS Imports
+  # this can be used to execute ogr2ogr like in the following example
+  # docker run --rm --volumes-from wwwdata --link pgsql-server:pgsql geodata/gdal /bin/bash -c "/ogr2ogr -f PostgreSQL --config PG_USE_COPY YES -skipfailures -nlt CONVERT_TO_LINEAR -append PG:\"dbname=<POSTNASDB> active_schema=alkis user=<DBUSER> host=pgsql\" -a_srs EPSG:25833  /PFAD/ZU/DEN/NASDATEN.XML 2>> /var/www/logs/postnas_err.log"
+  docker pull pkorduan/gdal-sshd:latest
+}
+
+install_kvwmap_images() {
+  echo "Installiere kvwmap images ..."
+  
+  echo "
+  Erzeuge user: ${OS_USER} ..."
+  # create user for web gis anwendung if not exists
+  $OS_USER_EXISTS || adduser $OS_USER
+  
+  echo "
+  Setze bash Einstellungen für user: ${OS_USER} ..."
+  # set bash settings for web gis user
+  cp /etc/skel/.bashrc $USER_DIR/.bashrc
+  echo "
+  export PATH=\$PATH:${USER_DIR}/kvwmap-server" >> $USER_DIR/.bashrc
+  sed -i \
+    -e "s|#alias ll=|alias ll=|g" \
+    -e "s|alias rm=|#alias rm=|g" \
+    $USER_DIR/.bashrc
+  cp $USER_DIR/.bashrc ~/.bashrc
+  source ~/.bashrc
+  
+  echo "
+  Erzeuge Verzeichnisstruktur für die Datenbank und Web-Anwendungen von kvwmap ..."
+  # create directories
+  mkdir -p $DB_ROOT/mysql \
+           $DB_ROOT/postgresql/data \
+           $USER_DIR/etc/apache2/sites-available \
+           $USER_DIR/etc/apache2/sites-enabled \
+           $USER_DIR/etc/apache2/ssl \
+           $USER_DIR/etc/mysql \
+           $USER_DIR/etc/postgresql \
+           $USER_DIR/etc/php5/apache2 \
+          $USER_DIR/etc/php5/cli \
+           $USER_DIR/etc/phpmyadmin \
+           $USER_DIR/etc/proj \
+           $WWW_ROOT/apps \
+           $WWW_ROOT/html \
+           $WWW_ROOT/logs \
+           $WWW_ROOT/tmp \
+           $WWW_ROOT/cache \
+           $WWW_ROOT/wms \
+           $WWW_ROOT/data/mapfiles \
+           $WWW_ROOT/data/synchro \
+           $WWW_ROOT/data/upload \
+           $WWW_ROOT/data/druckrahmen \
+           $WWW_ROOT/data/bilder \
+           $WWW_ROOT/data/alb \
+           $WWW_ROOT/data/referencemaps \
+           $WWW_ROOT/data/nachweise \
+           $WWW_ROOT/data/recherchierte_antraege \
+           $WWW_ROOT/data/festpunkte/archiv
+
+  ln -s $WWW_ROOT $USER_DIR/www
+  ln -s $DB_ROOT $USER_DIR/db
+
+  echo "
+  Erzeuge Links für den Zugriff auf die Datenbankverzeichnisse ..."
+  # create links to have access to the postgres config files, even if the files do not exist yet
+  ln -s $DB_ROOT/postgresql/data/pg_hba.conf $USER_DIR/etc/postgresql/pg_hba.conf
+  ln -s $DB_ROOT/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
+
+  echo "
+  Kopiere index.php und Konfigurationsdateien für Apache Web-Server ..."
+  cp $USER_DIR/kvwmap-server/www/html/index.php $WWW_ROOT/html/index.php
+  cp -R $USER_DIR/kvwmap-server/etc/apache2 $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/pgsql $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/mysql $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/php5 $USER_DIR/etc/
+
+  echo "
+  Setze Servername für Apache default Konfiguration ..."
+  # Servername in Apache default Konfiguration eintragen
+  sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" $USER_DIR/etc/apache2/sites-available/000-default.conf
+
+  echo "
+  Kopiere Mapfiles, Referenzkarten und PDFClass Dateien ..."
+  cp -R $USER_DIR/kvwmap-server/www/data/mapfiles/ $WWW_ROOT/data/
+  cp -R $USER_DIR/kvwmap-server/www/data/referencemaps/ $WWW_ROOT/data/
+  cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass $WWW_ROOT/apps/
+
+  echo "
+  Clone kvwmap von github ins Web-Verzeichnis ..."
+  if [ ! -d "${WWW_ROOT}/apps/kvwmap" ]; then
+    # clone kvwmap repository into apps
+    git clone https://github.com/srahn/kvwmap.git $WWW_ROOT/apps/kvwmap
+    cd $WWW_ROOT/apps/kvwmap
+    git checkout develop
+  fi
+
+  echo "
+  Erzeuge kvwmap Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
+  mkdir -p $WWW_ROOT/apps/kvwmap/fonts/custom \
+           $WWW_ROOT/apps/kvwmap/graphics/custom \
+           $WWW_ROOT/apps/kvwmap/layouts/custom \
+           $WWW_ROOT/apps/kvwmap/layouts/snippets/custom \
+           $WWW_ROOT/apps/kvwmap/symbols/custom
+
+  cd $WWW_ROOT/apps
+
+  echo "
+  Setze Rechte auf kvwmap Datenverzeichnisse ..."
+  chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
+  chmod g+w $WWW_ROOT/apps/kvwmap \
+            $WWW_ROOT/apps/kvwmap/graphics/wappen \
+            $WWW_ROOT/data/bilder \
+            $WWW_ROOT/data/festpunkte \
+            $WWW_ROOT/data/nachweise \
+            $WWW_ROOT/data/recherchierte_antraege \
+            $WWW_ROOT/data/synchro \
+            $WWW_ROOT/data/upload \
+            $WWW_ROOT/logs \
+            $WWW_ROOT/tmp
+
+  echo "
+  Pull MySQL image von docker hup ..."
+  docker pull mysql:${MYSQL_IMAGE_VERSION}
+  
+  echo "
+  Pull PostgreSQL image mit PostGIS von docker hup ..."
+  docker pull mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
+
+  echo "
+  Pull kvwmap-server image mit Apache, PHP, MapServer etc. von docker hup ..."
+  docker pull pkorduan/kvwmap-server:latest
+
+  # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
+  #build_kvwmap_server $KVWMAP_IMAGE_VERSION
+  
+  #mkdir /etc/systemd/system/docker.service.d
+  #cp docker/sources/kvwmap-container.conf /etc/systemd/system/docker.service.d/kvwmap-container.conf
+  echo "
+  Nächste Schritte zum installieren von kvwmap:"
+  echo "    $ kvwmap run all"
+  echo "    Browser öffnen mit der Adresse: http://#{IP_EXTERN}/kvwmap/install.php"
+}
+
+remove_all_container() {
+  echo "Lösche alle Container ..."
+  docker rm $(docker ps -a -q)
+  echo "Alle Container gelöscht."
+}
+
+remove_gdal_container() {
+  echo "Lösche gdal Container ..."
+  docker rm gdal
+}
+
+remove_mysql_container() {
+  echo "Lösche mysql Container ..."
+  docker rm mysql-server
+}
+
+remove_pgsql_container() {
+  echo "Lösche pgsql Container ..."
+  docker rm pgsql-server
+}
+
+remove_web_container() {
+  echo "Lösche web Container ..."
+  docker rm web
+}
+
+remove_all_images() {
+  echo "Lösche alle Images ..."
+  docker rmi $(docker images | awk "{print $3}")
+  echo "Alle Images gelöscht."
+}
+
+run_all_container() {
+  echo "Erzeuge und Starte alle Container ..."
+  create_www_data_volume
+  run_mysql_container
+  run_pgsql_container
+  run_gdal_container
+  run_cargos
+  run_web_container
+}
+
+run_gdal_container() {
+  echo "Erzeuge und Starte den gdal Container ..."
+  docker run --name gdal \
+    -h ${SERVER_NAME}_gdal-container \
+    --volumes-from wwwdata \
+    --link pgsql-server:pgsql \
+    --restart=always \
+    -P \
+    -d pkorduan/gdal-sshd:latest
+}
+
+run_geoserver_container() {
+  echo "Erzeuge und Starte den geoserver Container ..."
+  echo "Noch nicht implementiert!"
+}
+
+run_mysql_container() {
+  read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
+  docker run --name mysql-server \
+    -h ${SERVER_NAME}_mysql-container \
+    -v $USER_DIR/etc/mysql:/etc/mysql \
+    -v $DB_ROOT/mysql:/var/lib/mysql \
+    -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
+    --restart=always \
+    -d mysql:${MYSQL_IMAGE_VERSION}
+}
+
+run_pgsql_container() {
+  read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
+  docker run --name pgsql-server \
+    -h ${SERVER_NAME}_pgsql-container \
+    --volumes-from wwwdata \
+    -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
+    -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
+    -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
+    -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
+    -p 5432:5432 \
+    -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
+    --restart=always \
+    -d mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
+}
+
+run_web_container() {
+  read -s -p "Enter password for kvwmap user. It is used as initial password to grant php access to the mysql and postgres databases of kvwmap, to phpMyAdmin db web client and to the Administrator-Stelle of the web application kvwmap itself. Passwords can be canged later when the container is running.: " KVWMAP_INIT_PASSWORD
+  docker run --name web \
+      -h ${SERVER_NAME}_web-container \
+      --link mysql-server:mysql \
+      --link pgsql-server:pgsql \
+      --link gdal:gdal \
+      -p 80:80 \
+      -p 443:443 \
+      -e OS_USER=$OS_USER \
+      -e IP_EXTERN=$IP_EXTERN \
+      -e DOMAIN_EXTERN=$DOMAIN_EXTERN \
+      -e KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD \
+      --volumes-from wwwdata \
+      -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
+      -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
+      -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \
+      -v $USER_DIR/etc/php5/apache2/php.ini:/etc/php5/apache2/php.ini \
+      -v $USER_DIR/etc/php5/cli/php.ini:/etc/php5/cli/php.ini \
+      -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
+      -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
+      -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
+      -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
+      --add-host=$SERVER_NAME.d10643.imv.de:${IP_EXTERN} \
+      --add-host=$SERVER_NAME:${IP_EXTERN} \
+      --restart=always \
+      -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
+}
+
+show_container_ip() {
+  CONTAINER=$1
+  if [ -z "$1" ]; then
+    show_container_ip 'gdal'
+    show_container_ip 'mysql-server'
+    show_container_ip 'pgsql-server'
+
+    # show_cargo_container_ip
+
+    show_container_ip 'web'
+  else
+    CONTAINER_IP=`docker inspect --format='{{.NetworkSettings.IPAddress}}' $CONTAINER`
+    echo Container $CONTAINER IP: $CONTAINER_IP 
+  fi
+}
+
+show_container_status() {
+  CONTAINER=$1
+  echo "Status des Containers $CONTAINER:"
+  RUNNING=$(docker inspect --format="{{ .State.Running }}" $CONTAINER 2> /dev/null)
+ 
+  if [ $? -eq 1 ]; then
+    echo "UNKNOWN - Container $CONTAINER does not exist."
+    return 3
+  fi
+ 
+  if [ "$RUNNING" == "false" ]; then
+    echo "CRITICAL - $CONTAINER is not running."
+    return 2
+  fi
+ 
+  GHOST=$(docker inspect --format="{{ .State.Ghost }}" $CONTAINER)
+ 
+  if [ "$GHOST" == "true" ]; then
+    echo "WARNING - $CONTAINER has been ghosted."
+    return 1
+  fi
+ 
+  STARTED=$(docker inspect --format="{{ .State.StartedAt }}" $CONTAINER)
+  NETWORK=$(docker inspect --format="{{ .NetworkSettings.IPAddress }}" $CONTAINER)
+ 
+  echo "OK - $CONTAINER is running. IP: $NETWORK, StartedAt: $STARTED"
+}
+
+start_all_container() {
+  echo "Startet alle existierenden Container."
+  docker start wwwdata
+  docker start mysql-server
+  docker start pgsql-server
+  
+  # start_cargo_container
+
+  start_gdal_container
+  start_web_container
+  docker ps
+}
+
+start_gdal_container() {
+  echo "Starte gdal Container."
+  docker start gdal
+}
+
+start_web_container() {
+  echo "Starte web Container."
+  docker start web
+}
+
+stop_all_container() {
+  echo "Stoppe alle Container. Bitte warten ..."
+  docker stop $(docker ps -a -q)
+  echo "Alle Container gestopped."
+}
+
+stop_gdal_container() {
+  echo "Stoppe gdal Container. Bitte warten ..."
+  docker stop gdal
+}
+
+stop_web_container() {
+  echo "Stoppe web Container. Bitte warten ..."
+  docker stop web
+}
+
+uninstall_cargos() {
+  for cargo in "${CARGOS[@]}"
+  do :
+    uninstall_$cargo
+  done
+}
+
+uninstall_gdal() {
+  echo "Deinstalliere das gdal image ..."
+  echo "Funktion ist noch nicht implementiert!!!"
+}
+
+uninstall_kvwmap() {
+  echo "Deinstalliere das kvwmap und dazugehörige images."
+  read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (j/n)? " answer
+  case ${answer:0:1} in
+    j|J )
+      stop_all_container
+      remove_all_container
+      remove_all_images
+      echo "Lösche alles in ${WWW_ROOT} "
+      ls -l $WWW_ROOT
+      rm -RI $WWW_ROOT/*
+
+      if [ ! -z "$USER_DIR" ] ; then
+        echo "Lösche $DB_ROOT, $USER_DIR/etc, $USER_DIR/kvwmap-server, ${WWW_ROOT} und die links db und www in $USER_DIR"
+        rm -RI $DB_ROOT $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT $USER_DIR/db $USER_DIR/www
+      fi
+      echo "So jetzt ist alles weg."
+      echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
+      echo "$ git clone https://github.com/pkorduan/kvwmap-server.git"
+      echo "$ kvwmap-server/kvw install kvwmap"
+      echo "$ kvwmap run all"
+      echo "und im Browser:"
+      echo "http://meineserverip/kvwmap/install.php"
+    ;;
+    * )
+      echo "OK, nix passiert!"
+    ;;
+  esac
+}
+
+call_cargo_cases() {
+  debug "Call cargo cases with Arguments '$1' and '$2'"
+  any_case_found=false
+  for cargo in "${CARGOS[@]}"
+  do :
+    debug "Search for case $1 $2 in cargo $cargo"
+    cases_$cargo $1 $2
+    if $case_found ; then
+      #echo "Found case in cargo $cargo $1 $2"
+      any_case_found=true
+    fi
+  done
+  debug "Any case found after call all cargo cases: $any_case_found"
+  if ! $any_case_found ; then
+    echo "Gib nach $1 die Parameter $core_sub_cases"
+    printf "oder %s " "${CARGOS[@]}"
+    echo "an."
+  fi
+}
+
+fail_unless_root
+
+load_cargo
+
+core_case_found=true
+
+case "$1" in
+  build)
+    case $2 in
+      gdal)
+        build_gdal_image 'latest'
+      ;;
+      kvwmap-server)
+        echo "Build the image pkorduan/kvwmap-server:latest"
+        build_kvwmap_server $KVWMAP_IMAGE_VERSION
+      ;;
+      *)
+        echo "Gebe das Image an das gebaut werden soll. gdal oder kvwmap-server"
+      ;;
+    esac
+  ;;
+
+  clean)
+    echo "Lösche alle nicht genutzten Container."
+    docker rm $(docker ps -q -f status=exited)
+    
+    echo "Lösche alle Images mit Namen <none>."
+    docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
+  ;;
+  
+  console)
+    case $2 in
+      gdal)
+        echo "Öffne ein Terminal im Container in dem gdal mit ogr2ogr läuft..."
+        docker exec -it gdal /bin/bash
+      ;;
+      mysql)
+        echo "Öffne ein Terminal im Container in dem der MySQL-Server läuft..."
+        docker exec -it mysql-server /bin/bash
+      ;;
+      pgsql)
+        echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft..."
+        docker exec -it pgsql-server /bin/bash
+      ;;
+
+      web)
+        echo "Öffne ein Terminal im Container in dem der Web-Server läuft..."
+        docker exec -it web /bin/bash
+      ;;
+      *)
+        # todo: rufe den case für den cargo container auf wenn dieser enabled ist
+        echo "Zu welchem Container soll eine Console aufgemacht werden, mysql, pgsql oder web?"
+      ;;
+    esac
+  ;;
+  
+  install)
+    case $2 in
+      all)
+        install_kvwmap_images
+        install_gdal_image
+        install_cargos
+      ;;
+      gdal)
+        install_gdal_image
+      ;;
+      kvwmap)
+        install_kvwmap_images
+        install_gdal_image
+      ;;
+      *)
+        core_sub_cases="all, gdal, kvwmap"
+        call_cargo_cases $1 $2
+      ;;
+    esac
+  ;;
+  
+  log)
+    case $2 in
+      pgsql)
+        # Logging settings to postgresql
+        sed -i \
+          -e "s|#logging_collector = off|logging_collector = on|g" \
+          -e "s|#log_directory = 'pg_log'|log_directory = 'pg_log'|g" \
+          -e "s|#log_truncate_on_rotation = off|log_truncate_on_rotation = off|g" \
+          -e "s|#log_rotation_age = 1d|log_rotation_age = 1d|g" \
+          -e "s|#checkpoint_segments = 3|checkpoint_segments = 30|g" \
+          -e "s|#checkpoint_timeout = 5min|checkpoint_timeout = 10min|g" \
+          $DB_ROOT/postgresql/data/postgresql.conf
+      ;;
+      *)
+        echo "Gib nach log einen der folgenden Parameter ein: pgsql."
+      ;;
+    esac
+  ;;
+
+  mysql)
+    case $2 in
+      client)
+        MYSQL_TCP_ADD=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql-server`
+        MYSQL_ROOT_PASSWORD=`docker inspect --format '{{index .Config.Env 0}}' mysql-server | cut -d \= -f 2`
+        docker exec -it mysql-server mysql -h ${MYSQL_TCP_ADD} -u root --password=${MYSQL_ROOT_PASSWORD} mysql
+      ;;
+      start)
+        docker start mysql-server
+        docker ps
+      ;;
+      status)
+        show_container_status "mysql-server"
+      ;;
+      stop)
+        docker stop mysql-server
+        docker ps -a
+      ;;
+      remove)
+        docker rm mysql-server
+        docker ps -a
+      ;;
+      run)
+        run_mysql_container
+      ;;
+      *)
+        echo "Gib nach mysql einen der folgenden Parameter ein: client, start, status, stop, remove oder run."
+      ;;
+    esac
+  ;;
+
+  pgsql)
+    case $2 in
+      client)
+        POSTGRESQL_TCP_ADD=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' pgsql-server`
+        PGPASSWORD=`docker inspect --format '{{index .Config.Env 0}}' pgsql-server | cut -d \= -f 2`
+        docker exec -it pgsql-server psql -h ${POSTGRESQL_TCP_ADD} -U postgres postgres
+      ;;
+      start)
+        docker start pgsql-server
+        docker ps
+      ;;
+      status)
+        show_container_status "pgsql-server"
+      ;;
+      stop)
+        docker stop pgsql-server
+        docker ps -a
+      ;;
+      remove)
+        docker rm pgsql-server
+        docker ps -a
+      ;;
+      run)
+        run_pgsql_container
+      ;;
+      *)
+        echo "Gib nach pgsql einen der folgenden Parameter ein: client, start, status, stop, remove oder run."
+      ;;
+    esac
+  ;;
+  
+  rebuild)
+    case $2 in
+      gdal)
+        stop_gdal_container
+        remove_gdal_container
+        docker rmi -f $(docker images -q pkorduan/gdal-sshd)
+        build_gdal_image 'latest'
+        run_gdal_container
+      ;;
+      web)
+        stop_web_container
+        remove_web_container
+        docker rmi -f $(docker images -q pkorduan/kvwmap-server)
+        build_kvwmap_server "latest"
+        run_web_container
+      ;;
+      *)
+        stop_all_container
+        remove_all_container
+        docker rmi -f $(docker images -q pkorduan/kvwmap-server)
+        build_gdal_image 
+        build_kvwmap_server "latest"
+        run_all_container
+      ;;
+    esac
+    docker images
+    docker ps -a
+  ;;
+
+  reload)
+    case $2 in
+      all)
+        stop_all_container
+        remove_all_container
+        docker rmi -f $(docker images -q pkorduan/kvwmap-server)
+        docker pull pkorduan/kvwmap-server:latest
+        run_all_container
+      ;;
+      web)
+        stop_web_container
+        remove_web_container
+        docker rmi -f $(docker images -q pkorduan/kvwmap-server)
+        docker pull pkorduan/kvwmap-server:latest
+        run_web_container
+      ;;
+      *)
+        echo "Gib nach reload einen der folgenden Parameter ein: all oder web."
+      ;;
+    esac
+    docker images
+    docker ps -a
+  ;;
+  
+  remove)
+    case $2 in
+      all)
+        echo "Entfernt alle Container"
+        remove_all_container
+      ;;
+      gdal)
+        remove_gdal_container
+      ;;
+      mysql)
+        remove_mysql_container
+      ;;
+      pgsql)
+        remove_pgsql_container
+      ;;
+      pydio)
+        remove_pydio_container
+      ;;
+      web)
+        remove_web_container
+      ;;
+      * )
+        echo "Gib nach remove einen der folgenden Parameter ein: mysql, pgsql, pydio, web oder all."
+      ;;
+    esac
+    docker ps -a
+  ;;
+  
+  rerun)
+    case $2 in
+      all)
+        stop_all_container
+        remove_all_container
+        run_all_container
+        docker ps -a
+      ;;
+      gdal)
+        stop_gdal_container
+        remove_gdal_container
+        run_gdal_container
+        docker ps
+      ;;
+      pydio)
+        stop_pydio_container
+        remove_pydio_container
+        run_pydio_container
+        docker ps
+      ;;
+      web)
+        stop_web_container
+        remove_web_container
+        run_web_container
+        docker ps
+      ;;
+      *)
+        echo "Gib nach rerun einen der folgenden Parameter ein: all oder web."
+      ;;
+    esac
+  ;;
+
+  restart)
+    case $2 in
+      all)
+        stop_all_container
+        start_all_container
+      ;;
+      web)
+        stop_web_container
+        start_web_container
+      ;;
+      *)
+        echo "Gib nach restart einen der folgenden Parameter ein: all oder web."
+      ;;
+    esac
+    docker ps -a
+  ;;
+  
+  run)
+    case $2 in
+      all)
+        run_all_container
+        docker ps -a
+      ;;
+      gdal)
+        run_gdal_container
+        docker ps
+      ;;
+      kvwmap)
+        create_www_data_volume
+        run_mysql_container
+        run_pgsql_container
+        run_gdal_container
+        run_web_container
+        docker ps
+      ;;
+      mysql)
+        run_mysql_container
+        docker ps
+      ;;
+      pgsql)
+        run_pgsql_container
+        docker ps
+      ;;
+      pydio)
+        run_pydio_container
+        docker ps
+      ;;
+      web)
+        run_web_container
+        docker ps
+      ;;
+      wwwdata)
+        create_www_data_volume
+        docker ps -a
+      ;;
+      * )
+        echo "Gib nach run einen der folgenden Parameter ein um den Container zu erzeugen: all, gdal, mysql, pgsql, web oder wwwdata."
+      ;;
+    esac
+  ;;
+
+  show_ip)
+    show_container_ip $2
+  ;;
+  
+  start)
+    case $2 in
+      all)
+        start_all_container
+      ;;
+      mysql)
+        docker start mysql-server
+      ;;
+      pgsql)
+        docker start pgsql-server
+      ;;
+      web)
+        start_web_container
+      ;;
+      * )
+        echo "Gib nach start einen der folgenden Parameter ein um den Container zu starten: mysql, pgsql, web oder all."
+      ;;
+    esac
+    docker ps -a
+  ;;
+
+  status)
+    case $2 in
+      all)
+        show_container_status "mysql-server"
+        show_container_status "pgsql-server"
+        show_container_status "web"
+      ;;
+      mysql)
+        show_container_status "mysql-server"
+      ;;
+      pgsql)
+        show_container_status "pgsql-server"
+      ;;
+      web)
+        show_container_status "web"
+      ;;
+      *)
+        echo "Gib nach status einen der folgenden Parameter ein: all, mysql, pgsql oder web."
+        docker ps -a
+      ;;
+    esac
+  ;;
+
+  stop)
+    case $2 in
+      all)
+        stop_all_container
+      ;;
+      mysql)
+        stop_mysql_container
+      ;;
+      kvwmap)
+        stop_web_container
+        stop_pgsql_container
+        stop_mysql_container
+      ;;
+      pgsql)
+        stop_pgsql_container
+      ;;
+      pydio)
+        stop_pydio_container
+      ;;
+      web)
+        stop_web_container
+      ;;
+      *)
+        echo "Gib nach stop einen der folgenden Parameter ein um container zustoppen: all, mysql, pgsql oder web."
+      ;;
+    esac
+    docker ps -a
+  ;;
+  
+  uninstall)
+    case $2 in
+      all)
+        uninstall_gdal
+        uninstall_kvwmap
+        uninstall_cargos
+      ;;
+      gdal)
+        uninstall_gdal
+      ;;
+      kvwmap)
+        uninstall_kvwmap
+      ;;
+      *)
+        core_sub_cases="all, gdal, kvwmap"
+        call_cargo_cases $1 $2 $core_sub_cases
+      ;;
+    esac
+  ;;
+
+  web)
+    case $2 in
+      console)
+        echo "Öffne ein Terminal im Container in dem der Web-Server läuft."
+        docker exec -it web /bin/bash
+      ;;
+      start)
+        start_web_container
+        docker ps
+      ;;
+      status)
+        show_container_status "web"
+      ;;
+      stop)
+        stop_web_container
+        docker ps -a
+      ;;
+      remove)
+        remove_web_container
+        docker ps -a
+      ;;
+      run)
+        run_web_container
+      ;;
+      *)
+        echo "Gib nach web einen der folgenden Parameter ein: console, start, status, stop, remove oder run."
+      ;;
+    esac
+  ;;
+
+  *)
+    usage
+    exit 1
+  ;;
+esac

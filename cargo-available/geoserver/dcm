@@ -1,0 +1,61 @@
+#!/bin/bash
+#echo "Load variables in dcm geoserver"
+CARGOS+=("geoserver")
+geoserver_enabled=true
+IMAGE_geoserver="kartoza/geoserver"
+CONTAINER_NAME_geoserver="geoserver"
+
+usage_geoserver() {
+  echo "inistall geoserver Installiert ein geoserver Image."
+  echo "run geoserver      Erzeugt und startet nur den Container geoserver."
+  echo "start geoserver    Startet nur den Container geoserver."
+  echo "uninsall geoserver Deinstalliert das geoserver image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+}
+
+install_image_geoserver() {
+  echo "Installiere geoserver image ..."
+#  docker pull $IMAGE
+}
+
+show_status() {
+  echo "Status of container $COINTAINER_NAME"
+}
+
+uninstall_geoserver() {
+  echo "Deinstalliere das geoserver image ..."
+  echo "Funktion ist noch nicht implementiert!!!"
+}
+
+cases_geoserver() {
+  case_found=true
+  case "$1" in
+    test)
+      echo "test case in dcm geoserver"
+    ;;
+    install)
+      case $2 in
+        geoserver)
+          install_geoserver_image
+        ;;
+      esac
+    ;;
+    uninstall)
+      debug "Case uninstall in geoserver"
+      case $2 in
+        geoserver)
+          #echo "Case geoserver"
+          uninstall_geoserver
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+    *)
+      #echo "No case found in dcm geoserver"
+      case_found=false
+    ;;
+  esac
+  debug "Case found after cases geoserver: $case_found"
+}
