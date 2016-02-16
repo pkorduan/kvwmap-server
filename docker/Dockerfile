@@ -79,7 +79,7 @@ RUN mkdir -p $USER_DIR/.ssh && \
   chown -R $OS_USER.$OS_USER $USER_DIR/.ssh && \
   sed -i "s|#   IdentityFile ~/.ssh/id_rsa|    IdentityFile ~/.ssh/id_rsa|g" /etc/ssh/ssh_config
 
-USER OS_USER
+USER $OS_USER
 RUN git config --global user.name "gisadmin" && \
     git config --global user.email "gisadmin@`hostname`"
 
