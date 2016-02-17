@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     apache2 \
     cgi-mapserver \
     dialog \
+    gdal-bin \
     git \
     htop \
     imagemagick \
