@@ -51,7 +51,7 @@ remove_pydio_container() {
 
 remove_pydio_container() {
   if [ "$(docker ps -a -q -f name=pydio -f status=running)" ] ; then
-    echo "Stoppe pydio Container vor dem Löschen."
+    echo "Stoppe pydio Container vor dem Löschen..."
     docker stop pydio
   fi 
   echo "Lösche pydio Container ..."
@@ -96,6 +96,19 @@ uninstall_pydio() {
 cases_pydio() {
   case_found=true
   case "$1" in
+    console)
+      case $2 in
+        pydio)
+          echo "Öffne ein Terminal im Container in dem pydio läuft..."
+          docker exec -it pydio /bin/bash
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
     install)
       case $2 in
         pydio)
@@ -129,7 +142,6 @@ cases_pydio() {
           case_found=false
         ;;
       esac
-      docker ps -a
     ;;
 
     run)

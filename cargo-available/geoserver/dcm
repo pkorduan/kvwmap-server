@@ -21,7 +21,7 @@ install_geoserver() {
 
 remove_geoserver_container() {
   if [ "$(docker ps -a -q -f name=geoserver -f status=running)" ] ; then
-    echo "Stoppe geoserver Container vor dem Löschen."
+    echo "Stoppe geoserver Container vor dem Löschen..."
     docker stop geoserver
   fi  
   echo "Lösche geoserver Container ..."
@@ -32,8 +32,8 @@ run_geoserver_container() {
   echo "Erzeuge und starte den geoserver Container ..."
   docker run --name geoserver \
     -h ${SERVER_NAME}_geoserver-container \
-    -p 8080:80 \
-    -p 8443:443 \
+    -p 80:80 \
+    -p 443:443 \
     --volumes-from wwwdata \
     --link pgsql-server:pgsql \
     --restart=always \
@@ -62,14 +62,27 @@ uninstall_geoserver() {
 cases_geoserver() {
   case_found=true
   case "$1" in
-    test)
-      echo "test case in dcm geoserver"
+    console)
+      case $2 in
+        geoserver)
+          echo "Öffne ein Terminal im Container in dem der geoserver läuft..."
+          docker exec -it geoserver /bin/bash
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
     ;;
 
     install)
       case $2 in
         geoserver)
           install_geoserver
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
         ;;
       esac
     ;;
@@ -99,7 +112,6 @@ cases_geoserver() {
           case_found=false
         ;;
       esac
-      docker ps -a
     ;;
 
     run)

@@ -389,7 +389,7 @@ remove_pgsql_container() {
 
 remove_web_container() {
   if [ "$(docker ps -a -q -f name=web -f status=running)" ] ; then
-    echo "Stoppe web Container vor dem Löschen."
+    echo "Stoppe web Container vor dem Löschen..."
     docker stop web
   fi  
   echo "Lösche web Container ..."
@@ -663,7 +663,7 @@ case "$1" in
     echo "Lösche alle Images mit Namen <none>."
     docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
   ;;
-  
+
   console)
     case $2 in
       gdal)
@@ -684,12 +684,12 @@ case "$1" in
         docker exec -it web /bin/bash
       ;;
       *)
-        # todo: rufe den case für den cargo container auf wenn dieser enabled ist
-        echo "Zu welchem Container soll eine Console aufgemacht werden, mysql, pgsql oder web?"
+        core_sub_cases="gdal, mysql, pgsql, web"
+        call_cargo_cases $1 $2
       ;;
     esac
   ;;
-  
+
   install)
     case $2 in
       all)
