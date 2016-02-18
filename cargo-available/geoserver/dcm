@@ -12,13 +12,35 @@ usage_geoserver() {
   echo "uninsall geoserver Deinstalliert das geoserver image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
 }
 
-install_image_geoserver() {
+install_geoserver() {
   echo "Installiere geoserver image ..."
   docker pull $IMAGE_geoserver
 }
 
+run_geoserver_container() {
+  echo "Erzeuge und starte den geoserver Container ..."
+  docker run --name geoserver \
+    -h ${SERVER_NAME}_geoserver-container \
+    -p 8080:80 \
+    -p 8443:443 \
+    --volumes-from wwwdata \
+    --link pgsql-server:pgsql \
+    --restart=always \
+    -d $IMAGE_geoserver
+}
+
 show_status() {
   echo "Status of container $COINTAINER_NAME"
+}
+
+start_geoserver_container() {
+  echo "Starte geoserver Container. Bitte warten ..."
+  docker start geoserver
+}
+
+stop_geoserver_container() {
+  echo "Stoppe geoserver Container. Bitte warten ..."
+  docker stop geoserver
 }
 
 uninstall_geoserver() {
@@ -35,7 +57,7 @@ cases_geoserver() {
     install)
       case $2 in
         geoserver)
-          install_geoserver_image
+          install_geoserver
         ;;
       esac
     ;;
@@ -45,6 +67,43 @@ cases_geoserver() {
         geoserver)
           #echo "Case geoserver"
           uninstall_geoserver
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+    run)
+      debug "Case run in geoserver"
+      case $2 in
+        geoserver)
+          #echo "Case geoserver"
+          run_geoserver_container
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+    start)
+      debug "Case start in geoserver"
+      case $2 in
+        geoserver)
+          start_geoserver_container
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+    stop)
+      debug "Case stop in geoserver"
+      case $2 in
+        geoserver)
+          stop_geoserver_container
         ;;
         *)
           debug "No subcase $2 in geoserver"
