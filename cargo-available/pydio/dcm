@@ -51,7 +51,7 @@ remove_pydio_container() {
 
 remove_pydio_container() {
   if [ "$(docker ps -a -q -f name=pydio -f status=running)" ] ; then
-    echo "Stoppe pydio Container vor dem Löschen..."
+    echo "Stoppe pydio Container vor dem Löschen ..."
     docker stop pydio
   fi 
   echo "Lösche pydio Container ..."
@@ -62,8 +62,8 @@ run_pydio_container() {
   echo "Erzeuge und starte den pydio Container ..."
   docker run --name pydio \
     -h ${SERVER_NAME}_pydio-container \
-    -p 8080:80 \
-    -p 8443:443 \
+    -p 9080:80 \
+    -p 9443:443 \
     -v $USER_DIR/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \
     -v $WWW_ROOT/apps/pydio/files/:/pydio-data/files/ \
     -v $WWW_ROOT/apps/pydio/personal/:/pydio-data/personal/ \
