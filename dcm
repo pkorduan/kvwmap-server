@@ -411,14 +411,14 @@ run_all_container() {
   run_mysql_container
   run_pgsql_container
   run_gdal_container
-  run_cargos
+  run_cargo_containers
   run_web_container
 }
 
-run_cargos() {
+run_cargo_containers() {
   for cargo in "${CARGOS[@]}"
   do
-    run_$cargo
+    run_${cargo}_container
   done
 }
 
@@ -431,11 +431,6 @@ run_gdal_container() {
     --restart=always \
     -P \
     -d pkorduan/gdal-sshd:latest
-}
-
-run_geoserver_container() {
-  echo "Erzeuge und Starte den geoserver Container ..."
-  echo "Noch nicht implementiert!"
 }
 
 run_mysql_container() {
@@ -465,6 +460,8 @@ run_pgsql_container() {
 }
 
 run_web_container() {
+  # ToDo
+  # link also running cargo containers
   read -s -p "Enter password for kvwmap user. It is used as initial password to grant php access to the mysql and postgres databases of kvwmap, to phpMyAdmin db web client and to the Administrator-Stelle of the web application kvwmap itself. Passwords can be canged later when the container is running.: " KVWMAP_INIT_PASSWORD
   docker run --name web \
       -h ${SERVER_NAME}_web-container \
@@ -954,10 +951,6 @@ case "$1" in
         run_pgsql_container
         docker ps
       ;;
-      pydio)
-        run_pydio_container
-        docker ps
-      ;;
       web)
         run_web_container
         docker ps
@@ -967,7 +960,8 @@ case "$1" in
         docker ps -a
       ;;
       * )
-        echo "Gib nach run einen der folgenden Parameter ein um den Container zu erzeugen: all, gdal, mysql, pgsql, web oder wwwdata."
+        core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web, wwwdata"
+        call_cargo_cases $1 $2
       ;;
     esac
   ;;
@@ -1004,6 +998,9 @@ case "$1" in
         show_container_status "pgsql-server"
         show_container_status "web"
       ;;
+      gdal)
+        show_container_status "gdal"
+      ;;
       mysql)
         show_container_status "mysql-server"
       ;;
@@ -1014,8 +1011,8 @@ case "$1" in
         show_container_status "web"
       ;;
       *)
-        echo "Gib nach status einen der folgenden Parameter ein: all, mysql, pgsql oder web."
-        docker ps -a
+        core_sub_cases="all, gdal, mysql, pgsql, web"
+        call_cargo_cases $1 $2
       ;;
     esac
   ;;
