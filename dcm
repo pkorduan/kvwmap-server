@@ -388,6 +388,10 @@ remove_pgsql_container() {
 }
 
 remove_web_container() {
+  if [ "$(docker ps -a -q -f name=web -f status=running)" ] ; then
+    echo "Stoppe web Container vor dem Löschen."
+    docker stop web
+  fi  
   echo "Lösche web Container ..."
   docker rm web
 }

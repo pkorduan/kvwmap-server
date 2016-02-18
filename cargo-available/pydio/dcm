@@ -50,8 +50,12 @@ remove_pydio_container() {
 }
 
 remove_pydio_container() {
-  echo "Lösche geoserver Container ..."
-  docker rm geoserver
+  if [ "$(docker ps -a -q -f name=pydio -f status=running)" ] ; then
+    echo "Stoppe pydio Container vor dem Löschen."
+    docker stop pydio
+  fi 
+  echo "Lösche pydio Container ..."
+  docker rm pydio
 }
 
 run_pydio_container() {
