@@ -6,9 +6,11 @@ IMAGE_geoserver="kartoza/geoserver:latest"
 CONTAINER_NAME_geoserver="geoserver"
 
 usage_geoserver() {
-  echo "inistall geoserver Installiert ein geoserver Image."
+  echo "install geoserver Installiert ein geoserver Image."
   echo "run geoserver      Erzeugt und startet nur den Container geoserver."
   echo "start geoserver    Startet nur den Container geoserver."
+  echo "status geoserver   Zeigt den aktuellen Status des Container geoserver an."
+  echo "stop geoserver     Startet nur den Container geoserver."
   echo "uninsall geoserver Deinstalliert das geoserver image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
 }
 
@@ -54,6 +56,7 @@ cases_geoserver() {
     test)
       echo "test case in dcm geoserver"
     ;;
+
     install)
       case $2 in
         geoserver)
@@ -61,6 +64,7 @@ cases_geoserver() {
         ;;
       esac
     ;;
+
     uninstall)
       debug "Case uninstall in geoserver"
       case $2 in
@@ -74,6 +78,7 @@ cases_geoserver() {
         ;;
       esac
     ;;
+
     run)
       debug "Case run in geoserver"
       case $2 in
@@ -87,6 +92,7 @@ cases_geoserver() {
         ;;
       esac
     ;;
+
     start)
       debug "Case start in geoserver"
       case $2 in
@@ -99,6 +105,19 @@ cases_geoserver() {
         ;;
       esac
     ;;
+
+    status)
+      case $2 in
+        geoserver)
+          show_container_status "geoserver"
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
     stop)
       debug "Case stop in geoserver"
       case $2 in
@@ -111,6 +130,7 @@ cases_geoserver() {
         ;;
       esac
     ;;
+
     *)
       #echo "No case found in dcm geoserver"
       case_found=false

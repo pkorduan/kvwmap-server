@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #settings
-DEBUG=true
+DEBUG=false
 OS_USER="gisadmin"
 OS_USER_EXISTS=false
 getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
@@ -110,13 +110,6 @@ Verzeichnisse und lokale Dateien für den Betrieb von Containern auf der Basis d
   echo "               Dazu gehört alles in  ${WWW_ROOT} sowie die Verzeichnisse db, etc und kvwmap-server"
   echo "               unter dem Installationsverzeichnis z.B. unter /home/gisadmin"
   echo "               Damit werden auch alle Daten und Datenbankinhalte gelöscht."
-  echo "uninstall pydio Deinstalliert das pydio image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner." 
-  echo "web console    Öffnet ein Terminal im Container web in dem der Web-Server läuft."
-  echo "web start      Startet den Container web."
-  echo "web status     Zeigt den Status des Web-Containers mit dem Namen web."
-  echo "web stop       Stoppt den Container web."
-  echo "web remove     Löscht den Web Container und zeigt alle verbleibenden an. Der Container muss vorher gestoppt worden sein."
-  echo "web run        Erzeugt und startet den Web-Server Container mit dem Namen web."
   echo ""
   echo "Beispiele:"
   echo "$0 start"
@@ -712,6 +705,7 @@ case "$1" in
         call_cargo_cases $1 $2
       ;;
     esac
+    docker images
   ;;
   
   log)
@@ -929,11 +923,9 @@ case "$1" in
     case $2 in
       all)
         run_all_container
-        docker ps -a
       ;;
       gdal)
         run_gdal_container
-        docker ps
       ;;
       kvwmap)
         create_www_data_volume
@@ -941,29 +933,25 @@ case "$1" in
         run_pgsql_container
         run_gdal_container
         run_web_container
-        docker ps
       ;;
       mysql)
         run_mysql_container
-        docker ps
       ;;
       pgsql)
         run_pgsql_container
-        docker ps
       ;;
       web)
         run_web_container
-        docker ps
       ;;
       wwwdata)
         create_www_data_volume
-        docker ps -a
       ;;
       * )
         core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web, wwwdata"
         call_cargo_cases $1 $2
       ;;
     esac
+    docker ps
   ;;
 
   show_ip)
@@ -1062,36 +1050,6 @@ case "$1" in
       *)
         core_sub_cases="all, gdal, kvwmap"
         call_cargo_cases $1 $2
-      ;;
-    esac
-  ;;
-
-  web)
-    case $2 in
-      console)
-        echo "Öffne ein Terminal im Container in dem der Web-Server läuft."
-        docker exec -it web /bin/bash
-      ;;
-      start)
-        start_web_container
-        docker ps
-      ;;
-      status)
-        show_container_status "web"
-      ;;
-      stop)
-        stop_web_container
-        docker ps -a
-      ;;
-      remove)
-        remove_web_container
-        docker ps -a
-      ;;
-      run)
-        run_web_container
-      ;;
-      *)
-        echo "Gib nach web einen der folgenden Parameter ein: console, start, status, stop, remove oder run."
       ;;
     esac
   ;;

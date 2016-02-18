@@ -11,7 +11,7 @@ usage_pydio() {
   echo "uninsall pydio     Deinstalliert das pydio image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner." 
 }
 
-install_image_pydio() {
+install_pydio() {
   echo "Installiere pydio Image ..."
   echo "
   Kopiere Dateien aus kvwmap-server Verzeichnis." 
@@ -87,9 +87,14 @@ uninstall_pydio() {
 cases_pydio() {
   case_found=true
   case "$1" in
-    test)
-      echo "test case in dcm pydio"
+    install)
+      case $2 in
+        pydio)
+          install_pydio
+        ;;
+      esac
     ;;
+
     uninstall)
       debug "Case uninstall in pydio"
       case $2 in
@@ -103,6 +108,19 @@ cases_pydio() {
         ;;
       esac
     ;;
+
+    status)
+      case $2 in
+        pydio)
+          show_container_status "pydio"
+        ;;
+        *)
+          debug "No subcase $2 in pydio"
+          case_found=false
+        ;;
+      esac
+    ;;
+
     *)
       #echo "no case found in dcm pydio"
       case_found=false
