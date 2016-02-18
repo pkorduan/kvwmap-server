@@ -20,6 +20,9 @@ install_geoserver() {
 }
 
 remove_geoserver_container() {
+  if [ "$(docker ps -a -q -f name=geoserver -f status=running)" ] ; then
+    echo "Stoppe geoserver Container vor dem Löschen."
+  fi  
   echo "Lösche geoserver Container ..."
   docker rm geoserver
 }
