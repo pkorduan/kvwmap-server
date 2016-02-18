@@ -633,7 +633,9 @@ call_cargo_cases() {
   debug "Any case found after call all cargo cases: $any_case_found"
   if ! $any_case_found ; then
     echo "Gib nach $1 die Parameter $core_sub_cases"
-    printf "oder %s " "${CARGOS[@]}"
+    if [ "${#CARGOS[@]}" -gt "0" ] ; then
+      printf "oder %s " "${CARGOS[@]}"
+    fi
     echo "an."
   fi
 }
@@ -1062,7 +1064,7 @@ case "$1" in
       ;;
       *)
         core_sub_cases="all, gdal, kvwmap"
-        call_cargo_cases $1 $2 $core_sub_cases
+        call_cargo_cases $1 $2
       ;;
     esac
   ;;
