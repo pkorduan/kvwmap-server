@@ -19,6 +19,11 @@ install_geoserver() {
   docker pull $IMAGE_geoserver
 }
 
+remove_geoserver_container() {
+  echo "Lösche geoserver Container ..."
+  docker rm geoserver
+}
+
 run_geoserver_container() {
   echo "Erzeuge und starte den geoserver Container ..."
   docker run --name geoserver \
@@ -77,6 +82,20 @@ cases_geoserver() {
           case_found=false
         ;;
       esac
+    ;;
+
+    remove)
+      debug "Case remove in geoserver"
+      case $2 in
+        geoserver)
+          remove_geoserver_container
+        ;;
+        * )
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+      docker ps -a
     ;;
 
     run)

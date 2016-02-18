@@ -49,6 +49,11 @@ remove_pydio_container() {
   docker rm pydio
 }
 
+remove_pydio_container() {
+  echo "Lösche geoserver Container ..."
+  docker rm geoserver
+}
+
 run_pydio_container() {
   echo "Erzeuge und starte den pydio Container ..."
   docker run --name pydio \
@@ -107,6 +112,34 @@ cases_pydio() {
           case_found=false
         ;;
       esac
+    ;;
+
+    remove)
+      debug "Case remove in pydio"
+      case $2 in
+        pydio)
+          remove_pydio_container
+        ;;
+        * )
+          debug "No subcase $2 in pydio"
+          case_found=false
+        ;;
+      esac
+      docker ps -a
+    ;;
+
+    run)
+      debug "Case run in pydio"
+      case $2 in
+        pydio)
+          remove_pydio_container
+        ;;
+        * )
+          debug "No subcase $2 in pydio"
+          case_found=false
+        ;;
+      esac
+      docker ps -a
     ;;
 
     status)
