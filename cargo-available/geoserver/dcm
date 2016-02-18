@@ -2,7 +2,7 @@
 #echo "Load variables in dcm geoserver"
 CARGOS+=("geoserver")
 geoserver_enabled=true
-IMAGE_geoserver="kartoza/geoserver"
+IMAGE_geoserver="kartoza/geoserver:latest"
 CONTAINER_NAME_geoserver="geoserver"
 
 usage_geoserver() {
@@ -14,7 +14,7 @@ usage_geoserver() {
 
 install_image_geoserver() {
   echo "Installiere geoserver image ..."
-#  docker pull $IMAGE
+  docker pull $IMAGE_geoserver
 }
 
 show_status() {
