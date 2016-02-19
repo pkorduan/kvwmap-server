@@ -17,6 +17,7 @@ WWW_ROOT="${DOCKER_ROOT}/www"
 DB_ROOT="${DOCKER_ROOT}/db"
 CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
+CARGO_LINKS=
 
 if [ "$(id -u)" == '0' ]; then
   IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
@@ -373,27 +374,47 @@ remove_all_container() {
 }
 
 remove_gdal_container() {
-  echo "Lösche gdal Container ..."
-  docker rm gdal
+  stop_gdal_container
+
+  if [ "$(docker ps -a -q -f name=gdal -f status=exited)" ] ; then
+    echo "Lösche Container ..."
+    docker rm gdal
+  else
+    echo "Container gdal kann nicht gelöscht werden, weil er nicht existiert."
+  fi
 }
 
 remove_mysql_container() {
-  echo "Lösche mysql Container ..."
-  docker rm mysql-server
+  stop_mysql_container
+
+  if [ "$(docker ps -a -q -f name=mysql-server -f status=exited)" ] ; then
+    echo "Lösche Container ..."
+    docker rm mysql-server
+  else
+    echo "Container mysql-server kann nicht gelöscht werden, weil er nicht existiert."
+  fi
 }
 
 remove_pgsql_container() {
-  echo "Lösche pgsql Container ..."
-  docker rm pgsql-server
+  stop_pgsql_container
+
+  if [ "$(docker ps -a -q -f name=pgsql-server -f status=exited)" ] ; then
+    echo "Lösche Container ..."
+    docker rm pgsql-server
+  else
+    echo "Container pgsql-server kann nicht gelöscht werden, weil er nicht existiert."
+  fi
 }
 
 remove_web_container() {
-  if [ "$(docker ps -a -q -f name=web -f status=running)" ] ; then
-    echo "Stoppe web Container vor dem Löschen ..."
-    docker stop web
-  fi  
-  echo "Lösche web Container ..."
-  docker rm web
+  stop_web_container
+
+  if [ "$(docker ps -a -q -f name=web -f status=exited)" ] ; then
+    echo "Lösche Container ..."
+    docker rm web
+  else
+    echo "Container web kann nicht gelöscht werden, weil er nicht existiert."
+  fi
 }
 
 remove_all_images() {
@@ -459,12 +480,14 @@ run_pgsql_container() {
 run_web_container() {
   # ToDo
   # link also running cargo containers
+  set_cargo_links
   read -s -p "Enter password for kvwmap user. It is used as initial password to grant php access to the mysql and postgres databases of kvwmap, to phpMyAdmin db web client and to the Administrator-Stelle of the web application kvwmap itself. Passwords can be canged later when the container is running.: " KVWMAP_INIT_PASSWORD
   docker run --name web \
       -h ${SERVER_NAME}_web-container \
       --link mysql-server:mysql \
       --link pgsql-server:pgsql \
       --link gdal:gdal \
+      $CARGO_LINKS \
       -p 80:80 \
       -p 443:443 \
       -e OS_USER=$OS_USER \
@@ -487,20 +510,19 @@ run_web_container() {
       -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
 }
 
+set_cargo_links() {
+  for cargo in "${CARGOS[@]}"
+  do :
+    set_${cargo}_link
+  done
+}
+
+show_all_container_ips() {
+  docker inspect -f="Container {{.Name}} IP: {{.NetworkSettings.IPAddress}}" $(docker ps -aq)
+}
+
 show_container_ip() {
-  CONTAINER=$1
-  if [ -z "$1" ]; then
-    show_container_ip 'gdal'
-    show_container_ip 'mysql-server'
-    show_container_ip 'pgsql-server'
-
-    # show_cargo_container_ip
-
-    show_container_ip 'web'
-  else
-    CONTAINER_IP=`docker inspect --format='{{.NetworkSettings.IPAddress}}' $CONTAINER`
-    echo Container $CONTAINER IP: $CONTAINER_IP 
-  fi
+  docker inspect -f="Container {{.Name}} IP: {{.NetworkSettings.IPAddress}}" $1
 }
 
 show_container_status() {
@@ -561,13 +583,43 @@ stop_all_container() {
 }
 
 stop_gdal_container() {
-  echo "Stoppe gdal Container. Bitte warten ..."
-  docker stop gdal
+  if [ "$(docker ps -a -q -f name=gdal -f status=running)" ]
+  then
+    echo "Stoppe Container. Bitte warten ..."
+    docker stop gdal
+  else
+    echo "Container gdal kann nicht gestoppt werden, weil er nicht läuft."
+  fi
+}
+
+stop_mysql_container() {
+  if [ "$(docker ps -a -q -f name=mysql-server -f status=running)" ]
+  then
+    echo "Stoppe Container. Bitte warten ..."
+    docker stop mysql-server
+  else
+    echo "Container mysql-server kann nicht gestoppt werden, weil er nicht läuft."
+  fi
+}
+
+stop_pgsql_container() {
+  if [ "$(docker ps -a -q -f name=pgsql-server -f status=running)" ]
+  then
+    echo "Stoppe Container. Bitte warten ..."
+    docker stop pgsql-server
+  else
+    echo "Container pgsql-server kann nicht gestoppt werden, weil er nicht läuft."
+  fi
 }
 
 stop_web_container() {
-  echo "Stoppe web Container. Bitte warten ..."
-  docker stop web
+  if [ "$(docker ps -a -q -f name=web -f status=running)" ]
+  then
+    echo "Stoppe Container. Bitte warten ..."
+    docker stop web
+  else
+    echo "Container web kann nicht gestoppt werden, weil er nicht läuft."
+  fi
 }
 
 uninstall_cargos() {
@@ -893,7 +945,6 @@ case "$1" in
         docker ps
       ;;
       web)
-        stop_web_container
         remove_web_container
         run_web_container
         docker ps
@@ -956,8 +1007,28 @@ case "$1" in
     docker ps
   ;;
 
-  show_ip)
-    show_container_ip $2
+  ip)
+    case $2 in
+      all)
+        show_all_container_ips
+      ;;
+      gdal)
+        show_container_ip $2
+      ;;
+      mysql)
+        show_container_ip $2
+      ;;
+      pgsql)
+        show_container_ip $2
+      ;;
+      web)
+        show_container_ip $2
+      ;;
+      * )
+        core_sub_cases="all, gdal, mysql, pgsql, web"
+        call_cargo_cases $1 $2
+      ;;
+    esac
   ;;
   
   start)
@@ -975,7 +1046,8 @@ case "$1" in
         start_web_container
       ;;
       * )
-        echo "Gib nach start einen der folgenden Parameter ein um den Container zu starten: mysql, pgsql, web oder all."
+        core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web, wwwdata"
+        call_cargo_cases $1 $2
       ;;
     esac
     docker ps -a
@@ -1012,6 +1084,9 @@ case "$1" in
       all)
         stop_all_container
       ;;
+      gdal)
+        stop_gdal_container
+      ;;
       mysql)
         stop_mysql_container
       ;;
@@ -1023,14 +1098,12 @@ case "$1" in
       pgsql)
         stop_pgsql_container
       ;;
-      pydio)
-        stop_pydio_container
-      ;;
       web)
         stop_web_container
       ;;
       *)
-        echo "Gib nach stop einen der folgenden Parameter ein um container zustoppen: all, mysql, pgsql oder web."
+      core_sub_cases="all, gdal, mysql, kvwmap, pgsql, web"
+      call_cargo_cases $1 $2
       ;;
     esac
     docker ps -a

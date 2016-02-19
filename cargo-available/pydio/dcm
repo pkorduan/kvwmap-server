@@ -19,7 +19,7 @@ install_pydio() {
   mkdir -p $WWW_ROOT/apps/pydio/files
   mkdir -p $WWW_ROOT/apps/pydio/personal 
   cp -R $USER_DIR/kvwmap-server/etc/nginx $USER_DIR/etc/nginx 
-  cp $USER_DIR/kvwmap-server/pydio/pydio.conf $USER_DIR/etc/apache2/sites-available/pydio.conf 
+  cp $USER_DIR/kvwmap-server/pydio/etc/apache2/sites-available/pydio.conf $USER_DIR/etc/apache2/sites-available/pydio.conf 
   echo "
   Enable pydio Web-Site in Apache Konfiguration." 
   ln -s ../sites-available/pydio.conf $USER_DIR/etc/apache2/sites-enabled/pydio.conf 
@@ -156,6 +156,19 @@ cases_pydio() {
         ;;
       esac
       docker ps -a
+    ;;
+
+    start)
+      debug "Case start in pydio"
+      case $2 in
+        geoserver)
+          start_pydio_container
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
     ;;
 
     status)
