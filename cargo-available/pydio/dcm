@@ -1,0 +1,193 @@
+#!/bin/bash
+#echo "Load variables in dcm pydio"
+CARGOS+=("pydio")
+IMAGE_pydio="kdelfour/pydio-docker:latest"
+CONTAINER_NAME_pydio="pydio"
+
+usage_pydio() {
+  echo "inistall pydio     Installiert ein pydio Image."
+  echo "run pydio          Erzeugt und startet nur den Container pydio."
+  echo "start pydio        Startet nur den Container pydio."
+  echo "uninsall pydio     Deinstalliert das pydio image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner." 
+}
+
+install_pydio() {
+  echo "Installiere pydio Image ..."
+  echo "
+  Kopiere Dateien aus kvwmap-server Verzeichnis." 
+  cp $USER_DIR/kvwmap-server/pydio/data/* $WWW_ROOT/apps/pydio/* 
+  mkdir -p $WWW_ROOT/apps/pydio/files
+  mkdir -p $WWW_ROOT/apps/pydio/personal 
+  cp -R $USER_DIR/kvwmap-server/etc/nginx $USER_DIR/etc/nginx 
+  cp $USER_DIR/kvwmap-server/pydio/etc/apache2/sites-available/pydio.conf $USER_DIR/etc/apache2/sites-available/pydio.conf 
+  echo "
+  Enable pydio Web-Site in Apache Konfiguration." 
+  ln -s ../sites-available/pydio.conf $USER_DIR/etc/apache2/sites-enabled/pydio.conf 
+  echo "
+  Setze Nutzerrechte auf Dateien." 
+  chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-enabled/pydio.conf 
+  chown -R $OS_USER.$OS_USER $USER_DIR/etc/nginx 
+  chown -R $OS_USER.$OS_USER $WWW_ROOT/apps/pydio
+  chown -R www-data.www-data $WWW_ROOT/apps/pydio/files
+  chown -R www-data.www-data $WWW_ROOT/apps/pydio/personal  
+  echo "
+  Ziehe pydio-docker image." 
+  docker pull $IMAGE_pydio
+  echo "
+  Richte MySQL Datenbank und Nutzer für pydio ein.
+  Setzt voraus, dass root Zugang vorhanden ist."
+  docker run --name pydio -d $IMAGE_pydio
+  docker exec pydio mysql -u root -e "CREATE DATABASE IF NOT EXISTS pydio;"
+  docker exec pydio mysql -u root -e "CREATE USER 'pydio'@'pydio' IDENTIFIED BY 'pydio';"
+  docker exec pydio mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'pydio'@'pydio' WITH GRANT OPTION;"
+  docker exec pydio mysql -u root -e "FLUSH PRIVILEGES;"
+  docker rm -f pydio
+}
+
+remove_pydio_container() {
+  echo "Lösche pydio Container ..."
+  docker rm pydio
+}
+
+remove_pydio_container() {
+  if [ "$(docker ps -a -q -f name=pydio -f status=running)" ] ; then
+    echo "Stoppe pydio Container vor dem Löschen ..."
+    docker stop pydio
+  fi 
+  echo "Lösche pydio Container ..."
+  docker rm pydio
+}
+
+run_pydio_container() {
+  echo "Erzeuge und starte den pydio Container ..."
+  docker run --name pydio \
+    -h ${SERVER_NAME}_pydio-container \
+    -p 9080:80 \
+    -p 9443:443 \
+    -v $USER_DIR/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \
+    -v $WWW_ROOT/apps/pydio/files/:/pydio-data/files/ \
+    -v $WWW_ROOT/apps/pydio/personal/:/pydio-data/personal/ \
+    -v $WWW_ROOT/apps/pydio/bootstrap.json:/pydio-data/plugins/boot.conf/bootstrap.json \
+    -v $WWW_ROOT/apps/pydio/first_run_passed:/pydio-data/cache/first_run_passed \
+    -v $WWW_ROOT/apps/pydio/de_plugins_messages.ser:/pydio-data/cache/i18n/de_plugins_messages.ser \
+    --restart=always \
+    -d $IMAGE_pydio
+}
+
+show_status() {
+  echo "Status of container $COINTAINER_NAME"
+}
+
+start_pydio_container() {
+  echo "Starte pydio Container. Bitte warten ..."
+  docker start pydio
+}
+
+stop_pydio_container() {
+  echo "Stoppe pydio Container. Bitte warten ..."
+  docker stop pydio
+}
+
+uninstall_pydio() {
+  echo "Deinstalliere das pydio image ..."
+  echo "Funktion ist noch nicht implementiert!!!"
+}
+
+cases_pydio() {
+  case_found=true
+  case "$1" in
+    console)
+      case $2 in
+        pydio)
+          echo "Öffne ein Terminal im Container in dem pydio läuft..."
+          docker exec -it pydio /bin/bash
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    install)
+      case $2 in
+        pydio)
+          install_pydio
+        ;;
+      esac
+    ;;
+
+    uninstall)
+      debug "Case uninstall in pydio"
+      case $2 in
+        pydio)
+          debug "Found case uninstall pydio in cargo pydio"
+          uninstall_pydio
+        ;;
+        *)
+          debug "No subcase $2 in pydio"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    remove)
+      debug "Case remove in pydio"
+      case $2 in
+        pydio)
+          remove_pydio_container
+        ;;
+        * )
+          debug "No subcase $2 in pydio"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    run)
+      debug "Case run in pydio"
+      case $2 in
+        pydio)
+          remove_pydio_container
+        ;;
+        * )
+          debug "No subcase $2 in pydio"
+          case_found=false
+        ;;
+      esac
+      docker ps -a
+    ;;
+
+    start)
+      debug "Case start in pydio"
+      case $2 in
+        geoserver)
+          start_pydio_container
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    status)
+      case $2 in
+        pydio)
+          show_container_status "pydio"
+        ;;
+        *)
+          debug "No subcase $2 in pydio"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    *)
+      #echo "no case found in dcm pydio"
+      case_found=false
+    ;;
+  esac
+  debug "Case found after cases pydio: $case_found"
+
+}

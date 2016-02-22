@@ -1,0 +1,478 @@
+2016-02-19 11:28:05,926 INFO [org.geoserver] - Loaded style 'poly_landmarks'
+2016-02-19 11:28:05,927 INFO [org.geoserver] - Loaded style 'point'
+2016-02-19 11:28:05,928 INFO [org.geoserver] - Loaded style 'pophatch'
+2016-02-19 11:28:05,928 INFO [org.geoserver] - Loaded style 'line'
+2016-02-19 11:28:05,929 INFO [org.geoserver] - Loaded style 'rain'
+2016-02-19 11:28:05,930 INFO [org.geoserver] - Loaded style 'giant_polygon'
+2016-02-19 11:28:05,931 INFO [org.geoserver] - Loaded style 'restricted'
+2016-02-19 11:28:05,931 INFO [org.geoserver] - Loaded style 'simple_streams'
+2016-02-19 11:28:05,932 INFO [org.geoserver] - Loaded style 'polygon'
+2016-02-19 11:28:05,933 INFO [org.geoserver] - Loaded style 'burg'
+2016-02-19 11:28:05,934 INFO [org.geoserver] - Loaded style 'grass'
+2016-02-19 11:28:05,934 INFO [org.geoserver] - Loaded style 'poi'
+2016-02-19 11:28:05,935 INFO [org.geoserver] - Loaded style 'dem'
+2016-02-19 11:28:05,936 INFO [org.geoserver] - Loaded style 'tiger_roads'
+2016-02-19 11:28:05,937 INFO [org.geoserver] - Loaded style 'cite_lakes'
+2016-02-19 11:28:05,939 INFO [org.geoserver] - Loaded style 'simple_roads'
+2016-02-19 11:28:05,939 INFO [org.geoserver] - Loaded style 'capitals'
+2016-02-19 11:28:05,940 INFO [org.geoserver] - Loaded style 'raster'
+2016-02-19 11:28:05,941 INFO [org.geoserver] - Loaded style 'green'
+2016-02-19 11:28:05,942 INFO [org.geoserver] - Loaded style 'population'
+2016-02-19 11:28:05,942 WARN [org.geoserver] - No default workspace was found.
+2016-02-19 11:28:05,947 INFO [org.geoserver] - Loaded workspace 'it.geosolutions'
+2016-02-19 11:28:05,980 INFO [org.geoserver] - Loaded workspace 'topp'
+2016-02-19 11:28:05,982 INFO [org.geoserver] - Loaded workspace 'nurc'
+2016-02-19 11:28:05,983 INFO [org.geoserver] - Loaded workspace 'cite'
+2016-02-19 11:28:05,985 INFO [org.geoserver] - Loaded workspace 'tiger'
+2016-02-19 11:28:05,994 INFO [org.geoserver] - Loaded workspace 'sf'
+2016-02-19 11:28:05,996 INFO [org.geoserver] - Loaded workspace 'sde'
+2016-02-19 11:28:06,400 INFO [org.geoserver] - Loaded store 'taz_shapes', enabled
+2016-02-19 11:28:06,404 INFO [org.geoserver] - Loaded data store 'taz_shapes'
+2016-02-19 11:28:07,313 INFO [org.geoserver] - Loaded feature type 'tasmania_water_bodies', enabled
+2016-02-19 11:28:07,324 INFO [org.geoserver] - Loaded feature type 'taz_shapes'
+2016-02-19 11:28:07,350 INFO [org.geoserver] - Loaded layer 'tasmania_water_bodies'
+2016-02-19 11:28:07,354 INFO [org.geoserver] - Loaded feature type 'tasmania_roads', enabled
+2016-02-19 11:28:07,355 INFO [org.geoserver] - Loaded feature type 'taz_shapes'
+2016-02-19 11:28:07,357 INFO [org.geoserver] - Loaded layer 'tasmania_roads'
+2016-02-19 11:28:07,362 INFO [org.geoserver] - Loaded feature type 'tasmania_state_boundaries', enabled
+2016-02-19 11:28:07,363 INFO [org.geoserver] - Loaded feature type 'taz_shapes'
+2016-02-19 11:28:07,365 INFO [org.geoserver] - Loaded layer 'tasmania_state_boundaries'
+2016-02-19 11:28:07,370 INFO [org.geoserver] - Loaded feature type 'tasmania_cities', enabled
+2016-02-19 11:28:07,371 INFO [org.geoserver] - Loaded feature type 'taz_shapes'
+2016-02-19 11:28:07,374 INFO [org.geoserver] - Loaded layer 'tasmania_cities'
+2016-02-19 11:28:07,381 INFO [org.geoserver] - Loaded store 'states_shapefile', enabled
+2016-02-19 11:28:07,382 INFO [org.geoserver] - Loaded data store 'states_shapefile'
+2016-02-19 11:28:07,393 INFO [org.geoserver] - Loaded feature type 'states', enabled
+2016-02-19 11:28:07,394 INFO [org.geoserver] - Loaded feature type 'states_shapefile'
+2016-02-19 11:28:07,402 INFO [org.geoserver] - Loaded layer 'states'
+2016-02-19 11:28:07,409 INFO [org.geoserver] - Loaded store 'mosaic', enabled
+2016-02-19 11:28:07,412 INFO [org.geoserver] - Loaded coverage store 'mosaic'
+2016-02-19 11:28:07,433 INFO [org.geoserver] - Loaded coverage 'mosaic', enabled
+2016-02-19 11:28:07,440 INFO [org.geoserver] - Loaded coverage 'mosaic'
+2016-02-19 11:28:07,948 WARN [imagemosaic.Utils] - Unable to find sample image for path /opt/geoserver/data_dir/coverages/mosaic_sample/sample_image
+2016-02-19 11:28:07,948 WARN [gce.imagemosaic] - Unable to find sample image for path file:/opt/geoserver/data_dir/coverages/mosaic_sample/mosaic.shp
+2016-02-19 11:28:08,002 INFO [org.geoserver] - Loaded layer 'mosaic'
+2016-02-19 11:28:08,007 INFO [org.geoserver] - Loaded store 'worldImageSample', enabled
+2016-02-19 11:28:08,007 INFO [org.geoserver] - Loaded coverage store 'worldImageSample'
+2016-02-19 11:28:08,012 INFO [org.geoserver] - Loaded coverage 'Img_Sample', enabled
+2016-02-19 11:28:08,013 INFO [org.geoserver] - Loaded coverage 'worldImageSample'
+2016-02-19 11:28:08,046 INFO [org.geoserver] - Loaded layer 'Img_Sample'
+2016-02-19 11:28:08,057 INFO [org.geoserver] - Loaded store 'img_sample2', disabled
+2016-02-19 11:28:08,057 INFO [org.geoserver] - Loaded coverage store 'img_sample2'
+2016-02-19 11:28:08,466 INFO [org.geoserver] - Loaded coverage 'Pk50095', disabled
+2016-02-19 11:28:08,467 INFO [org.geoserver] - Loaded coverage 'img_sample2'
+2016-02-19 11:28:08,473 INFO [org.geoserver] - Loaded layer 'Pk50095'
+2016-02-19 11:28:08,482 INFO [org.geoserver] - Loaded store 'arcGridSample', enabled
+2016-02-19 11:28:08,483 INFO [org.geoserver] - Loaded coverage store 'arcGridSample'
+2016-02-19 11:28:08,492 INFO [org.geoserver] - Loaded coverage 'Arc_Sample', enabled
+2016-02-19 11:28:08,497 INFO [org.geoserver] - Loaded coverage 'arcGridSample'
+2016-02-19 11:28:08,630 INFO [org.geoserver] - Loaded layer 'Arc_Sample'
+2016-02-19 11:28:08,642 INFO [org.geoserver] - Loaded store 'nyc', enabled
+2016-02-19 11:28:08,642 INFO [org.geoserver] - Loaded data store 'nyc'
+2016-02-19 11:28:08,660 INFO [org.geoserver] - Loaded feature type 'poly_landmarks', enabled
+2016-02-19 11:28:08,661 INFO [org.geoserver] - Loaded feature type 'nyc'
+2016-02-19 11:28:08,664 INFO [org.geoserver] - Loaded layer 'poly_landmarks'
+2016-02-19 11:28:08,667 INFO [org.geoserver] - Loaded feature type 'giant_polygon', enabled
+2016-02-19 11:28:08,668 INFO [org.geoserver] - Loaded feature type 'nyc'
+2016-02-19 11:28:08,670 INFO [org.geoserver] - Loaded layer 'giant_polygon'
+2016-02-19 11:28:08,674 INFO [org.geoserver] - Loaded feature type 'poi', enabled
+2016-02-19 11:28:08,675 INFO [org.geoserver] - Loaded feature type 'nyc'
+2016-02-19 11:28:08,677 INFO [org.geoserver] - Loaded layer 'poi'
+2016-02-19 11:28:08,681 INFO [org.geoserver] - Loaded feature type 'tiger_roads', enabled
+2016-02-19 11:28:08,682 INFO [org.geoserver] - Loaded feature type 'nyc'
+2016-02-19 11:28:08,684 INFO [org.geoserver] - Loaded layer 'tiger_roads'
+2016-02-19 11:28:08,690 INFO [org.geoserver] - Loaded store 'sfdem', enabled
+2016-02-19 11:28:08,690 INFO [org.geoserver] - Loaded coverage store 'sfdem'
+2016-02-19 11:28:08,724 INFO [org.geoserver] - Loaded coverage 'sfdem', enabled
+2016-02-19 11:28:08,724 INFO [org.geoserver] - Loaded coverage 'sfdem'
+2016-02-19 11:28:08,889 INFO [org.geoserver] - Loaded layer 'sfdem'
+2016-02-19 11:28:08,895 INFO [org.geoserver] - Loaded store 'sf', enabled
+2016-02-19 11:28:08,895 INFO [org.geoserver] - Loaded data store 'sf'
+2016-02-19 11:28:08,915 INFO [org.geoserver] - Loaded feature type 'archsites', enabled
+2016-02-19 11:28:08,916 INFO [org.geoserver] - Loaded feature type 'sf'
+2016-02-19 11:28:08,918 INFO [org.geoserver] - Loaded layer 'archsites'
+2016-02-19 11:28:08,923 INFO [org.geoserver] - Loaded feature type 'roads', enabled
+2016-02-19 11:28:08,925 INFO [org.geoserver] - Loaded feature type 'sf'
+2016-02-19 11:28:08,930 INFO [org.geoserver] - Loaded layer 'roads'
+2016-02-19 11:28:08,935 INFO [org.geoserver] - Loaded feature type 'bugsites', enabled
+2016-02-19 11:28:08,935 INFO [org.geoserver] - Loaded feature type 'sf'
+2016-02-19 11:28:08,937 INFO [org.geoserver] - Loaded layer 'bugsites'
+2016-02-19 11:28:08,942 INFO [org.geoserver] - Loaded feature type 'restricted', enabled
+2016-02-19 11:28:08,942 INFO [org.geoserver] - Loaded feature type 'sf'
+2016-02-19 11:28:08,944 INFO [org.geoserver] - Loaded layer 'restricted'
+2016-02-19 11:28:08,949 INFO [org.geoserver] - Loaded feature type 'streams', enabled
+2016-02-19 11:28:08,949 INFO [org.geoserver] - Loaded feature type 'sf'
+2016-02-19 11:28:08,951 INFO [org.geoserver] - Loaded layer 'streams'
+2016-02-19 11:28:08,961 INFO [org.geoserver] - Loaded layer group 'tiger-ny'
+2016-02-19 11:28:08,963 INFO [org.geoserver] - Loaded layer group 'spearfish'
+2016-02-19 11:28:08,964 INFO [org.geoserver] - Loaded layer group 'tasmania'
+2016-02-19 11:28:09,438 INFO [org.geoserver] - Loaded service 'wcs', enabled
+2016-02-19 11:28:09,449 INFO [org.geoserver] - Loaded service 'wfs', enabled
+2016-02-19 11:28:09,462 INFO [org.geoserver] - Loaded service 'wms', enabled
+2016-02-19 11:28:09,511 INFO [storage.DefaultStorageFinder] - **************************************************************************************************************************
+2016-02-19 11:28:09,512 INFO [storage.DefaultStorageFinder] - *** Found Java environment variable GEOSERVER_DATA_DIR set to /opt/geoserver/data_dir, using it as the default prefix. ***
+2016-02-19 11:28:09,512 INFO [storage.DefaultStorageFinder] - **************************************************************************************************************************
+2016-02-19 11:28:09,512 INFO [config.XMLConfiguration] - Will look for geowebcache.xml in '/opt/geoserver/data_dir/gwc'
+2016-02-19 11:28:09,588 INFO [gwc.config] - Initializing GeoServer specific GWC configuration from gwc-gs.xml
+2016-02-19 11:28:09,629 INFO [gwc.layer] - GeoServer TileLayer store base directory is: /opt/geoserver/data_dir/gwc-layers
+2016-02-19 11:28:09,630 INFO [gwc.layer] - Loading tile layers from /opt/geoserver/data_dir/gwc-layers
+2016-02-19 11:28:10,031 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wcs] onto handler 'dispatcher'
+2016-02-19 11:28:10,032 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wcs/**] onto handler 'dispatcher'
+2016-02-19 11:28:10,271 INFO [gwc.layer] - Initializing GWC configuration based on GeoServer's Catalog
+2016-02-19 11:28:10,271 INFO [gwc.layer] - GeoServer TileLayer store base directory is: /opt/geoserver/data_dir/gwc-layers
+2016-02-19 11:28:10,272 INFO [gwc.layer] - Loading tile layers from /opt/geoserver/data_dir/gwc-layers
+2016-02-19 11:28:10,363 INFO [gwc.layer] - GWC configuration based on GeoServer's Catalog loaded successfuly
+2016-02-19 11:28:10,364 WARN [config.XMLConfiguration] - Found no configuration file in config directory, will create one at '/opt/geoserver/data_dir/gwc/geowebcache.xml' from template jar:file:/opt/geoserver/webapps/geoserver/WEB-INF/lib/gwc-core-1.7.2.jar!/geowebcache_empty.xml
+2016-02-19 11:28:10,419 INFO [config.XMLConfiguration] - Configuration file validated fine.
+2016-02-19 11:28:10,425 INFO [config.XMLConfiguration] - Initializing GridSets from /opt/geoserver/data_dir/gwc
+2016-02-19 11:28:10,425 INFO [config.XMLConfiguration] - Initializing layers from /opt/geoserver/data_dir/gwc
+2016-02-19 11:28:10,425 INFO [layer.TileLayerDispatcher] - Configuration /opt/geoserver/data_dir/gwc contained no layers.
+2016-02-19 11:28:10,538 INFO [diskquota.ConfigLoader] - DiskQuota configuration not found: /opt/geoserver/data_dir/gwc/geowebcache-diskquota.xml
+2016-02-19 11:28:10,561 INFO [diskquota.ConfigLoader] - DiskQuota configuration not found: /opt/geoserver/data_dir/gwc/geowebcache-diskquota.xml
+2016-02-19 11:28:10,570 INFO [diskquota.DiskQuotaMonitor] - Setting up disk quota periodic enforcement task
+2016-02-19 11:28:10,570 INFO [diskquota.DiskQuotaMonitor] - 0 layers configured with their own quotas. 
+2016-02-19 11:28:10,571 INFO [diskquota.DiskQuotaMonitor] - 22 layers attached to global quota 500.0 MB
+2016-02-19 11:28:10,597 INFO [diskquota.DiskQuotaMonitor] - Disk quota periodic enforcement task set up every 10 SECONDS
+2016-02-19 11:28:11,342 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wfs/*] onto handler 'dispatcher'
+2016-02-19 11:28:11,349 INFO [ows.OWSHandlerMapping] - Mapped URL path [/TestWfsPost] onto handler 'wfsTestServlet'
+2016-02-19 11:28:11,349 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wfs] onto handler 'dispatcher'
+2016-02-19 11:28:16,114 INFO [org.geoserver] - GeoServer configuration lock is enabled
+2016-02-19 11:28:17,138 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wms/*] onto handler 'dispatcher'
+2016-02-19 11:28:17,138 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wms] onto handler 'dispatcher'
+2016-02-19 11:28:17,351 INFO [ows.OWSHandlerMapping] - Mapped URL path [/animate] onto handler 'dispatcher'
+2016-02-19 11:28:17,351 INFO [ows.OWSHandlerMapping] - Mapped URL path [/animate/*] onto handler 'dispatcher'
+2016-02-19 11:28:17,448 INFO [ows.OWSHandlerMapping] - Mapped URL path [/ows/**] onto handler 'dispatcher'
+2016-02-19 11:28:17,448 INFO [ows.OWSHandlerMapping] - Mapped URL path [/ows] onto handler 'dispatcher'
+2016-02-19 11:28:18,419 INFO [ows.OWSHandlerMapping] - Mapped URL path [/kml] onto handler 'dispatcher'
+2016-02-19 11:28:18,419 INFO [ows.OWSHandlerMapping] - Mapped URL path [/kml/*] onto handler 'dispatcher'
+2016-02-19 11:28:18,419 INFO [ows.OWSHandlerMapping] - Mapped URL path [/kml/icon/**/*] onto handler 'kmlIconService'
+2016-02-19 11:28:18,594 INFO [ows.OWSHandlerMapping] - Mapped URL path [/gwc/service/**] onto handler 'dispatcher'
+2016-02-19 11:28:18,615 INFO [geowebcache.GeoWebCacheDispatcher] - Invoked setServletPrefix(gwc)
+2016-02-19 11:28:18,652 INFO [georss.GeoRSSPoller] - Initializing GeoRSS poller in a background job...
+2016-02-19 11:28:18,662 INFO [georss.GeoRSSPoller] - No enabled GeoRSS feeds found, poller will not run.
+2016-02-19 11:28:18,739 INFO [rest.RESTDispatcher] - Created RESTDispatcher with 14 paths
+2016-02-19 11:28:18,767 INFO [wms.WMSService] - Will NOT recombine tiles for non-tiling clients.
+2016-02-19 11:28:18,767 INFO [wms.WMSService] - Will proxy requests to backend that are not getmap or getcapabilities.
+2016-02-19 11:28:18,978 INFO [geoserver.importer] - Enabling import store: memory
+2016-02-19 11:28:19,010 INFO [geoserver.security] - AuthenticationCache Initialized with 1000 Max Entries, 300 seconds idle time, 600 seconds time to live and 3 concurrency level
+2016-02-19 11:28:19,010 INFO [geoserver.security] - AuthenticationCache Eviction Task created to run every 600 seconds
+2016-02-19 11:28:19,333 INFO [geoserver.security] - Start reloading user/groups for service named default
+2016-02-19 11:28:19,346 INFO [geoserver.security] - Reloading user/groups successful for service named default
+2016-02-19 11:37:02,409 INFO [org.geoserver] - Loaded style 'poly_landmarks'
+2016-02-19 11:37:02,410 INFO [org.geoserver] - Loaded style 'point'
+2016-02-19 11:37:02,411 INFO [org.geoserver] - Loaded style 'pophatch'
+2016-02-19 11:37:02,412 INFO [org.geoserver] - Loaded style 'line'
+2016-02-19 11:37:02,412 INFO [org.geoserver] - Loaded style 'rain'
+2016-02-19 11:37:02,413 INFO [org.geoserver] - Loaded style 'giant_polygon'
+2016-02-19 11:37:02,413 INFO [org.geoserver] - Loaded style 'restricted'
+2016-02-19 11:37:02,414 INFO [org.geoserver] - Loaded style 'simple_streams'
+2016-02-19 11:37:02,414 INFO [org.geoserver] - Loaded style 'polygon'
+2016-02-19 11:37:02,415 INFO [org.geoserver] - Loaded style 'burg'
+2016-02-19 11:37:02,416 INFO [org.geoserver] - Loaded style 'grass'
+2016-02-19 11:37:02,416 INFO [org.geoserver] - Loaded style 'poi'
+2016-02-19 11:37:02,417 INFO [org.geoserver] - Loaded style 'dem'
+2016-02-19 11:37:02,421 INFO [org.geoserver] - Loaded style 'tiger_roads'
+2016-02-19 11:37:02,422 INFO [org.geoserver] - Loaded style 'cite_lakes'
+2016-02-19 11:37:02,426 INFO [org.geoserver] - Loaded style 'simple_roads'
+2016-02-19 11:37:02,430 INFO [org.geoserver] - Loaded style 'capitals'
+2016-02-19 11:37:02,431 INFO [org.geoserver] - Loaded style 'raster'
+2016-02-19 11:37:02,431 INFO [org.geoserver] - Loaded style 'green'
+2016-02-19 11:37:02,432 INFO [org.geoserver] - Loaded style 'population'
+2016-02-19 11:37:02,433 INFO [org.geoserver] - Loaded default workspace it.geosolutions
+2016-02-19 11:37:02,450 INFO [org.geoserver] - Loaded workspace 'it.geosolutions'
+2016-02-19 11:37:02,452 INFO [org.geoserver] - Loaded workspace 'topp'
+2016-02-19 11:37:02,454 INFO [org.geoserver] - Loaded workspace 'nurc'
+2016-02-19 11:37:02,458 INFO [org.geoserver] - Loaded workspace 'cite'
+2016-02-19 11:37:02,462 INFO [org.geoserver] - Loaded workspace 'tiger'
+2016-02-19 11:37:02,464 INFO [org.geoserver] - Loaded workspace 'sf'
+2016-02-19 11:37:02,470 INFO [org.geoserver] - Loaded workspace 'sde'
+2016-02-19 11:37:02,896 INFO [org.geoserver] - Loaded store 'taz_shapes', enabled
+2016-02-19 11:37:02,909 INFO [org.geoserver] - Loaded data store 'taz_shapes'
+2016-02-19 11:37:03,970 INFO [org.geoserver] - Loaded feature type 'tasmania_water_bodies', enabled
+2016-02-19 11:37:03,981 INFO [org.geoserver] - Loaded feature type 'taz_shapes'
+2016-02-19 11:37:04,009 INFO [org.geoserver] - Loaded layer 'tasmania_water_bodies'
+2016-02-19 11:37:04,014 INFO [org.geoserver] - Loaded feature type 'tasmania_roads', enabled
+2016-02-19 11:37:04,014 INFO [org.geoserver] - Loaded feature type 'taz_shapes'
+2016-02-19 11:37:04,017 INFO [org.geoserver] - Loaded layer 'tasmania_roads'
+2016-02-19 11:37:04,022 INFO [org.geoserver] - Loaded feature type 'tasmania_state_boundaries', enabled
+2016-02-19 11:37:04,023 INFO [org.geoserver] - Loaded feature type 'taz_shapes'
+2016-02-19 11:37:04,026 INFO [org.geoserver] - Loaded layer 'tasmania_state_boundaries'
+2016-02-19 11:37:04,031 INFO [org.geoserver] - Loaded feature type 'tasmania_cities', enabled
+2016-02-19 11:37:04,031 INFO [org.geoserver] - Loaded feature type 'taz_shapes'
+2016-02-19 11:37:04,035 INFO [org.geoserver] - Loaded layer 'tasmania_cities'
+2016-02-19 11:37:04,042 INFO [org.geoserver] - Loaded store 'states_shapefile', enabled
+2016-02-19 11:37:04,043 INFO [org.geoserver] - Loaded data store 'states_shapefile'
+2016-02-19 11:37:04,054 INFO [org.geoserver] - Loaded feature type 'states', enabled
+2016-02-19 11:37:04,055 INFO [org.geoserver] - Loaded feature type 'states_shapefile'
+2016-02-19 11:37:04,063 INFO [org.geoserver] - Loaded layer 'states'
+2016-02-19 11:37:04,074 INFO [org.geoserver] - Loaded store 'mosaic', enabled
+2016-02-19 11:37:04,077 INFO [org.geoserver] - Loaded coverage store 'mosaic'
+2016-02-19 11:37:04,109 INFO [org.geoserver] - Loaded coverage 'mosaic', enabled
+2016-02-19 11:37:04,116 INFO [org.geoserver] - Loaded coverage 'mosaic'
+2016-02-19 11:37:04,643 WARN [imagemosaic.Utils] - Unable to find sample image for path /opt/geoserver/data_dir/coverages/mosaic_sample/sample_image
+2016-02-19 11:37:04,643 WARN [gce.imagemosaic] - Unable to find sample image for path file:/opt/geoserver/data_dir/coverages/mosaic_sample/mosaic.shp
+2016-02-19 11:37:04,697 INFO [org.geoserver] - Loaded layer 'mosaic'
+2016-02-19 11:37:04,705 INFO [org.geoserver] - Loaded store 'worldImageSample', enabled
+2016-02-19 11:37:04,706 INFO [org.geoserver] - Loaded coverage store 'worldImageSample'
+2016-02-19 11:37:04,711 INFO [org.geoserver] - Loaded coverage 'Img_Sample', enabled
+2016-02-19 11:37:04,712 INFO [org.geoserver] - Loaded coverage 'worldImageSample'
+2016-02-19 11:37:04,758 INFO [org.geoserver] - Loaded layer 'Img_Sample'
+2016-02-19 11:37:04,770 INFO [org.geoserver] - Loaded store 'img_sample2', disabled
+2016-02-19 11:37:04,770 INFO [org.geoserver] - Loaded coverage store 'img_sample2'
+2016-02-19 11:37:05,161 INFO [org.geoserver] - Loaded coverage 'Pk50095', disabled
+2016-02-19 11:37:05,162 INFO [org.geoserver] - Loaded coverage 'img_sample2'
+2016-02-19 11:37:05,164 INFO [org.geoserver] - Loaded layer 'Pk50095'
+2016-02-19 11:37:05,169 INFO [org.geoserver] - Loaded store 'arcGridSample', enabled
+2016-02-19 11:37:05,170 INFO [org.geoserver] - Loaded coverage store 'arcGridSample'
+2016-02-19 11:37:05,174 INFO [org.geoserver] - Loaded coverage 'Arc_Sample', enabled
+2016-02-19 11:37:05,175 INFO [org.geoserver] - Loaded coverage 'arcGridSample'
+2016-02-19 11:37:05,244 INFO [org.geoserver] - Loaded layer 'Arc_Sample'
+2016-02-19 11:37:05,251 INFO [org.geoserver] - Loaded store 'nyc', enabled
+2016-02-19 11:37:05,251 INFO [org.geoserver] - Loaded data store 'nyc'
+2016-02-19 11:37:05,261 INFO [org.geoserver] - Loaded feature type 'poly_landmarks', enabled
+2016-02-19 11:37:05,262 INFO [org.geoserver] - Loaded feature type 'nyc'
+2016-02-19 11:37:05,265 INFO [org.geoserver] - Loaded layer 'poly_landmarks'
+2016-02-19 11:37:05,269 INFO [org.geoserver] - Loaded feature type 'giant_polygon', enabled
+2016-02-19 11:37:05,270 INFO [org.geoserver] - Loaded feature type 'nyc'
+2016-02-19 11:37:05,272 INFO [org.geoserver] - Loaded layer 'giant_polygon'
+2016-02-19 11:37:05,276 INFO [org.geoserver] - Loaded feature type 'poi', enabled
+2016-02-19 11:37:05,277 INFO [org.geoserver] - Loaded feature type 'nyc'
+2016-02-19 11:37:05,280 INFO [org.geoserver] - Loaded layer 'poi'
+2016-02-19 11:37:05,288 INFO [org.geoserver] - Loaded feature type 'tiger_roads', enabled
+2016-02-19 11:37:05,289 INFO [org.geoserver] - Loaded feature type 'nyc'
+2016-02-19 11:37:05,295 INFO [org.geoserver] - Loaded layer 'tiger_roads'
+2016-02-19 11:37:05,309 INFO [org.geoserver] - Loaded store 'sfdem', enabled
+2016-02-19 11:37:05,310 INFO [org.geoserver] - Loaded coverage store 'sfdem'
+2016-02-19 11:37:05,359 INFO [org.geoserver] - Loaded coverage 'sfdem', enabled
+2016-02-19 11:37:05,361 INFO [org.geoserver] - Loaded coverage 'sfdem'
+2016-02-19 11:37:05,493 INFO [org.geoserver] - Loaded layer 'sfdem'
+2016-02-19 11:37:05,506 INFO [org.geoserver] - Loaded store 'sf', enabled
+2016-02-19 11:37:05,507 INFO [org.geoserver] - Loaded data store 'sf'
+2016-02-19 11:37:05,536 INFO [org.geoserver] - Loaded feature type 'archsites', enabled
+2016-02-19 11:37:05,536 INFO [org.geoserver] - Loaded feature type 'sf'
+2016-02-19 11:37:05,539 INFO [org.geoserver] - Loaded layer 'archsites'
+2016-02-19 11:37:05,545 INFO [org.geoserver] - Loaded feature type 'roads', enabled
+2016-02-19 11:37:05,547 INFO [org.geoserver] - Loaded feature type 'sf'
+2016-02-19 11:37:05,552 INFO [org.geoserver] - Loaded layer 'roads'
+2016-02-19 11:37:05,558 INFO [org.geoserver] - Loaded feature type 'bugsites', enabled
+2016-02-19 11:37:05,558 INFO [org.geoserver] - Loaded feature type 'sf'
+2016-02-19 11:37:05,560 INFO [org.geoserver] - Loaded layer 'bugsites'
+2016-02-19 11:37:05,566 INFO [org.geoserver] - Loaded feature type 'restricted', enabled
+2016-02-19 11:37:05,566 INFO [org.geoserver] - Loaded feature type 'sf'
+2016-02-19 11:37:05,568 INFO [org.geoserver] - Loaded layer 'restricted'
+2016-02-19 11:37:05,583 INFO [org.geoserver] - Loaded feature type 'streams', enabled
+2016-02-19 11:37:05,583 INFO [org.geoserver] - Loaded feature type 'sf'
+2016-02-19 11:37:05,585 INFO [org.geoserver] - Loaded layer 'streams'
+2016-02-19 11:37:05,603 INFO [org.geoserver] - Loaded layer group 'tiger-ny'
+2016-02-19 11:37:05,606 INFO [org.geoserver] - Loaded layer group 'spearfish'
+2016-02-19 11:37:05,607 INFO [org.geoserver] - Loaded layer group 'tasmania'
+2016-02-19 11:37:06,397 INFO [org.geoserver] - Loaded service 'wcs', enabled
+2016-02-19 11:37:06,411 INFO [org.geoserver] - Loaded service 'wfs', enabled
+2016-02-19 11:37:06,424 INFO [org.geoserver] - Loaded service 'wms', enabled
+2016-02-19 11:37:06,480 INFO [storage.DefaultStorageFinder] - **************************************************************************************************************************
+2016-02-19 11:37:06,480 INFO [storage.DefaultStorageFinder] - *** Found Java environment variable GEOSERVER_DATA_DIR set to /opt/geoserver/data_dir, using it as the default prefix. ***
+2016-02-19 11:37:06,480 INFO [storage.DefaultStorageFinder] - **************************************************************************************************************************
+2016-02-19 11:37:06,480 INFO [config.XMLConfiguration] - Will look for geowebcache.xml in '/opt/geoserver/data_dir/gwc'
+2016-02-19 11:37:06,562 INFO [gwc.config] - Initializing GeoServer specific GWC configuration from gwc-gs.xml
+2016-02-19 11:37:06,903 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wcs] onto handler 'dispatcher'
+2016-02-19 11:37:06,904 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wcs/**] onto handler 'dispatcher'
+2016-02-19 11:37:07,121 INFO [gwc.layer] - Initializing GWC configuration based on GeoServer's Catalog
+2016-02-19 11:37:07,121 INFO [gwc.layer] - GeoServer TileLayer store base directory is: /opt/geoserver/data_dir/gwc-layers
+2016-02-19 11:37:07,122 INFO [gwc.layer] - Loading tile layers from /opt/geoserver/data_dir/gwc-layers
+2016-02-19 11:37:07,295 INFO [gwc.layer] - GWC configuration based on GeoServer's Catalog loaded successfuly
+2016-02-19 11:37:07,295 INFO [config.XMLConfiguration] - Found configuration file in /opt/geoserver/data_dir/gwc
+2016-02-19 11:37:07,374 INFO [config.XMLConfiguration] - Configuration file validated fine.
+2016-02-19 11:37:07,379 INFO [config.XMLConfiguration] - Initializing GridSets from /opt/geoserver/data_dir/gwc
+2016-02-19 11:37:07,379 INFO [config.XMLConfiguration] - Initializing layers from /opt/geoserver/data_dir/gwc
+2016-02-19 11:37:07,380 INFO [layer.TileLayerDispatcher] - Configuration /opt/geoserver/data_dir/gwc contained no layers.
+2016-02-19 11:37:07,432 INFO [diskquota.ConfigLoader] - DiskQuota configuration not found: /opt/geoserver/data_dir/gwc/geowebcache-diskquota.xml
+2016-02-19 11:37:07,445 INFO [diskquota.ConfigLoader] - DiskQuota configuration not found: /opt/geoserver/data_dir/gwc/geowebcache-diskquota.xml
+2016-02-19 11:37:07,446 INFO [diskquota.DiskQuotaMonitor] - Setting up disk quota periodic enforcement task
+2016-02-19 11:37:07,446 INFO [diskquota.DiskQuotaMonitor] - 0 layers configured with their own quotas. 
+2016-02-19 11:37:07,447 INFO [diskquota.DiskQuotaMonitor] - 22 layers attached to global quota 500.0 MB
+2016-02-19 11:37:07,477 INFO [diskquota.DiskQuotaMonitor] - Disk quota periodic enforcement task set up every 10 SECONDS
+2016-02-19 11:37:08,369 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wfs/*] onto handler 'dispatcher'
+2016-02-19 11:37:08,370 INFO [ows.OWSHandlerMapping] - Mapped URL path [/TestWfsPost] onto handler 'wfsTestServlet'
+2016-02-19 11:37:08,370 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wfs] onto handler 'dispatcher'
+2016-02-19 11:37:13,525 INFO [org.geoserver] - GeoServer configuration lock is enabled
+2016-02-19 11:37:14,737 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wms/*] onto handler 'dispatcher'
+2016-02-19 11:37:14,737 INFO [ows.OWSHandlerMapping] - Mapped URL path [/wms] onto handler 'dispatcher'
+2016-02-19 11:37:14,934 INFO [ows.OWSHandlerMapping] - Mapped URL path [/animate] onto handler 'dispatcher'
+2016-02-19 11:37:14,934 INFO [ows.OWSHandlerMapping] - Mapped URL path [/animate/*] onto handler 'dispatcher'
+2016-02-19 11:37:15,027 INFO [ows.OWSHandlerMapping] - Mapped URL path [/ows/**] onto handler 'dispatcher'
+2016-02-19 11:37:15,037 INFO [ows.OWSHandlerMapping] - Mapped URL path [/ows] onto handler 'dispatcher'
+2016-02-19 11:37:16,011 INFO [ows.OWSHandlerMapping] - Mapped URL path [/kml] onto handler 'dispatcher'
+2016-02-19 11:37:16,011 INFO [ows.OWSHandlerMapping] - Mapped URL path [/kml/*] onto handler 'dispatcher'
+2016-02-19 11:37:16,011 INFO [ows.OWSHandlerMapping] - Mapped URL path [/kml/icon/**/*] onto handler 'kmlIconService'
+2016-02-19 11:37:16,190 INFO [ows.OWSHandlerMapping] - Mapped URL path [/gwc/service/**] onto handler 'dispatcher'
+2016-02-19 11:37:16,212 INFO [geowebcache.GeoWebCacheDispatcher] - Invoked setServletPrefix(gwc)
+2016-02-19 11:37:16,244 INFO [georss.GeoRSSPoller] - Initializing GeoRSS poller in a background job...
+2016-02-19 11:37:16,246 INFO [georss.GeoRSSPoller] - No enabled GeoRSS feeds found, poller will not run.
+2016-02-19 11:37:16,336 INFO [rest.RESTDispatcher] - Created RESTDispatcher with 14 paths
+2016-02-19 11:37:16,364 INFO [wms.WMSService] - Will NOT recombine tiles for non-tiling clients.
+2016-02-19 11:37:16,365 INFO [wms.WMSService] - Will proxy requests to backend that are not getmap or getcapabilities.
+2016-02-19 11:37:16,577 INFO [geoserver.importer] - Enabling import store: memory
+2016-02-19 11:37:16,608 INFO [geoserver.security] - AuthenticationCache Initialized with 1000 Max Entries, 300 seconds idle time, 600 seconds time to live and 3 concurrency level
+2016-02-19 11:37:16,609 INFO [geoserver.security] - AuthenticationCache Eviction Task created to run every 600 seconds
+2016-02-19 11:37:16,879 INFO [geoserver.security] - Start reloading user/groups for service named default
+2016-02-19 11:37:16,884 INFO [geoserver.security] - Reloading user/groups successful for service named default
+2016-02-19 11:37:54,185 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "" " "" 
+2016-02-19 11:37:55,129 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" took 944ms
+2016-02-19 11:38:02,930 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "application/x-www-form-urlencoded"  request-size: 33 body: 
+username=geoserver&password=admin
+
+2016-02-19 11:38:02,938 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" took 7ms
+2016-02-19 11:38:02,965 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:38:03,030 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" took 64ms
+2016-02-19 11:38:48,091 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" " "application/x-www-form-urlencoded"  request-size: 33 body: 
+username=geoserver&password=admin
+
+2016-02-19 11:38:48,093 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" took 2ms
+2016-02-19 11:38:48,111 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" " "" 
+2016-02-19 11:38:48,137 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" took 26ms
+2016-02-19 11:39:40,733 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" " "application/x-www-form-urlencoded"  request-size: 29 body: 
+username=admin&password=admin
+
+2016-02-19 11:39:40,845 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" took 112ms
+2016-02-19 11:39:40,863 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" " "" 
+2016-02-19 11:39:40,883 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" took 20ms
+2016-02-19 11:39:45,910 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" " "application/x-www-form-urlencoded"  request-size: 32 body: 
+username=admin&password=geoserer
+
+2016-02-19 11:39:45,967 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" took 57ms
+2016-02-19 11:39:46,074 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" " "" 
+2016-02-19 11:39:46,094 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" took 20ms
+2016-02-19 11:39:59,688 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" " "application/x-www-form-urlencoded"  request-size: 33 body: 
+username=admin&password=geoserver
+
+2016-02-19 11:39:59,743 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" took 55ms
+2016-02-19 11:39:59,761 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" " "" 
+2016-02-19 11:39:59,762 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web" took 1ms
+2016-02-19 11:39:59,779 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.GeoServerLoginPage&error=true" " "" 
+2016-02-19 11:40:00,377 WARN [geoserver.security] - Strong cryptography is NOT available
+Download and installation the of unlimted length policy files is recommended
+2016-02-19 11:40:00,803 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" took 1024ms
+2016-02-19 11:40:00,946 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.StatusPage/null/img/icons/silk/server_error.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:00,953 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.StatusPage/null/img/icons/silk/server_error.png" took 7ms
+2016-02-19 11:40:00,965 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.LogPage/null/img/icons/silk/page_white_text.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:00,966 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.ContactPage/null/img/icons/silk/vcard.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:00,969 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.ContactPage/null/img/icons/silk/vcard.png" took 3ms
+2016-02-19 11:40:00,970 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.importer.web.ImportDataPage/map_add.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:00,971 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.data.store.StorePage/null/null/img/icons/silk/database.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:00,971 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.data.workspace.WorkspacePage/null/null/img/icons/silk/folder.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:00,970 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.LogPage/null/img/icons/silk/page_white_text.png" took 4ms
+2016-02-19 11:40:00,984 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.importer.web.ImportDataPage/map_add.png" took 12ms
+2016-02-19 11:40:00,984 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.data.workspace.WorkspacePage/null/null/img/icons/silk/folder.png" took 13ms
+2016-02-19 11:40:00,979 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.GeoServerBasePage/img/icons/silk/door_out.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/resources/org.geoserver.web.GeoServerBasePage/css/geoserver.css" " "" 
+2016-02-19 11:40:00,977 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.data.store.StorePage/null/null/img/icons/silk/database.png" took 6ms
+2016-02-19 11:40:00,992 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.data.layer.LayerPage/null/null/img/icons/silk/picture_empty.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:00,993 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.CoverageAccessPage/null/img/icons/silk/cog_photo.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:00,997 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.GeoServerBasePage/img/icons/silk/door_out.png" took 12ms
+2016-02-19 11:40:01,001 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.data.layer.LayerPage/null/null/img/icons/silk/picture_empty.png" took 9ms
+2016-02-19 11:40:01,002 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.CoverageAccessPage/null/img/icons/silk/cog_photo.png" took 9ms
+2016-02-19 11:40:01,003 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.GeoServerBasePage/img/icons/silk/wrench.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,004 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.security.web.auth.AuthenticationPage/null/img/icons/silk/shield.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,005 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.GlobalSettingsPage/null/img/icons/silk/server.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,008 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.GlobalSettingsPage/null/img/icons/silk/server.png" took 3ms
+2016-02-19 11:40:01,012 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.security.web.auth.AuthenticationPage/null/img/icons/silk/shield.png" took 8ms
+2016-02-19 11:40:01,018 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.security.web.UserGroupRoleServicesPage/img/icons/silk/group.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,021 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.gwc.web.gridset.GridSetsPage/null/gridset.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,022 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.wcs.web.WCSAdminPage/server_raster.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,024 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.GeoServerBasePage/img/icons/silk/wrench.png" took 20ms
+2016-02-19 11:40:01,027 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.security.web.UserGroupRoleServicesPage/img/icons/silk/group.png" took 9ms
+2016-02-19 11:40:01,028 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.gwc.web.layer.CachedLayersPage/null/tilelayer.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,029 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.gwc.web.gridset.GridSetsPage/null/gridset.png" took 8ms
+2016-02-19 11:40:01,032 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.wcs.web.WCSAdminPage/server_raster.png" took 10ms
+2016-02-19 11:40:01,033 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.gwc.web.layer.CachedLayersPage/null/tilelayer.png" took 5ms
+2016-02-19 11:40:01,038 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.wms.web.data.StylePage/palette.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,041 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.wms.web.data.StylePage/palette.png" took 3ms
+2016-02-19 11:40:01,042 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.gwc.web.GWCSettingsPage/geowebcache-16.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,045 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.gwc.web.GWCSettingsPage/geowebcache-16.png" took 3ms
+2016-02-19 11:40:01,047 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.wfs.web.WFSAdminPage/server_vector.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,050 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.wfs.web.WFSAdminPage/server_vector.png" took 3ms
+2016-02-19 11:40:01,058 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.security.web.service.ServiceAccessRulePage/null/img/icons/silk/shape_square_key.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,060 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.wms.web.WMSAdminPage/server_map.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,060 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.data.layergroup.LayerGroupPage/null/null/img/icons/silk/layers.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,061 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.JAIPage/null/img/icons/silk/cog_photo.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,064 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.data.layergroup.LayerGroupPage/null/null/img/icons/silk/layers.png" took 3ms
+2016-02-19 11:40:01,069 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.admin.JAIPage/null/img/icons/silk/cog_photo.png" took 8ms
+2016-02-19 11:40:01,072 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.security.web.data.DataSecurityPage/null/img/icons/silk/database_key.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,076 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.security.web.data.DataSecurityPage/null/img/icons/silk/database_key.png" took 3ms
+2016-02-19 11:40:01,073 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.wms.web.WMSAdminPage/server_map.png" took 13ms
+2016-02-19 11:40:01,078 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.security.web.service.ServiceAccessRulePage/null/img/icons/silk/shape_square_key.png" took 20ms
+2016-02-19 11:40:01,080 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.gwc.web.diskquota.DiskQuotaSettingsPage/null/diskquota.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,084 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.gwc.web.diskquota.DiskQuotaSettingsPage/null/diskquota.png" took 2ms
+2016-02-19 11:40:01,082 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.security.web.passwd.PasswordPage/null/img/icons/silk/lock.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:01,087 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.GeoServerBasePage/img/icons/silk/add.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/resources/org.geoserver.web.GeoServerBasePage/css/geoserver.css" " "" 
+2016-02-19 11:40:01,090 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.GeoServerBasePage/img/icons/silk/error.png" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/resources/org.geoserver.web.GeoServerBasePage/css/geoserver.css" " "" 
+2016-02-19 11:40:01,093 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.GeoServerBasePage/img/icons/silk/error.png" took 3ms
+2016-02-19 11:40:01,095 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.web.GeoServerBasePage/img/icons/silk/add.png" took 8ms
+2016-02-19 11:40:01,095 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.geoserver.security.web.passwd.PasswordPage/null/img/icons/silk/lock.png" took 4ms
+2016-02-19 11:40:17,267 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:interface=:5:contributedContent:1:contentList:mplink::ILinkListener::" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:17,393 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:interface=:5:contributedContent:1:contentList:mplink::ILinkListener::" took 126ms
+2016-02-19 11:40:17,410 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:interface=:8::::" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:17,412 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:interface=:8::::" took 2ms
+2016-02-19 11:40:17,443 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow/res/modal.js" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:interface=:8::::" " "" 
+2016-02-19 11:40:17,443 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow/res/modal.css" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:interface=:8::::" " "" 
+2016-02-19 11:40:17,453 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow/res/modal.css" took 8ms
+2016-02-19 11:40:17,467 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow/res/modal.js" took 23ms
+2016-02-19 11:40:28,019 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/web/?wicket:interface=:8:form::IFormSubmitListener::" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:interface=:8::::" " "application/x-www-form-urlencoded"  request-size: 83 body: 
+save=x&currentPassword=geoserver&newPassword=pekoquifi&newPasswordConfirm=pekoquifi
+
+2016-02-19 11:40:28,153 INFO [geoserver.security] - Successfully changed master password
+2016-02-19 11:40:28,159 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/web/?wicket:interface=:8:form::IFormSubmitListener::" took 140ms
+2016-02-19 11:40:28,177 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:interface=:8::::" " "" 
+2016-02-19 11:40:28,477 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" took 300ms
+2016-02-19 11:40:33,733 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:interface=:9:contributedContent:1:contentList:adminlink::ILinkListener::" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:33,969 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:interface=:9:contributedContent:1:contentList:adminlink::ILinkListener::" took 236ms
+2016-02-19 11:40:33,986 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:interface=:10::::" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:33,988 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/?wicket:interface=:10::::" took 1ms
+2016-02-19 11:40:34,037 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.markup.html.form.palette.Palette/palette.js" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:interface=:10::::" " "" 
+2016-02-19 11:40:34,037 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.markup.html.form.palette.Palette/palette.css" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:interface=:10::::" " "" 
+2016-02-19 11:40:34,041 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.markup.html.form.palette.Palette/palette.js" took 4ms
+2016-02-19 11:40:34,045 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.markup.html.form.palette.Palette/palette.css" took 3ms
+2016-02-19 11:40:34,053 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.markup.html.form.palette.Palette/add.gif" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:interface=:10::::" " "" 
+2016-02-19 11:40:34,056 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.markup.html.form.palette.Palette/add.gif" took 2ms
+2016-02-19 11:40:34,063 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.markup.html.form.palette.Palette/remove.gif" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:interface=:10::::" " "" 
+2016-02-19 11:40:34,066 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/resources/org.apache.wicket.extensions.markup.html.form.palette.Palette/remove.gif" took 3ms
+2016-02-19 11:40:48,165 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/web/?wicket:interface=:10:form::IFormSubmitListener::" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:interface=:10::::" " "application/x-www-form-urlencoded"  request-size: 124 body: 
+save=x&enabled=on&password=pekoquifi&confirmPassword=pekoquifi&groups%3Apalette%3Arecorder=&roles%3Apalette%3Arecorder=ADMIN
+
+2016-02-19 11:40:48,183 INFO [security.xml] - Successful lock: /opt/geoserver/data_dir/security/usergroup/default/users.xml.lock
+2016-02-19 11:40:48,240 INFO [geoserver.security] - Start storing user/groups for service named default
+2016-02-19 11:40:48,253 INFO [geoserver.security] - Storing user/groups successful for service named default
+2016-02-19 11:40:48,253 INFO [geoserver.security] - Start reloading user/groups for service named default
+2016-02-19 11:40:48,265 INFO [geoserver.security] - Reloading user/groups successful for service named default
+2016-02-19 11:40:48,265 INFO [geoserver.security] - Adjusted last modified for file: security/usergroup/default/users.xml
+2016-02-19 11:40:48,274 INFO [security.xml] - Successful lock: /opt/geoserver/data_dir/security/role/default/roles.xml.lock
+2016-02-19 11:40:48,274 INFO [geoserver.security] - Storing unnecessary, no change for roles
+2016-02-19 11:40:48,279 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/web/?wicket:interface=:10:form::IFormSubmitListener::" took 113ms
+2016-02-19 11:40:48,325 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/?wicket:interface=:10::::" " "" 
+2016-02-19 11:40:48,482 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" took 156ms
+2016-02-19 11:40:56,592 INFO [geoserver.security] - Start reloading user/groups for service named default
+2016-02-19 11:40:56,597 INFO [geoserver.security] - Reloading user/groups successful for service named default
+2016-02-19 11:40:56,598 INFO [geoserver.security] - Adjusted last modified for file: security/usergroup/default/users.xml
+2016-02-19 11:40:57,898 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/j_spring_security_logout" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:57,927 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/j_spring_security_logout" took 29ms
+2016-02-19 11:40:57,944 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:40:57,969 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" took 25ms
+2016-02-19 11:41:03,497 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "application/x-www-form-urlencoded"  request-size: 33 body: 
+username=admin&password=pekoquifi
+
+2016-02-19 11:41:03,552 INFO [geoserver.filters] - 82.193.237.86 "POST /geoserver/j_spring_security_check" took 54ms
+2016-02-19 11:41:03,616 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:41:03,617 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web" took 0ms
+2016-02-19 11:41:03,634 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36" "http://195.98.195.53/geoserver/web/" " "" 
+2016-02-19 11:41:03,791 INFO [geoserver.filters] - 82.193.237.86 "GET /geoserver/web/" took 157ms
+2016-02-19 12:21:15,360 INFO [georss.GeoRSSPoller] - destroy() invoked
+2016-02-19 12:21:15,366 INFO [geowebcache.GeoWebCacheDispatcher] - GeoWebCacheDispatcher.destroy() was invoked, shutting down.
+2016-02-19 12:21:15,393 INFO [diskquota.DiskQuotaMonitor] - Disk quota monitor shutting down...
+2016-02-19 12:21:15,394 INFO [diskquota.DiskQuotaMonitor] - Shutting down quota usage monitor...
+2016-02-19 12:21:15,394 INFO [diskquota.QuotaUpdatesMonitor] - Shutting down quota usage monitor...
+2016-02-19 12:21:15,397 INFO [diskquota.DiskQuotaMonitor] - Shutting down quota statistics gathering monitor...
+2016-02-19 12:21:15,397 INFO [diskquota.QueuedQuotaUpdatesConsumer] - Shutting down quota update background task due to InterruptedException
+2016-02-19 12:21:15,446 INFO [diskquota.QueuedUsageStatsConsumer] - Shutting down quota update background task due to interrupted exception
+2016-02-19 12:21:15,447 INFO [seed.SeederThreadPoolExecutor] - Initiating shut down for running and pending seed tasks...
+2016-02-19 12:21:15,447 INFO [seed.SeederThreadPoolExecutor] - Seeder thread pool executor shut down complete.
+2016-02-19 12:21:15,447 INFO [storage.DefaultStorageBroker] - Destroying StorageBroker
+2016-02-19 12:21:15,453 WARN [support.DisposableBeanAdapter] - Invocation of destroy method failed on bean with name 'geoServerLoader': org.springframework.beans.factory.BeanCreationNotAllowedException: Error creating bean with name 'metaTileCache': Singleton bean creation not allowed while the singletons of this factory are in destruction (Do not request a bean from a BeanFactory in a destroy method implementation!)

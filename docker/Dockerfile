@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     apache2 \
     cgi-mapserver \
     dialog \
+    gdal-bin \
     git \
     htop \
     imagemagick \
@@ -54,6 +55,10 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod cgi && \
     a2enmod rewrite && \
     a2enmod ssl && \
+    a2enmod proxy && \
+    a2enmod proxy_http && \
+    a2enmod proxy_html && \
+    a2enmod xml2enc && \
     make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
 
 ADD https://github.com/phpmyadmin/phpmyadmin/archive/STABLE.zip /tmp/phpmyadmin.zip
@@ -75,6 +80,11 @@ RUN mkdir -p $USER_DIR/.ssh && \
   chown -R $OS_USER.$OS_USER $USER_DIR/.ssh && \
   sed -i "s|#   IdentityFile ~/.ssh/id_rsa|    IdentityFile ~/.ssh/id_rsa|g" /etc/ssh/ssh_config
 
+USER $OS_USER
+RUN git config --global user.name "gisadmin" && \
+    git config --global user.email "gisadmin@`hostname`"
+
+USER root
 
 EXPOSE 80
 EXPOSE 443

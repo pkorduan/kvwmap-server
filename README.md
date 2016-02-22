@@ -15,7 +15,7 @@ all required components with the included administration script `kvwmap`.
 
 ### Pull kvwmap-server
 **Note:** You must be logged in as root and have installed at least the debian
-packages git, wget and curl to use git and run the kvwmap script on your host successfully.
+packages git, wget and curl to use git and run the kvw script on your host successfully.
 
 ```
 apt-get update && apt-get install -y \
@@ -37,7 +37,7 @@ $ git clone https://github.com/pkorduan/kvwmap-server.git
 Get and install all the components that uses kvwmap-server.
 
 ```
-$ kvwmap-server/kvwmap install
+$ kvwmap-server/kvw install kvwmap
 ```
 
 This scrpit should ended up with the message: Successfully built or a message that the image pkorduan/kvwmap-server has been successfull pulled.
@@ -47,7 +47,7 @@ Start the containers with volumes and link it together. You will be asked to
 choose passwords for the MySQL root and PostgreSQL postgres super user as well as for a kvwmap user. The Password for kvwmap user will be used as initial password for the database access to the kvwmap databases, for the phpMyAdmin web client which has the alias userDbAdmin and for the admin page of the web application kvwmap itself.
 
 ```
-$ kvwmap run all
+$ kvw run all
 ```
 
 After this step the container named web, pgsql-server and mysql-server shoud be
@@ -74,20 +74,20 @@ This stoped all container, remove it, remove all images and remove the volumes i
 Be careful with this command, because it will remove also the data in the directories /var/www and db, etc, kvwmap-server in your home directory.
 
 ```
-$ kvwmap uninstall
+$ kvw uninstall
 ```
 
 If you only whant to remove the container and images use this commands:
 
 ```
-$ kvwmap stop all
-$ kvwmap remove all
+$ kvw stop all
+$ kvw remove all
 ```
 
 ## Server status
 To check if everything works well, you have different options.
 ```
-$ kvwmap status all
+$ kvw status all
 ```
 shows the status of the containers. Good is a message like this:
 ```
@@ -159,19 +159,19 @@ Therefore you must be a contributor to this repo. Ask the maintainer to become a
 A new image can be created localy with the build command of docker. But to run the new image the old container must be stopped and the new one created. Therefore the script kvwmap can be used with the following parameters.
 To rebuild the kvwmap container run the following command:
 ```
-$ kvwmap rebuild web
+$ kvw rebuild web
 ```
 This will stop and remove only the web container, remove the kvwmap-server image, pull the image kvwmap-server:latest from [dockerhub](https://hub.docker.com/r/pkorduan/kvwmap-server/) and run again the web container as when you start first.
 To not build the image, but download the latest from dockerhub you can use the kvwmap script with reload option
 ```
-$ kvwmap reload web
+$ kvw reload web
 ```
 To manually rebuild the kvwmap container with another version of mysql or postgres change the version numbers in kvwmap script for the constants MYSQL_IMAGE_VERSION or POSTGRES_IMAGE_VERSION and call the kvwmap script with the parameter rebuild all. You can download the new version manually before restarting the kvwmap container. This will save some downtime of the kvwmap application.
 ```
 $ docker pull mdillon/postgis:<new_version_number>
 $ sed -i -e "s|POSTGRESQL_IMAGE_VERSION=9.4|POSTGRESQL_IMAGE_VERSION=<new_version_number>|g" \
 $USER_DIR/kvwmap-server/kvwmap
-$ kvwmap rebuild all
+$ kvw rebuild all
 ```
 Replace <new_version_number> by the version you want to have for your postgres-container. Remember that this number will be overwritten when you next time pull the repo from master. Checkout this change with:
 ```
