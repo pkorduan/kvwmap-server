@@ -362,6 +362,9 @@ case "$1" in
         echo "In diesen Container ist /var/docker/www/data auf /data im Container gemappt und der postgres Container gelinkt."
         docker exec -it gdal /bin/bash
       ;;
+      gdal200)
+        docker run -t -i --rm --name gdal200 -h geo5_gdal200-container --volumes-from wwwdata --link pgsql-server:pgsql geodata/gdal:2.0.0 /bin/bash
+      ;;
       mysql)
         echo "Öffne ein Terminal im Container in dem der MySQL-Server läuft..."
         docker exec -it mysql-server /bin/bash
