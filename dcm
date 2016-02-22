@@ -478,7 +478,6 @@ run_pgsql_container() {
 }
 
 run_web_container() {
-  # ToDo
   # link also running cargo containers
   set_cargo_links
   read -s -p "Enter password for kvwmap user. It is used as initial password to grant php access to the mysql and postgres databases of kvwmap, to phpMyAdmin db web client and to the Administrator-Stelle of the web application kvwmap itself. Passwords can be canged later when the container is running.: " KVWMAP_INIT_PASSWORD
