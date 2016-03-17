@@ -4,9 +4,7 @@ LABEL version="1.0.0"
 
 ENV OS_USER="gisadmin" USER_DIR="/home/${OS_USER}" TZ="Europe/Berlin"
 
-RUN echo "deb http://ftp.de.debian.org/debian/ jessie main contrib non-free" > /etc/apt/sources.list && \
-    echo "deb-src http://ftp.de.debian.org/debian/ jessie main contrib non-free" >> /etc/apt/sources.list && \
-    sed -i \
+RUN sed -i \
         -e "s|# alias ls=|alias ls=|g" \
         -e "s|# alias ll=|alias ll=|g" \
         -e "s|# alias rm=|alias rm=|g" \

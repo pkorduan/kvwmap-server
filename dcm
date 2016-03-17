@@ -362,7 +362,7 @@ install_kvwmap_images() {
   #cp docker/sources/kvwmap-container.conf /etc/systemd/system/docker.service.d/kvwmap-container.conf
   echo "
   Nächste Schritte zum installieren von kvwmap:"
-  echo "    $ kvwmap run all"
+  echo "    $ dcm run all"
   echo "    Browser öffnen mit der Adresse: http://#{IP_EXTERN}/kvwmap/install.php"
 }
 
