@@ -92,7 +92,6 @@ set_geoserver_web_link() {
 
 set_geoserver_pgsql_link() {
   # do nothing here
-  echo ""
 }
 
 show_status() {

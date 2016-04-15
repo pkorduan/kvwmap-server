@@ -433,9 +433,10 @@ run_all_container() {
   echo "Erzeuge und Starte alle Container ..."
   create_www_data_volume
   run_mysql_container
+  if type -t run_oracle_container | grep -q "^function$" ; then run_oracle_container fi
   run_pgsql_container
   run_gdal_container
-  run_cargo_containers
+  if type -t run_geoserver_container | grep -q "^function$" ; then run_geoserver_container fi
   run_web_container
 }
 
