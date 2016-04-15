@@ -69,6 +69,11 @@ set_oracle_pgsql_link() {
   CARGO_PGSQL_LINKS=${CARGO_PGSQL_LINKS}" --link oracle:oracle"
 }
 
+set_oracle_web_link() {
+  echo "Setzte oracle link zum Starten des web containers: --link oracle:oracle"
+  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link oracle:oracle"
+}
+
 show_status() {
   echo "Status of container $COINTAINER_NAME"
 }

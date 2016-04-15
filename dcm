@@ -179,7 +179,7 @@ load_cargo() {
   dcmfiles=($(find -L $CARGOPATH -name dcm))
   for dcmfile in ${dcmfiles[@]}
   do
-    #echo "Load dcmfile: " $dcmfile
+    echo "Load dcmfile: ${CARGOPATH}/${dcmfile}"
     source $dcmfile
   done
   #echo "CARGOS: "
