@@ -7,7 +7,7 @@ GEOSERVER_CONTAINER_NAME="geoserver"
 GEOSERVER_DATA_DIR=$WWW_ROOT/data/geoserver_data_dir
 
 usage_geoserver() {
-  echo "install geoserver Installiert ein geoserver Image."
+  echo "install geoserver  Installiert ein geoserver Image."
   echo "run geoserver      Erzeugt und startet nur den Container geoserver."
   echo "start geoserver    Startet nur den Container geoserver."
   echo "status geoserver   Zeigt den aktuellen Status des Container geoserver an."

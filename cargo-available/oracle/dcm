@@ -15,12 +15,12 @@ ORACLE_CONTAINER_NAME="oracle"
 ORACLE_DATA_DIR=$WWW_ROOT/data/oracle_data_dir
 
 usage_oracle() {
-  echo "install $ORACLE_CONTAINER_NAME  Installiert das Image ${ORACLE_IMAGE}."
-  echo "run $ORACLE_CONTAINER_NAME      Erzeugt und startet nur den Container $ORACLE_CONTAINER_NAME."
-  echo "start $ORACLE_CONTAINER_NAME    Startet nur den Container $ORACLE_CONTAINER_NAME."
-  echo "status $ORACLE_CONTAINER_NAME   Zeigt den aktuellen Status des Container $ORACLE_CONTAINER_NAME an."
-  echo "stop $ORACLE_CONTAINER_NAME     Startet nur den Container $ORACLE_CONTAINER_NAME."
-  echo "uninsall $ORACLE_CONTAINER_NAME Deinstalliert das oracle image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+  echo "install $ORACLE_CONTAINER_NAME     Installiert das Image ${ORACLE_IMAGE}."
+  echo "run $ORACLE_CONTAINER_NAME         Erzeugt und startet nur den Container $ORACLE_CONTAINER_NAME."
+  echo "start $ORACLE_CONTAINER_NAME       Startet nur den Container $ORACLE_CONTAINER_NAME."
+  echo "status $ORACLE_CONTAINER_NAME      Zeigt den aktuellen Status des Container $ORACLE_CONTAINER_NAME an."
+  echo "stop $ORACLE_CONTAINER_NAME        Startet nur den Container $ORACLE_CONTAINER_NAME."
+  echo "uninsall $ORACLE_CONTAINER_NAME    Deinstalliert das oracle image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
 }
 
 install_oracle() {
@@ -28,14 +28,15 @@ install_oracle() {
   
   mkdir -p $ORACLE_DATA_DIR
 
-  echo "
-  Ziehe Image $ORACLE_IMAGE von dockerhub"
+  echo "Ziehe Image $ORACLE_IMAGE von dockerhub
+"
   docker pull $ORACLE_IMAGE
 
-  echo "Der $ORACLE_CONTAINER_NAME container kann nun gestartet werden mit dem Befehl:"
+  echo "Der $ORACLE_CONTAINER_NAME Container kann nun gestartet werden mit dem Befehl:"
   echo "dcm run $ORACLE_CONTAINER_NAME"
   echo "Wenn der $ORACLE_CONTAINER_NAME conainer im pgsql Container genutzt werden soll, den pgsql container neu starten mit dem Befehl:"
   echo "dcm rerun pgsql"
+  echo "Der $ORACLE_CONTAINER_NAME Container wird automatisch in den pgsql Container gelinkt."
 }
 
 remove_oracle_container() {

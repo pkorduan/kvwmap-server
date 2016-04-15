@@ -174,6 +174,8 @@ fail_unless_root() {
 
 load_cargo() {
   #echo "Load cargo source code."
+  echo "Load Container Configurations in $CARGOPATH."
+  echo "Consider that they will loaded in the alphanumeric order of the symbolic links in $CARGOPATH."
   dcmfiles=($(find -L $CARGOPATH -name dcm))
   for dcmfile in ${dcmfiles[@]}
   do
