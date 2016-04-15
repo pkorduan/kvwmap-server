@@ -528,7 +528,7 @@ set_cargo_web_links() {
 set_cargo_pgsql_links() {
   for cargo in "${CARGOS[@]}"
   do :
-    set_${cargo}_web_link
+    set_${cargo}_pgsql_link
   done
 }
 
