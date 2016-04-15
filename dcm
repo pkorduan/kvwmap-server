@@ -488,7 +488,7 @@ run_pgsql_container() {
     -p 5432:5432 \
     -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
     --restart=always \
-    -d mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
+    -d pkorduan/postgis:${POSTGRESQL_IMAGE_VERSION}
 }
 
 run_web_container() {
