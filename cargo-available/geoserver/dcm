@@ -85,9 +85,9 @@ run_geoserver_container() {
 #    -d $GEOSERVER_IMAGE
 }
 
-set_geoserver_link() {
+set_geoserver_web_link() {
   echo "Setzte geoserver link zum Starten des web containers: --link geoserver:geoserver"
-  CARGO_LINKS=${CARGO_LINKS}" --link geoserver:geoserver"
+  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link geoserver:geoserver"
 }
 
 show_status() {

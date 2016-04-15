@@ -17,7 +17,8 @@ WWW_ROOT="${DOCKER_ROOT}/www"
 DB_ROOT="${DOCKER_ROOT}/db"
 CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
-CARGO_LINKS=
+CARGO_WEB_LINKS=
+CARGO_PGSQL_LINKS=
 
 if [ "$(id -u)" == '0' ]; then
   IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
@@ -462,9 +463,12 @@ run_mysql_container() {
 }
 
 run_pgsql_container() {
+  # link also running cargo containers
+  set_cargo_pgsql_links
   read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
   docker run --name pgsql-server \
     -h ${SERVER_NAME}_pgsql-container \
+    $CARGO_PGSQL_LINKS \
     --volumes-from wwwdata \
     -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
     -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
@@ -478,14 +482,14 @@ run_pgsql_container() {
 
 run_web_container() {
   # link also running cargo containers
-  set_cargo_links
+  set_cargo_web_links
   read -s -p "Enter password for kvwmap user. It is used as initial password to grant php access to the mysql and postgres databases of kvwmap, to phpMyAdmin db web client and to the Administrator-Stelle of the web application kvwmap itself. Passwords can be canged later when the container is running.: " KVWMAP_INIT_PASSWORD
   docker run --name web \
       -h ${SERVER_NAME}_web-container \
       --link mysql-server:mysql \
       --link pgsql-server:pgsql \
       --link gdal:gdal \
-      $CARGO_LINKS \
+      $CARGO_WEB_LINKS \
       -p 80:80 \
       -p 443:443 \
       -e OS_USER=$OS_USER \
@@ -508,10 +512,17 @@ run_web_container() {
       -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
 }
 
-set_cargo_links() {
+set_cargo_web_links() {
   for cargo in "${CARGOS[@]}"
   do :
-    set_${cargo}_link
+    set_${cargo}_web_link
+  done
+}
+
+set_cargo_pgsql_links() {
+  for cargo in "${CARGOS[@]}"
+  do :
+    set_${cargo}_web_link
   done
 }
 
