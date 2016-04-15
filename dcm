@@ -433,10 +433,14 @@ run_all_container() {
   echo "Erzeuge und Starte alle Container ..."
   create_www_data_volume
   run_mysql_container
-  if type -t run_oracle_container | grep -q "^function$" ; then run_oracle_container fi
+  if type -t run_oracle_container | grep -q "^function$" ; then
+    run_oracle_container
+  fi
   run_pgsql_container
   run_gdal_container
-  if type -t run_geoserver_container | grep -q "^function$" ; then run_geoserver_container fi
+  if [ type -t run_geoserver_container | grep -q "^function$" ] ; then
+    run_geoserver_container
+  fi
   run_web_container
 }
 
@@ -529,7 +533,9 @@ set_cargo_web_links() {
 set_cargo_pgsql_links() {
   for cargo in "${CARGOS[@]}"
   do :
-    if type -t set_${cargo}_pgsql_link | grep -q "^function$" ; then set_${cargo}_pgsql_link fi
+    if type -t set_${cargo}_pgsql_link | grep -q "^function$" ; then
+      set_${cargo}_pgsql_link
+    fi
   done
 }
 
@@ -599,8 +605,7 @@ stop_all_container() {
 }
 
 stop_gdal_container() {
-  if [ "$(docker ps -a -q -f name=gdal -f status=running)" ]
-  then
+  if [ "$(docker ps -a -q -f name=gdal -f status=running)" ] ; then
     echo "Stoppe Container. Bitte warten ..."
     docker stop gdal
   else
@@ -609,8 +614,7 @@ stop_gdal_container() {
 }
 
 stop_mysql_container() {
-  if [ "$(docker ps -a -q -f name=mysql-server -f status=running)" ]
-  then
+  if [ "$(docker ps -a -q -f name=mysql-server -f status=running)" ] ; then
     echo "Stoppe Container. Bitte warten ..."
     docker stop mysql-server
   else
@@ -619,8 +623,7 @@ stop_mysql_container() {
 }
 
 stop_pgsql_container() {
-  if [ "$(docker ps -a -q -f name=pgsql-server -f status=running)" ]
-  then
+  if [ "$(docker ps -a -q -f name=pgsql-server -f status=running)" ] ; then
     echo "Stoppe Container. Bitte warten ..."
     docker stop pgsql-server
   else
@@ -629,8 +632,7 @@ stop_pgsql_container() {
 }
 
 stop_web_container() {
-  if [ "$(docker ps -a -q -f name=web -f status=running)" ]
-  then
+  if [ "$(docker ps -a -q -f name=web -f status=running)" ] ; then
     echo "Stoppe Container. Bitte warten ..."
     docker stop web
   else

@@ -70,6 +70,11 @@ remove_geoserver_image() {
   docker rmi $GEOSERVER_IMAGE
 }
 
+#    -v /home/gisadmin/geoserver_data:/opt/geoserver/data_dir \
+  #    -p 443:443 \
+#    --volumes-from wwwdata \
+#    --restart=always \
+#    -d $GEOSERVER_IMAGE
 run_geoserver_container() {
   echo "Erzeuge und starte den geoserver Container ..."
   docker run --name geoserver \
@@ -78,11 +83,6 @@ run_geoserver_container() {
     --link pgsql-server:pgsql \
     -p 8080:8080 \
     -d $GEOSERVER_IMAGE
-#    -v /home/gisadmin/geoserver_data:/opt/geoserver/data_dir \
-  #    -p 443:443 \
-#    --volumes-from wwwdata \
-#    --restart=always \
-#    -d $GEOSERVER_IMAGE
 }
 
 set_geoserver_web_link() {
@@ -100,8 +100,7 @@ start_geoserver_container() {
 }
 
 stop_geoserver_container() {
-  if [ "$(docker ps -a -q -f name=geoserver -f status=running)" ]
-  then
+  if [ "$(docker ps -a -q -f name=geoserver -f status=running)" ] ; then
     echo "Stoppe Container. Bitte warten ..."
     docker stop geoserver
   else

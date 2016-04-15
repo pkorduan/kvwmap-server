@@ -1,11 +1,3 @@
-run_oracle_container() {
-  docker run --name oracle \
-    --shm-size=2g \
-    -p 1521:1521 \
-    -p 8081:8081 \
-    -d alexeiled/docker-oracle-xe-11g
-}
-
 #!/bin/bash
 #echo "Load variables in dcm geoserver"
 CARGOS+=("oracle")
@@ -59,7 +51,9 @@ run_oracle_container() {
   echo "Erzeuge und starte den $ORACLE_CONTAINER_NAME Container ..."
   docker run --name $ORACLE_CONTAINER_NAME \
     -h ${SERVER_NAME}_$ORACLE_CONTAINER_NAME-container \
+    --shm-size=2g \
     -v $ORACLE_DATA_DIR:/opt/oracle/data_dir \
+    -p 1521:1521
     -p 8081:8081 \
     -d $ORACLE_IMAGE
 }
@@ -84,8 +78,7 @@ start_oracle_container() {
 }
 
 stop_oracle_container() {
-  if [ "$(docker ps -a -q -f name=$ORACLE_CONTAINER_NAME -f status=running)" ]
-  then
+  if [ "$(docker ps -a -q -f name=$ORACLE_CONTAINER_NAME -f status=running)" ] ; then
     echo "Stoppe Container. Bitte warten ..."
     docker stop $ORACLE_CONTAINER_NAME
   else
