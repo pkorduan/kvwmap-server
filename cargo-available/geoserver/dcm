@@ -90,10 +90,6 @@ set_geoserver_web_link() {
   CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link geoserver:geoserver"
 }
 
-set_geoserver_pgsql_link() {
-  # do nothing here
-}
-
 show_status() {
   echo "Status of container $COINTAINER_NAME"
 }

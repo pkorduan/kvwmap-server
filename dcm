@@ -529,7 +529,7 @@ set_cargo_web_links() {
 set_cargo_pgsql_links() {
   for cargo in "${CARGOS[@]}"
   do :
-    set_${cargo}_pgsql_link
+    if type -t set_${cargo}_pgsql_link | grep -q "^function$" ; then set_${cargo}_pgsql_link fi
   done
 }
 
