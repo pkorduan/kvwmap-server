@@ -438,7 +438,7 @@ run_all_container() {
   fi
   run_pgsql_container
   run_gdal_container
-  if [ type -t run_geoserver_container | grep -q "^function$" ] ; then
+  if type -t run_geoserver_container | grep -q "^function$" ; then
     run_geoserver_container
   fi
   run_web_container
