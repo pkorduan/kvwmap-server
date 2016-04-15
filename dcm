@@ -119,6 +119,7 @@ Verzeichnisse und lokale Dateien für den Betrieb von Containern auf der Basis d
   echo "$0 pgsql status"
   echo ""
   echo "Je nach dem welche Erweiterungen in cargo-enabeld eingestellt sind gibt es weitere Befehle. Folgende sind derzeit aktiviert:"
+  usage_cargos
 }
 
 usage_cargos() {
