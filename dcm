@@ -177,6 +177,9 @@ load_cargo() {
   echo "Load Container Configurations in $CARGOPATH."
   echo "Consider that they will loaded in the alphanumeric order of the symbolic links in $CARGOPATH."
   dcmfiles=($(find -L $CARGOPATH -name dcm))
+
+  dcmfile=($(printf '%s\n' "${dcmfiles[@]}"|sort))
+
   for dcmfile in ${dcmfiles[@]}
   do
     echo "Load dcmfile: ${CARGOPATH}/${dcmfile}"
