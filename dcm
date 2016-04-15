@@ -178,7 +178,7 @@ load_cargo() {
   echo "Consider that they will loaded in the alphanumeric order of the symbolic links in $CARGOPATH."
   dcmfiles=($(find -L $CARGOPATH -name dcm))
 
-  dcmfile=($(printf '%s\n' "${dcmfiles[@]}"|sort))
+  dcmfiles=($(echo "${dcmfiles[@]}" | sed 's/ /\n/g' | sort))
 
   for dcmfile in ${dcmfiles[@]}
   do
