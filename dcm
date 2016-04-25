@@ -182,7 +182,7 @@ load_cargo() {
 
   for dcmfile in ${dcmfiles[@]}
   do
-    echo "Load dcmfile: ${CARGOPATH}/${dcmfile}"
+    echo "Load dcmfile: ${dcmfile}"
     source $dcmfile
   done
   #echo "CARGOS: "
