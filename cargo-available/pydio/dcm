@@ -61,7 +61,7 @@ remove_pydio_container() {
 run_pydio_container() {
   echo "Erzeuge und starte den pydio Container ..."
   docker run --name pydio \
-    -h ${SERVER_NAME}_pydio-container \
+    -h ${SERVER_NAME}-pydio-container \
     -p 9080:80 \
     -p 9443:443 \
     -v $USER_DIR/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \

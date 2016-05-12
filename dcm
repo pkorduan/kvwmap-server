@@ -454,7 +454,7 @@ run_cargo_containers() {
 run_gdal_container() {
   echo "Erzeuge und Starte den gdal Container ..."
   docker run --name gdal \
-    -h ${SERVER_NAME}_gdal-container \
+    -h ${SERVER_NAME}-gdal-container \
     --volumes-from wwwdata \
     --link pgsql-server:pgsql \
     --restart=always \
@@ -465,7 +465,7 @@ run_gdal_container() {
 run_mysql_container() {
   read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
   docker run --name mysql-server \
-    -h ${SERVER_NAME}_mysql-container \
+    -h ${SERVER_NAME}-mysql-container \
     -v $USER_DIR/etc/mysql:/etc/mysql \
     -v $DB_ROOT/mysql:/var/lib/mysql \
     -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
@@ -478,7 +478,7 @@ run_pgsql_container() {
   set_cargo_pgsql_links
   read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
   docker run --name pgsql-server \
-    -h ${SERVER_NAME}_pgsql-container \
+    -h ${SERVER_NAME}-pgsql-container \
     $CARGO_PGSQL_LINKS \
     --volumes-from wwwdata \
     -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
@@ -496,7 +496,7 @@ run_web_container() {
   set_cargo_web_links
   read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
   docker run --name web \
-      -h ${SERVER_NAME}_web-container \
+      -h ${SERVER_NAME}-web-container \
       --link mysql-server:mysql \
       --link pgsql-server:pgsql \
       --link gdal:gdal \

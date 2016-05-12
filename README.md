@@ -119,7 +119,7 @@ To update the docker Engine run the following command on your host system:
 ```
 $ curl -sSL https://get.docker.com/ | sh
 ```
-You will see the new version of docker client and server after installing with this script. To find the current version of docker engine and client you can allways use the command:
+You will see the new version of docker client and server after installing with this script. To find the current version of docker engine and client you can always use the command:
 ```
 $ docker version
 ```
