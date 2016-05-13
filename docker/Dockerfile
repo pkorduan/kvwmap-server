@@ -68,7 +68,8 @@ RUN unzip -q phpmyadmin.zip && \
     mkdir -p /srv/www/ && \
     mv `ls` /srv/www/phpmyadmin
 
-RUN useradd -ms /bin/bash -u 17000 ${OS_USER} && \
+RUN groupadd -g 1700 ${OS_USER} && \
+  useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
   usermod -G ${OS_USER} www-data && \
   chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin && \
   echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git

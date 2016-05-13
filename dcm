@@ -244,6 +244,8 @@ install_kvwmap_images() {
   Erzeuge user: ${OS_USER} ..."
   # create user for web gis anwendung if not exists
   $OS_USER_EXISTS || adduser $OS_USER
+  usermod -u 17000 $OS_USER
+  groupmod -g 1700 $OS_USER
   
   echo "
   Setze bash Einstellungen für user: ${OS_USER} ..."
@@ -356,7 +358,7 @@ install_kvwmap_images() {
   
   echo "
   Pull PostgreSQL image mit PostGIS von docker hup ..."
-  docker pull mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
+  docker pull pkorduan/postgis:${POSTGRESQL_IMAGE_VERSION}
 
   echo "
   Pull kvwmap-server image mit Apache, PHP, MapServer etc. von docker hup ..."
