@@ -307,6 +307,7 @@ install_kvwmap_images() {
   cp -R $USER_DIR/kvwmap-server/etc/mysql $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/php5 $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/phpmyadmin $USER_DIR/etc/
 
   echo "
   Setze Servername für Apache default Konfiguration ..."
@@ -372,7 +373,7 @@ install_kvwmap_images() {
   echo "
   Nächste Schritte zum installieren von kvwmap:"
   echo "    $ dcm run all"
-  echo "    Browser öffnen mit der Adresse: http://#{IP_EXTERN}/kvwmap/install.php"
+  echo "    Browser öffnen mit der Adresse: http://${IP_EXTERN}/kvwmap/install.php"
 }
 
 remove_all_container() {
