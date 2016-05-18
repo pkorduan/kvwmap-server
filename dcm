@@ -175,7 +175,7 @@ fail_unless_root() {
 load_cargo() {
   #echo "Load cargo source code."
   echo "Load Container Configurations in $CARGOPATH."
-  echo "Consider that they will loaded in the alphanumeric order of the symbolic links in $CARGOPATH."
+  # Consider that they will loaded in the alphanumeric order of the symbolic links in $CARGOPATH.
   dcmfiles=($(find -L $CARGOPATH -name dcm))
 
   dcmfiles=($(echo "${dcmfiles[@]}" | sed 's/ /\n/g' | sort))
@@ -973,8 +973,9 @@ case "$1" in
         run_web_container
         docker ps
       ;;
-      *)
-        echo "Gib nach rerun einen der folgenden Parameter ein: all oder web."
+      * )
+        core_sub_cases="all, gdal, pydio, web"
+        call_cargo_cases $1 $2
       ;;
     esac
   ;;

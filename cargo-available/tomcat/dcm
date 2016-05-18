@@ -1,0 +1,290 @@
+#!/bin/bash
+#echo "Load variables in dcm tomcat"
+CARGOS+=("tomcat")
+tomcat_enabled=true
+tomcat_IMAGE="tomcat:8-jre8"
+tomcat_CONTAINER_NAME="tomcat"
+tomcat_DATA_DIR=$WWW_ROOT/data/tomcat
+
+usage_tomcat() {
+  echo "install tomcat  Installiert ein tomcat Image."
+  echo "rerun tomcat    Stoppt, löscht, erzeugt und startet nur den Container tomcat."
+  echo "run tomcat      Erzeugt und startet nur den Container tomcat."
+  echo "start tomcat    Startet nur den Container tomcat."
+  echo "status tomcat   Zeigt den aktuellen Status des Container tomcat an."
+  echo "stop tomcat     Startet nur den Container tomcat."
+  echo "uninsall tomcat Deinstalliert das tomcat image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+}
+
+install_tomcat() {
+  echo "Installiere tomcat ..."
+  
+  mkdir -p $tomcat_DATA_DIR
+
+  echo "
+Kopiere Apache Konfigurationsdatei für tomcat."
+  echo "cp $USER_DIR/kvwmap-server/tomcat/etc/apache2/sites-available/tomcat.conf => $USER_DIR/etc/apache2/sites-available/tomcat.conf"
+  cp $USER_DIR/kvwmap-server/tomcat/etc/apache2/sites-available/tomcat.conf $USER_DIR/etc/apache2/sites-available/tomcat.conf
+  chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-available/tomcat.conf
+
+  echo "
+Enable tomcat Web-Site in Apache Konfiguration."
+  echo "ln -s ../sites-available/tomcat.conf $USER_DIR/etc/apache2/sites-enabled/tomcat.conf"
+  ln -s ../sites-available/tomcat.conf $USER_DIR/etc/apache2/sites-enabled/tomcat.conf
+  chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-enabled/tomcat.conf 
+
+  echo "
+Kopiere Konfigurationsdatei für volumes"
+  echo "cp $USER_DIR/kvwmap-server/tomcat/etc/tomcat/volumes => $USER_DIR/etc/tomcat/volumes"
+  cp $USER_DIR/kvwmap-server/tomcat/etc/tomcat/volumes $USER_DIR/etc/tomcat/volumes
+  chown $OS_USER.$OS_USER $USER_DIR/etc/tomcat/volumes
+
+  echo "
+Kopiere tomcat Datenverzeichnis nach $tomcat_DATA_DIR"
+  echo "cp -R $USER_DIR/kvwmap-server/tomcat/data $tomcat_DATA_DIR"
+  cp -R $USER_DIR/kvwmap-server/tomcat/data/* $tomcat_DATA_DIR
+  chown -R $OS_USER.$OS_USER $tomcat_DATA_DIR
+  chmod -R 775 $tomcat_DATA_DIR
+  
+  echo "
+  Ziehe Image $tomcat_IMAGE von dockerhub"
+  docker pull $tomcat_IMAGE
+
+  echo "Der tomcat container kann nun gestartet werden mit dem Befehl:"
+  echo "dcm run tomcat"
+  echo "Anschließend den web container neu starten mit dem Befehl:"
+  echo "dcm rerun web"
+  echo "Dann kann auf die tomcat GUI mit folgender URL zugegriffen werden:"
+  echo "http://meineserverip/tomcat/web/"
+  echo "Die initialen Zugangsdaten zur Admin GUI von tomcat sind User: admin und Password: tomcat"
+  echo "Um die Dienste von tomcat nutzen zu können bitte in admin GUI unter Einstellungen => Global bei Proxy URL folgendes eintragen:"
+  echo "http://meineserverip/tomcat"
+}
+
+remove_tomcat_container() {
+  stop_tomcat_container
+
+  if [ "$(docker ps -a -q -f name=tomcat -f status=exited)" ] ; then
+    echo "Lösche Container ..."
+    docker rm tomcat
+  else
+    echo "Container tomcat kann nicht gelöscht werden, weil er nicht existiert."
+  fi
+}
+
+remove_tomcat_image() {
+  echo "Lösche tomcat Image: $tomcat_IMAGE"
+  docker rmi $tomcat_IMAGE
+}
+
+#    -v /home/gisadmin/tomcat_data:/opt/tomcat/data_dir \
+  #    -p 443:443 \
+#    --volumes-from wwwdata \
+#    --restart=always \
+#    -d $tomcat_IMAGE
+run_tomcat_container() {
+  source $USER_DIR/etc/tomcat/volumes
+  echo "Erzeuge und starte den tomcat Container"
+  #echo "mit volumes: ${webapp_volumes}"
+  docker run --name tomcat \
+    -h ${SERVER_NAME}-tomcat-container \
+    $webapp_volumes \
+    -p 8085:8080 \
+    -d $tomcat_IMAGE
+}
+
+set_tomcat_web_link() {
+  echo "Setzte tomcat link zum Starten des web containers: --link tomcat:tomcat"
+  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link tomcat:tomcat"
+}
+
+show_status() {
+  echo "Status of container $COINTAINER_NAME"
+}
+
+start_tomcat_container() {
+  echo "Starte tomcat Container. Bitte warten ..."
+  docker start tomcat
+}
+
+stop_tomcat_container() {
+  if [ "$(docker ps -a -q -f name=tomcat -f status=running)" ] ; then
+    echo "Stoppe Container. Bitte warten ..."
+    docker stop tomcat
+  else
+    echo "Container tomcat kann nicht gestoppt werden, weil er nicht läuft."
+  fi
+}
+
+uninstall_tomcat() {
+  remove_tomcat_container
+  
+  echo "Dieser Befehl deinstalliert das image $tomcat_IMAGE und auf Nachfrage alle dazugehörigen auf diesem Host gespeicherten Daten, die tomcat genutzt hat."
+  read -p "Wollen Sie das Image wirklich deinstallieren? (j/n)? " answer
+  case ${answer:0:1} in
+    j|J )
+      docker rmi $tomcat_IMAGE
+      echo "Lösche tomcat Datenverzeichnis $tomcat_DATA_DIR"
+      ls -l $tomcat_DATA_DIR
+      rm -RI $tomcat_DATA_DIR
+      
+      echo "Lösche tomcat Konfiguration in Apache2."
+      rm $USER_DIR/etc/apache2/sites-available/tomcat.conf
+      rm $USER_DIR/etc/apache2/sites-enabled/tomcat.conf
+
+      echo "So jetzt ist tomcat weg."
+      echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
+      echo "$ dcm install tomcat"
+      echo "$ dcm remove web"
+      echo "$ dcm run tomcat"
+      echo "$ dcm run web"
+      echo "Die Anwendung ist im Browser zu erreichen unter:"
+      echo "http://meineserverip/tomcat/web/"
+      echo "Die initialen Zugangsdaten zur Admin GUI von tomcat sind User: admin und Password: tomcat"
+    ;;
+    * )
+      echo "OK, nix passiert!"
+    ;;
+  esac
+}
+
+cases_tomcat() {
+  case_found=true
+  case "$1" in
+    console)
+      case $2 in
+        tomcat)
+          echo "Öffne ein Terminal im Container in dem der tomcat läuft ..."
+          docker exec -it tomcat /bin/bash
+        ;;
+        *)
+          debug "No subcase $2 in tomcat"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    install)
+      case $2 in
+        tomcat)
+          install_tomcat
+        ;;
+        *)
+          debug "No subcase $2 in tomcat"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    ip)
+      case $2 in
+        tomcat)
+          show_container_ip $2
+        ;;
+        * )
+          debug "No subcase $2 in tomcat"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    uninstall)
+      debug "Case uninstall in tomcat"
+      case $2 in
+        tomcat)
+          #echo "Case tomcat"
+          uninstall_tomcat
+        ;;
+        *)
+          debug "No subcase $2 in tomcat"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    remove)
+      debug "Case remove in tomcat"
+      case $2 in
+        tomcat)
+          remove_tomcat_container
+        ;;
+        * )
+          debug "No subcase $2 in tomcat"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    rerun)
+      debug "Case rerun in tomcat"
+      case $2 in
+        tomcat)
+          remove_tomcat_container
+          run_tomcat_container
+          docker ps
+        ;;
+        *)
+          debug "No subcase $2 in tomcat"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    run)
+      debug "Case run in tomcat"
+      case $2 in
+        tomcat)
+          run_tomcat_container
+        ;;
+        *)
+          debug "No subcase $2 in tomcat"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    start)
+      debug "Case start in tomcat"
+      case $2 in
+        tomcat)
+          start_tomcat_container
+        ;;
+        *)
+          debug "No subcase $2 in tomcat"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    status)
+      case $2 in
+        tomcat)
+          show_container_status "tomcat"
+        ;;
+        *)
+          debug "No subcase $2 in tomcat"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    stop)
+      debug "Case stop in tomcat"
+      case $2 in
+        tomcat)
+          stop_tomcat_container
+        ;;
+        *)
+          debug "No subcase $2 in tomcat"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    *)
+      #echo "No case found in dcm tomcat"
+      case_found=false
+    ;;
+  esac
+  debug "Case found after cases tomcat: $case_found"
+}
