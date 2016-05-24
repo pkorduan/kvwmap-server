@@ -376,9 +376,16 @@ install_kvwmap_images() {
   echo "    Browser öffnen mit der Adresse: http://${IP_EXTERN}/kvwmap/install.php"
 }
 
+is_stopped()
+  if [ "$(docker ps -a -q -f name=$1 -f status=exited)" ] ; then
+    echo 'true'
+  else
+    echo 'false'
+  fi
+}
+
 is_running() {
-  running=$(docker inspect --format="{{ .State.Running }}" $1 2> /dev/null);
-  if [ "$running" == "true" ] ; then
+  if [ "$(docker inspect --format="{{ .State.Running }}" $1 2> /dev/null)" == "true" ] ; then
     echo 'true';
   else
     echo 'false';
@@ -606,11 +613,14 @@ start_all_container() {
 start_container() {
   container=$1
   if [ ! -z $container ] ; then
-    RUNNING=$(is_running $container)
-    if [ "$RUNNING" == "true" ]; then
+    if [ "$(is_running $container)" == "true" ]; then
       echo "Container $container läuft schon.";
     else
-      docker start $container
+      if [ "$(is_stopped $container)" == "false" ]; then
+        run_$container_container
+      else
+        docker start $container
+      fi
     fi
   fi
 }
