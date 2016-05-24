@@ -45,6 +45,7 @@ install_pydio() {
 }
 
 remove_pydio_container() {
+  stop_pydio_container
   echo "Lösche pydio Container ..."
   docker rm pydio
 }
@@ -89,8 +90,8 @@ start_pydio_container() {
 }
 
 stop_pydio_container() {
-  echo "Stoppe pydio Container. Bitte warten ..."
-  docker stop pydio
+  $container='pydio'
+  stop_container
 }
 
 uninstall_pydio() {

@@ -376,6 +376,15 @@ install_kvwmap_images() {
   echo "    Browser öffnen mit der Adresse: http://${IP_EXTERN}/kvwmap/install.php"
 }
 
+is_running() {
+  running=$(docker inspect --format="{{ .State.Running }}" $1 2> /dev/null);
+  if [ "$running" == "true" ] ; then
+    echo 'true';
+  else
+    echo 'false';
+  fi;
+}
+
 remove_all_container() {
   echo "Lösche alle Container ..."
   docker rm $(docker ps -a -q)
@@ -610,6 +619,17 @@ stop_all_container() {
   echo "Alle Container gestopped."
 }
 
+stop_container() {
+  container=$1
+  if [ ! -z $container ] ; then
+    RUNNING=is_running $container
+    if [ "$RUNNING" == "true" ]; then
+      echo "Stoppe Container $container. Bitte warten ..."
+      docker stop $container
+    fi
+  fi
+}
+
 stop_gdal_container() {
   if [ "$(docker ps -a -q -f name=gdal -f status=running)" ] ; then
     echo "Stoppe Container. Bitte warten ..."
@@ -638,12 +658,7 @@ stop_pgsql_container() {
 }
 
 stop_web_container() {
-  if [ "$(docker ps -a -q -f name=web -f status=running)" ] ; then
-    echo "Stoppe Container. Bitte warten ..."
-    docker stop web
-  else
-    echo "Container web kann nicht gestoppt werden, weil er nicht läuft."
-  fi
+  stop_container web
 }
 
 uninstall_cargos() {
@@ -928,7 +943,7 @@ case "$1" in
   remove)
     case $2 in
       all)
-        echo "Entfernt alle Container"
+        stop_all_container
         remove_all_container
       ;;
       gdal)
