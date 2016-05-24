@@ -62,8 +62,8 @@ run_pydio_container() {
   echo "Erzeuge und starte den pydio Container ..."
   docker run --name pydio \
     -h ${SERVER_NAME}_pydio-container \
-    -p 9080:80 \
-    -p 9443:443 \
+    -p 8080:80 \
+    -p 8443:443 \
     -v $USER_DIR/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \
     -v $WWW_ROOT/apps/pydio/files/:/pydio-data/files/ \
     -v $WWW_ROOT/apps/pydio/personal/:/pydio-data/personal/ \
@@ -72,6 +72,11 @@ run_pydio_container() {
     -v $WWW_ROOT/apps/pydio/de_plugins_messages.ser:/pydio-data/cache/i18n/de_plugins_messages.ser \
     --restart=always \
     -d $IMAGE_pydio
+}
+
+set_pydio_web_link() {
+  echo "Setzte pydio link zum Starten des web containers: --link geoserver:geoserver"
+  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link pydio:pydio"
 }
 
 show_status() {
