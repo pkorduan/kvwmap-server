@@ -174,8 +174,8 @@ fail_unless_root() {
 
 load_cargo() {
   #echo "Load cargo source code."
-  echo "Load Container Configurations in $CARGOPATH."
-  echo "Consider that they will loaded in the alphanumeric order of the symbolic links in $CARGOPATH."
+  #echo "Load Container Configurations in $CARGOPATH."
+  #echo "Consider that they will loaded in the alphanumeric order of the symbolic links in $CARGOPATH."
   dcmfiles=($(find -L $CARGOPATH -name dcm))
 
   dcmfiles=($(echo "${dcmfiles[@]}" | sed 's/ /\n/g' | sort))
@@ -601,6 +601,18 @@ start_all_container() {
   start_gdal_container
   start_web_container
   docker ps
+}
+
+start_container() {
+  container=$1
+  if [ ! -z $container ] ; then
+    RUNNING=$(is_running $container)
+    if [ "$RUNNING" == "true" ]; then
+      echo "Container $container läuft schon.";
+    else
+      docker start $container
+    fi
+  fi
 }
 
 start_gdal_container() {
@@ -1085,7 +1097,7 @@ case "$1" in
         docker start pgsql-server
       ;;
       web)
-        start_web_container
+        start_container $2
       ;;
       * )
         core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web, wwwdata"
