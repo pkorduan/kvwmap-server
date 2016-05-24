@@ -376,7 +376,7 @@ install_kvwmap_images() {
   echo "    Browser öffnen mit der Adresse: http://${IP_EXTERN}/kvwmap/install.php"
 }
 
-is_stopped()
+is_stopped() {
   if [ "$(docker ps -a -q -f name=$1 -f status=exited)" ] ; then
     echo 'true'
   else
