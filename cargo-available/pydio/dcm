@@ -75,7 +75,7 @@ run_pydio_container() {
 }
 
 set_pydio_web_link() {
-  echo "Setzte pydio link zum Starten des web containers: --link geoserver:geoserver"
+  echo "Setzte pydio link zum Starten des web containers: --link pydio:pydio"
   CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link pydio:pydio"
 }
 
