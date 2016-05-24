@@ -622,7 +622,7 @@ stop_all_container() {
 stop_container() {
   container=$1
   if [ ! -z $container ] ; then
-    RUNNING=is_running $container
+    RUNNING=$(is_running $container)
     if [ "$RUNNING" == "true" ]; then
       echo "Stoppe Container $container. Bitte warten ..."
       docker stop $container
