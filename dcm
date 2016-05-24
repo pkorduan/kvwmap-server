@@ -244,6 +244,8 @@ install_kvwmap_images() {
   Erzeuge user: ${OS_USER} ..."
   # create user for web gis anwendung if not exists
   $OS_USER_EXISTS || adduser $OS_USER
+  usermod -u 17000 $OS_USER
+  groupmod -g 1700 $OS_USER
   
   echo "
   Setze bash Einstellungen für user: ${OS_USER} ..."
@@ -305,6 +307,7 @@ install_kvwmap_images() {
   cp -R $USER_DIR/kvwmap-server/etc/mysql $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/php5 $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/phpmyadmin $USER_DIR/etc/
 
   echo "
   Setze Servername für Apache default Konfiguration ..."
@@ -356,7 +359,7 @@ install_kvwmap_images() {
   
   echo "
   Pull PostgreSQL image mit PostGIS von docker hup ..."
-  docker pull mdillon/postgis:${POSTGRESQL_IMAGE_VERSION}
+  docker pull pkorduan/postgis:${POSTGRESQL_IMAGE_VERSION}
 
   echo "
   Pull kvwmap-server image mit Apache, PHP, MapServer etc. von docker hup ..."
@@ -370,7 +373,7 @@ install_kvwmap_images() {
   echo "
   Nächste Schritte zum installieren von kvwmap:"
   echo "    $ dcm run all"
-  echo "    Browser öffnen mit der Adresse: http://#{IP_EXTERN}/kvwmap/install.php"
+  echo "    Browser öffnen mit der Adresse: http://${IP_EXTERN}/kvwmap/install.php"
 }
 
 remove_all_container() {
@@ -454,7 +457,7 @@ run_cargo_containers() {
 run_gdal_container() {
   echo "Erzeuge und Starte den gdal Container ..."
   docker run --name gdal \
-    -h ${SERVER_NAME}_gdal-container \
+    -h ${SERVER_NAME}-gdal-container \
     --volumes-from wwwdata \
     --link pgsql-server:pgsql \
     --restart=always \
@@ -465,7 +468,7 @@ run_gdal_container() {
 run_mysql_container() {
   read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
   docker run --name mysql-server \
-    -h ${SERVER_NAME}_mysql-container \
+    -h ${SERVER_NAME}-mysql-container \
     -v $USER_DIR/etc/mysql:/etc/mysql \
     -v $DB_ROOT/mysql:/var/lib/mysql \
     -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
@@ -478,7 +481,7 @@ run_pgsql_container() {
   set_cargo_pgsql_links
   read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
   docker run --name pgsql-server \
-    -h ${SERVER_NAME}_pgsql-container \
+    -h ${SERVER_NAME}-pgsql-container \
     $CARGO_PGSQL_LINKS \
     --volumes-from wwwdata \
     -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
@@ -496,7 +499,7 @@ run_web_container() {
   set_cargo_web_links
   read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
   docker run --name web \
-      -h ${SERVER_NAME}_web-container \
+      -h ${SERVER_NAME}-web-container \
       --link mysql-server:mysql \
       --link pgsql-server:pgsql \
       --link gdal:gdal \

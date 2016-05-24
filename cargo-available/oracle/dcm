@@ -1,4 +1,4 @@
-#!/bin/bash
+${SERVER_NAME}-#!/bin/bash
 #echo "Load variables in dcm geoserver"
 CARGOS+=("oracle")
 oracle_enabled=true
@@ -50,7 +50,7 @@ remove_oracle_image() {
 run_oracle_container() {
   echo "Erzeuge und starte den $ORACLE_CONTAINER_NAME Container ..."
   docker run --name $ORACLE_CONTAINER_NAME \
-    -h ${SERVER_NAME}_$ORACLE_CONTAINER_NAME-container \
+    -h ${SERVER_NAME}-$ORACLE_CONTAINER_NAME-container \
     --shm-size=2g \
     -v $ORACLE_DATA_DIR:/opt/oracle/data_dir \
     -p 1521:1521 \
