@@ -381,7 +381,7 @@ is_stopped()
     echo 'true'
   else
     echo 'false'
-  fi
+  fi;
 }
 
 is_running() {
@@ -514,6 +514,7 @@ run_pgsql_container() {
 }
 
 run_web_container() {
+  echo "Run container web"
   # link also running cargo containers
   set_cargo_web_links
   read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
@@ -617,8 +618,9 @@ start_container() {
       echo "Container $container läuft schon.";
     else
       if [ "$(is_stopped $container)" == "false" ]; then
-        run_$container_container
+        run_${container}_container
       else
+        echo "Start Container ${container}"
         docker start $container
       fi
     fi
