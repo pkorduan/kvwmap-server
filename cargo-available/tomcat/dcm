@@ -2,7 +2,7 @@
 #echo "Load variables in dcm tomcat"
 CARGOS+=("tomcat")
 tomcat_enabled=true
-tomcat_IMAGE="tomcat:8-jre8"
+tomcat_IMAGE="startext/imageservice"
 tomcat_CONTAINER_NAME="tomcat"
 tomcat_DATA_DIR=$WWW_ROOT/data/tomcat
 
@@ -88,8 +88,10 @@ run_tomcat_container() {
   #echo "mit volumes: ${webapp_volumes}"
   docker run --name tomcat \
     -h ${SERVER_NAME}-tomcat-container \
-    $webapp_volumes \
-    -p 8085:8080 \
+    $tomcat_volumes \
+    $tomcat_env_vars \
+    -p 8888:8080 \
+    --restart=always \
     -d $tomcat_IMAGE
 }
 

@@ -564,14 +564,7 @@ show_container_status() {
     echo "CRITICAL - $CONTAINER is not running."
     return 2
   fi
- 
-  GHOST=$(docker inspect --format="{{ .State.Ghost }}" $CONTAINER)
- 
-  if [ "$GHOST" == "true" ]; then
-    echo "WARNING - $CONTAINER has been ghosted."
-    return 1
-  fi
- 
+
   STARTED=$(docker inspect --format="{{ .State.StartedAt }}" $CONTAINER)
   NETWORK=$(docker inspect --format="{{ .NetworkSettings.IPAddress }}" $CONTAINER)
  
