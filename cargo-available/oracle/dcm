@@ -1,4 +1,4 @@
-${SERVER_NAME}-#!/bin/bash
+#!/bin/bash
 #echo "Load variables in dcm geoserver"
 CARGOS+=("oracle")
 oracle_enabled=true

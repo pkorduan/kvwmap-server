@@ -45,6 +45,7 @@ install_pydio() {
 }
 
 remove_pydio_container() {
+  stop_pydio_container
   echo "Lösche pydio Container ..."
   docker rm pydio
 }
@@ -74,6 +75,11 @@ run_pydio_container() {
     -d $IMAGE_pydio
 }
 
+set_pydio_web_link() {
+  echo "Setzte pydio link zum Starten des web containers: --link pydio:pydio"
+  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link pydio:pydio"
+}
+
 show_status() {
   echo "Status of container $COINTAINER_NAME"
 }
@@ -84,8 +90,8 @@ start_pydio_container() {
 }
 
 stop_pydio_container() {
-  echo "Stoppe pydio Container. Bitte warten ..."
-  docker stop pydio
+  $container='pydio'
+  stop_container
 }
 
 uninstall_pydio() {

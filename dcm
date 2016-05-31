@@ -9,7 +9,8 @@ USER_DIR=/home/$OS_USER
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 MYSQL_IMAGE_VERSION=5.5
-POSTGRESQL_IMAGE_VERSION=9.4
+#POSTGRESQL_IMAGE_VERSION=9.4 with oracle client for oracle_fdw Based on mdillon/postgis:9.4 which comes with postgis 2.2
+POSTGRESQL_IMAGE_VERSION=9.4-2.1 # currently the default
 KVWMAP_IMAGE_VERSION=latest
 SERVER_NAME=`hostname`
 DOCKER_ROOT="/var/docker"
@@ -174,8 +175,9 @@ fail_unless_root() {
 
 load_cargo() {
   #echo "Load cargo source code."
-  echo "Load Container Configurations in $CARGOPATH."
-  # Consider that they will loaded in the alphanumeric order of the symbolic links in $CARGOPATH.
+  #echo "Load Container Configurations in $CARGOPATH."
+  #echo "Consider that they will loaded in the alphanumeric order of the symbolic links in $CARGOPATH."
+
   dcmfiles=($(find -L $CARGOPATH -name dcm))
 
   dcmfiles=($(echo "${dcmfiles[@]}" | sed 's/ /\n/g' | sort))
@@ -376,6 +378,22 @@ install_kvwmap_images() {
   echo "    Browser öffnen mit der Adresse: http://${IP_EXTERN}/kvwmap/install.php"
 }
 
+is_stopped() {
+  if [ "$(docker ps -a -q -f name=$1 -f status=exited)" ] ; then
+    echo 'true'
+  else
+    echo 'false'
+  fi;
+}
+
+is_running() {
+  if [ "$(docker inspect --format="{{ .State.Running }}" $1 2> /dev/null)" == "true" ] ; then
+    echo 'true';
+  else
+    echo 'false';
+  fi;
+}
+
 remove_all_container() {
   echo "Lösche alle Container ..."
   docker rm $(docker ps -a -q)
@@ -444,6 +462,9 @@ run_all_container() {
   if type -t run_geoserver_container | grep -q "^function$" ; then
     run_geoserver_container
   fi
+  if type -t run_pydio_container | grep -q "^function$" ; then
+    run_pydio_container
+  fi
   run_web_container
 }
 
@@ -495,6 +516,7 @@ run_pgsql_container() {
 }
 
 run_web_container() {
+  echo "Run container web"
   # link also running cargo containers
   set_cargo_web_links
   read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
@@ -584,6 +606,22 @@ start_all_container() {
   docker ps
 }
 
+start_container() {
+  container=$1
+  if [ ! -z $container ] ; then
+    if [ "$(is_running $container)" == "true" ]; then
+      echo "Container $container läuft schon.";
+    else
+      if [ "$(is_stopped $container)" == "false" ]; then
+        run_${container}_container
+      else
+        echo "Start Container ${container}"
+        docker start $container
+      fi
+    fi
+  fi
+}
+
 start_gdal_container() {
   echo "Starte gdal Container."
   docker start gdal
@@ -598,6 +636,17 @@ stop_all_container() {
   echo "Stoppe alle Container. Bitte warten ..."
   docker stop $(docker ps -a -q)
   echo "Alle Container gestopped."
+}
+
+stop_container() {
+  container=$1
+  if [ ! -z $container ] ; then
+    RUNNING=$(is_running $container)
+    if [ "$RUNNING" == "true" ]; then
+      echo "Stoppe Container $container. Bitte warten ..."
+      docker stop $container
+    fi
+  fi
 }
 
 stop_gdal_container() {
@@ -628,12 +677,7 @@ stop_pgsql_container() {
 }
 
 stop_web_container() {
-  if [ "$(docker ps -a -q -f name=web -f status=running)" ] ; then
-    echo "Stoppe Container. Bitte warten ..."
-    docker stop web
-  else
-    echo "Container web kann nicht gestoppt werden, weil er nicht läuft."
-  fi
+  stop_container web
 }
 
 uninstall_cargos() {
@@ -918,7 +962,7 @@ case "$1" in
   remove)
     case $2 in
       all)
-        echo "Entfernt alle Container"
+        stop_all_container
         remove_all_container
       ;;
       gdal)
@@ -1061,7 +1105,7 @@ case "$1" in
         docker start pgsql-server
       ;;
       web)
-        start_web_container
+        start_container $2
       ;;
       * )
         core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web, wwwdata"
