@@ -20,6 +20,8 @@ CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
 CARGO_WEB_LINKS=
 CARGO_PGSQL_LINKS=
+HTTP_PROXY_WEB=
+NO_PROXY_WEB=
 
 if [ "$(id -u)" == '0' ]; then
   IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
@@ -532,6 +534,8 @@ run_web_container() {
       -e IP_EXTERN=$IP_EXTERN \
       -e DOMAIN_EXTERN=$DOMAIN_EXTERN \
       -e KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD \
+      -e http_proxy=$HTTP_PROXY_WEB \
+      -e no_proxy=$NO_PROXY_WEB \
       --volumes-from wwwdata \
       -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
       -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
