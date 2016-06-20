@@ -20,24 +20,27 @@ install_tomcat() {
   echo "Installiere tomcat ..."
   
   mkdir -p $tomcat_DATA_DIR
+  chmod g+w $tomcat_DATA_DIR
 
   echo "
 Kopiere Apache Konfigurationsdatei für tomcat."
   echo "cp $USER_DIR/kvwmap-server/tomcat/etc/apache2/sites-available/tomcat.conf => $USER_DIR/etc/apache2/sites-available/tomcat.conf"
   cp $USER_DIR/kvwmap-server/tomcat/etc/apache2/sites-available/tomcat.conf $USER_DIR/etc/apache2/sites-available/tomcat.conf
   chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-available/tomcat.conf
-
+  chmod g+w $USER_DIR/etc/apache2/sites-available/tomcat.conf
+  
   echo "
 Enable tomcat Web-Site in Apache Konfiguration."
   echo "ln -s ../sites-available/tomcat.conf $USER_DIR/etc/apache2/sites-enabled/tomcat.conf"
   ln -s ../sites-available/tomcat.conf $USER_DIR/etc/apache2/sites-enabled/tomcat.conf
-  chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-enabled/tomcat.conf 
 
   echo "
 Kopiere Konfigurationsdatei für volumes"
   echo "cp $USER_DIR/kvwmap-server/tomcat/etc/tomcat/volumes => $USER_DIR/etc/tomcat/volumes"
+  mkdir -p $USER_DIR/etc/tomcat
   cp $USER_DIR/kvwmap-server/tomcat/etc/tomcat/volumes $USER_DIR/etc/tomcat/volumes
   chown $OS_USER.$OS_USER $USER_DIR/etc/tomcat/volumes
+  chmod g+w $USER_DIR/etc/tomcat/volumes
 
   echo "
 Kopiere tomcat Datenverzeichnis nach $tomcat_DATA_DIR"
@@ -131,8 +134,8 @@ uninstall_tomcat() {
       rm -RI $tomcat_DATA_DIR
       
       echo "Lösche tomcat Konfiguration in Apache2."
-      rm $USER_DIR/etc/apache2/sites-available/tomcat.conf
       rm $USER_DIR/etc/apache2/sites-enabled/tomcat.conf
+      rm $USER_DIR/etc/apache2/sites-available/tomcat.conf
 
       echo "So jetzt ist tomcat weg."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
