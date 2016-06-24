@@ -485,7 +485,7 @@ run_gdal_container() {
     --link pgsql-server:pgsql \
     --restart=always \
     -P \
-    -d pkorduan/gdal-sshd:latest
+    -d pkorduan/gdal-sshd:2.0.0
 }
 
 run_mysql_container() {
