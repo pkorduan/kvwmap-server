@@ -518,7 +518,8 @@ run_pgsql_container() {
 }
 
 run_web_container() {
-  echo "Run container web"
+  source $USER_DIR/etc/web/volumes
+  echo "Erzeuge und Starte container web"
   # link also running cargo containers
   set_cargo_web_links
   read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
@@ -530,22 +531,8 @@ run_web_container() {
       $CARGO_WEB_LINKS \
       -p 80:80 \
       -p 443:443 \
-      -e OS_USER=$OS_USER \
-      -e IP_EXTERN=$IP_EXTERN \
-      -e DOMAIN_EXTERN=$DOMAIN_EXTERN \
-      -e KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD \
-      -e http_proxy=$HTTP_PROXY_WEB \
-      -e no_proxy=$NO_PROXY_WEB \
-      --volumes-from wwwdata \
-      -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
-      -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
-      -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \
-      -v $USER_DIR/etc/php5/apache2/php.ini:/etc/php5/apache2/php.ini \
-      -v $USER_DIR/etc/php5/cli/php.ini:/etc/php5/cli/php.ini \
-      -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
-      -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
-      -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
-      -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
+      $web_env_vars \
+      $web_volumes \
       --add-host=$SERVER_NAME.d10643.imv.de:${IP_EXTERN} \
       --add-host=$SERVER_NAME:${IP_EXTERN} \
       --restart=always \
