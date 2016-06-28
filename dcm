@@ -20,6 +20,7 @@ CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
 CARGO_WEB_LINKS=
 CARGO_PGSQL_LINKS=
+HTTP_PROXY_WEB='http://download:Wi-5334'\!'@10.176.128.1:8080'
 
 if [ "$(id -u)" == '0' ]; then
   IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
@@ -492,6 +493,7 @@ run_mysql_container() {
     -h ${SERVER_NAME}-mysql-container \
     -v $USER_DIR/etc/mysql:/etc/mysql \
     -v $DB_ROOT/mysql:/var/lib/mysql \
+		-p 3306:3306 \
     -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
     --restart=always \
     -d mysql:${MYSQL_IMAGE_VERSION}
@@ -532,6 +534,8 @@ run_web_container() {
       -e IP_EXTERN=$IP_EXTERN \
       -e DOMAIN_EXTERN=$DOMAIN_EXTERN \
       -e KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD \
+			-e http_proxy=$HTTP_PROXY_WEB \
+			-e no_proxy=localhost,${IP_EXTERN} \
       --volumes-from wwwdata \
       -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
       -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
