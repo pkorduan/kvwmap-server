@@ -72,6 +72,7 @@ RUN groupadd -g 1700 ${OS_USER} && \
   useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
   usermod -G ${OS_USER} www-data && \
   chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin && \
+  chmod -R g+w /srv/www/phpmyadmin && \
   echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
 
 RUN mkdir -p $USER_DIR/.ssh && \

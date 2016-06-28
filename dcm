@@ -20,7 +20,8 @@ CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
 CARGO_WEB_LINKS=
 CARGO_PGSQL_LINKS=
-HTTP_PROXY_WEB='http://download:Wi-5334'\!'@10.176.128.1:8080'
+HTTP_PROXY_WEB=
+NO_PROXY_WEB=
 
 if [ "$(id -u)" == '0' ]; then
   IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
@@ -484,7 +485,7 @@ run_gdal_container() {
     --link pgsql-server:pgsql \
     --restart=always \
     -P \
-    -d pkorduan/gdal-sshd:latest
+    -d pkorduan/gdal-sshd:2.1.0
 }
 
 run_mysql_container() {
@@ -518,7 +519,8 @@ run_pgsql_container() {
 }
 
 run_web_container() {
-  echo "Run container web"
+  source $USER_DIR/etc/web/volumes
+  echo "Erzeuge und Starte container web"
   # link also running cargo containers
   set_cargo_web_links
   read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
@@ -530,22 +532,8 @@ run_web_container() {
       $CARGO_WEB_LINKS \
       -p 80:80 \
       -p 443:443 \
-      -e OS_USER=$OS_USER \
-      -e IP_EXTERN=$IP_EXTERN \
-      -e DOMAIN_EXTERN=$DOMAIN_EXTERN \
-      -e KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD \
-			-e http_proxy=$HTTP_PROXY_WEB \
-			-e no_proxy=localhost,${IP_EXTERN} \
-      --volumes-from wwwdata \
-      -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
-      -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
-      -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \
-      -v $USER_DIR/etc/php5/apache2/php.ini:/etc/php5/apache2/php.ini \
-      -v $USER_DIR/etc/php5/cli/php.ini:/etc/php5/cli/php.ini \
-      -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
-      -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
-      -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
-      -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
+      $web_env_vars \
+      $web_volumes \
       --add-host=$SERVER_NAME.d10643.imv.de:${IP_EXTERN} \
       --add-host=$SERVER_NAME:${IP_EXTERN} \
       --restart=always \
@@ -715,8 +703,8 @@ uninstall_kvwmap() {
       echo "So jetzt ist alles weg."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
       echo "$ git clone https://github.com/pkorduan/kvwmap-server.git"
-      echo "$ kvwmap-server/kvw install kvwmap"
-      echo "$ kvw run all"
+      echo "$ kvwmap-server/dcm install kvwmap"
+      echo "$ dcm run all"
       echo "und im Browser:"
       echo "http://meineserverip/kvwmap/install.php"
     ;;
