@@ -12,6 +12,7 @@ MYSQL_IMAGE_VERSION=5.5
 #POSTGRESQL_IMAGE_VERSION=9.4 with oracle client for oracle_fdw Based on mdillon/postgis:9.4 which comes with postgis 2.2
 POSTGRESQL_IMAGE_VERSION=9.4-2.1 # currently the default
 KVWMAP_IMAGE_VERSION=latest
+GDAL_IMAGE_VERSION=2.1.0
 SERVER_NAME=`hostname`
 DOCKER_ROOT="/var/docker"
 WWW_ROOT="${DOCKER_ROOT}/www"
@@ -40,7 +41,7 @@ usage() {
   echo "kvwmap [Option]";
   echo ""
   echo "Optionen:"
-  echo "build gdal     Erzeugt ein neues Image pkorduan/gdal:latest an Hand des lokalen Dockerfiles."
+  echo "build gdal     Erzeugt ein neues Image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
   echo "build kvwmap   Erzeugt ein neues Image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
   echo "clean          Löscht alle beendeten Container und nicht getaggete images."
   echo "console mysql  Öffnet eine Console im Mysql Container."
@@ -50,7 +51,7 @@ usage() {
   echo "               - Zieht die im zweiten Parameter angegebenen Images von docker hup und richtet ggf. benötigte
 Verzeichnisse und lokale Dateien für den Betrieb von Containern auf der Basis dier Images."
   echo "install all    Installiert alle Images."
-  echo "install gdal   Installiert ein gdal Image."
+  echo "install gdal   Installiert das gdal Image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION}."
   echo "install kvwmap Installieirt kvwmap-server Image sowie von ihm benötigten images für MySQL und PostgreSQL."
   echo "install pydio  Installiert pydio Image."
   echo "mysql client   Öffnet eine Komandozeile im mysql Client."
@@ -67,7 +68,7 @@ Verzeichnisse und lokale Dateien für den Betrieb von Containern auf der Basis d
   echo "pgsql run      Erzeugt und startet den PostgreSQL Container mit dem Namen pgsql-server."
   echo "rebuild        Stoppt und löscht Container, löscht images, die neu gebildet werden sollen, bildet diese neu und erzeugt und startet danach Container neu."
   echo "rebuild all    Stoppt, löscht und restartet zum rebuild des Web Containers alle Container."
-  echo "rebuild gdal   Stoppt und löscht den gdal Container, löscht und rebuild das image pkorduan/gdal neu und run gdal Container neu."
+  echo "rebuild gdal   Stoppt und löscht den gdal Container, löscht und rebuild das image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} neu und run gdal Container neu."
   echo "rebuild web    Macht ein Rebuild vom image kvwmap-server:#{KVWMAP_IMAGE_VERSION}."
   echo "reload         Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
   echo "reload all     Läd alle Container neu."
@@ -110,7 +111,7 @@ Verzeichnisse und lokale Dateien für den Betrieb von Containern auf der Basis d
   echo "stop web       Stoppt nur den Container web."
   echo "uninstall      Vorsicht, Stoppt und löscht Container, löscht Images und deinstalliert eingerichtete Verzeichnisse auf dem Host-Rechner."
   echo "uninstall all  Deinstalliert alle images."
-  echo "uninsall gdal  Deinstalliert das gdal image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+  echo "uninsall gdal  Deinstalliert das gdal image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
   echo "uninstall kvwmap Deinstalliert kvwmap-server."
   echo "               Dazu gehört alles in  ${WWW_ROOT} sowie die Verzeichnisse db, etc und kvwmap-server"
   echo "               unter dem Installationsverzeichnis z.B. unter /home/gisadmin"
@@ -238,7 +239,7 @@ install_gdal_image() {
   # download gdal image for NAS Imports
   # this can be used to execute ogr2ogr like in the following example
   # docker run --rm --volumes-from wwwdata --link pgsql-server:pgsql geodata/gdal /bin/bash -c "/ogr2ogr -f PostgreSQL --config PG_USE_COPY YES -skipfailures -nlt CONVERT_TO_LINEAR -append PG:\"dbname=<POSTNASDB> active_schema=alkis user=<DBUSER> host=pgsql\" -a_srs EPSG:25833  /PFAD/ZU/DEN/NASDATEN.XML 2>> /var/www/logs/postnas_err.log"
-  docker pull pkorduan/gdal-sshd:latest
+  docker pull pkorduan/gdal-sshd:${GDAL_IMAGE_VERSION}
 }
 
 install_kvwmap_images() {
@@ -485,7 +486,7 @@ run_gdal_container() {
     --link pgsql-server:pgsql \
     --restart=always \
     -P \
-    -d pkorduan/gdal-sshd:2.1.0
+    -d pkorduan/gdal-sshd:${GDAL_IMAGE_VERSION}
 }
 
 run_mysql_container() {
