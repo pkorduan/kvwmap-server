@@ -92,11 +92,10 @@ run_deegree_container() {
   docker run --name deegree \
     -h ${SERVER_NAME}-deegree-container \
     --link pgsql-server:pgsql \
+    $deegree_volumes \
+    $deegree_env_vars \
     --restart=always \
     -d $deegree_IMAGE
-
-  #    $deegree_volumes \
-  #    $deegree_env_vars \
 }
 
 set_deegree_web_link() {
