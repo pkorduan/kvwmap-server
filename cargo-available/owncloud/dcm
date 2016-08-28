@@ -74,6 +74,8 @@ run_owncloud_container() {
   echo "mit volumes: ${owncloud_volumes}"
   docker run --name owncloud \
     -h ${SERVER_NAME}-owncloud-container \
+    -p 8085:80 \
+    -p 8448:443 \
     $owncloud_volumes \
     $owncloud_env_vars \
     --restart=always \

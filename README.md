@@ -61,9 +61,8 @@ set up and run. The output of `docker ps -a` is shown.
 Open a browser and call the kvwmap install script with the url of your host.
 
 `https://yourserver/kvmwmap/install.php`
-Accept the self-signed root certificate to connect with https. You can replace it later with your own certificate of your domain.
-Then click on the button "Installation starten", wait a bit,
-go to the end of the page and click on the link "kvwmap starten" and login with:
+Accept the self-signed root certificate to connect with https. You can replace it later with your own certificate of your domain. Then click on the button "Installation starten".
+The result will be open in a new Browser tab. Go to the end of the page and click on the link "kvwmap starten" and login with:
 
 `user: kvwmap and password: kvmwap`
 
