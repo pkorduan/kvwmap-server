@@ -33,8 +33,12 @@ USER_DIR=/home/gisadmin
 cd $USER_DIR
 git clone https://github.com/pkorduan/kvwmap-server.git
 ```
+Logout as user gisadmin
+
 ### Install kvwmap-server
+Login as other user than gisadmin and login as root.
 Get and install all the components that uses kvwmap-server.
+This step do not as user gisadmin and gisadmin must have no open connections to the server, because we want to change its uid and gid.
 
 ```
 kvwmap-server/dcm install kvwmap
@@ -56,9 +60,10 @@ set up and run. The output of `docker ps -a` is shown.
 ### Install kvwmap web application
 Open a browser and call the kvwmap install script with the url of your host.
 
-`http://yourserver/kvmwmap/install.php`
-
-There should be no error messages and a hint that you now can login with
+`https://yourserver/kvmwmap/install.php`
+Accept the self-signed root certificate to connect with https. You can replace it later with your own certificate of your domain.
+Then click on the button "Installation starten", wait a bit,
+go to the end of the page and click on the link "kvwmap starten" and login with:
 
 `user: kvwmap and password: kvmwap`
 
