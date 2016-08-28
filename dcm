@@ -954,6 +954,7 @@ case "$1" in
   ;;
   
   remove)
+    echo "Der Parameter remove ist veraltet. Bitte nutze in Zukunft rm stall remove!"
     case $2 in
       all)
         stop_all_container
@@ -978,7 +979,33 @@ case "$1" in
     esac
     docker ps -a
   ;;
-  
+
+  rm)
+    case $2 in
+      all)
+        stop_all_container
+        remove_all_container
+      ;;
+      gdal)
+        remove_gdal_container
+      ;;
+      mysql)
+        remove_mysql_container
+      ;;
+      pgsql)
+        remove_pgsql_container
+      ;;
+      web)
+        remove_web_container
+      ;;
+      * )
+        core_sub_cases="all, gdal, mysql, pgsql, web"
+        call_cargo_cases $1 $2
+      ;;
+    esac
+    docker ps -a
+  ;;
+
   rerun)
     case $2 in
       all)
