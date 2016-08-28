@@ -703,9 +703,9 @@ uninstall_kvwmap() {
       fi
       echo "So jetzt ist alles weg."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
-      echo "$ git clone https://github.com/pkorduan/kvwmap-server.git"
-      echo "$ kvwmap-server/dcm install kvwmap"
-      echo "$ dcm run all"
+      echo "git clone https://github.com/pkorduan/kvwmap-server.git"
+      echo "kvwmap-server/dcm install kvwmap"
+      echo "dcm run all"
       echo "und im Browser:"
       echo "http://meineserverip/kvwmap/install.php"
     ;;
