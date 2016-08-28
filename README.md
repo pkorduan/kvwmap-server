@@ -29,15 +29,15 @@ Clone the `pkorduan/kvwmap-server` repository from github in to your user
 directory. Assume you have a user directory /home/gisadmin
 
 ```
-$ USER_DIR=/home/gisadmin
-$ cd USER_DIR
-$ git clone https://github.com/pkorduan/kvwmap-server.git
+USER_DIR=/home/gisadmin
+cd $USER_DIR
+git clone https://github.com/pkorduan/kvwmap-server.git
 ```
 ### Install kvwmap-server
 Get and install all the components that uses kvwmap-server.
 
 ```
-$ kvwmap-server/dcm install kvwmap
+kvwmap-server/dcm install kvwmap
 ```
 
 This scrpit should ended up with the message: Successfully built or a message that the image pkorduan/kvwmap-server has been successfull pulled.
@@ -47,7 +47,7 @@ Start the containers with volumes and link it together. You will be asked to
 choose passwords for the MySQL root and PostgreSQL postgres super user as well as for a kvwmap user. The Password for kvwmap user will be used as initial password for the database access to the kvwmap databases, for the phpMyAdmin web client which has the alias userDbAdmin and for the admin page of the web application kvwmap itself.
 
 ```
-$ dcm run all
+dcm run all
 ```
 
 After this step the container named web, pgsql-server and mysql-server shoud be
@@ -74,20 +74,20 @@ This stoped all container, remove it, remove all images and remove the volumes i
 Be careful with this command, because it will remove also the data in the directories /var/www and db, etc, kvwmap-server in your home directory.
 
 ```
-$ dcm uninstall
+dcm uninstall
 ```
 
 If you only whant to remove the container and images use this commands:
 
 ```
-$ dcm stop all
-$ dcm remove all
+dcm stop all
+dcm remove all
 ```
 
 ## Server status
 To check if everything works well, you have different options.
 ```
-$ dcm status all
+dcm status all
 ```
 shows the status of the containers. Good is a message like this:
 ```
@@ -100,11 +100,11 @@ OK - web is running. IP: 172.17.0.3, StartedAt: 2015-08-21T14:24:11.059835363Z
 ```
 To see the containers you also can use the regularly docker command ps. 
 ```
-$ docker ps -a
+docker ps -a
 ```
 The parameter -a shows you also the not running container. The command inspect shows you the parameter of a container. Use the name of the container to get detailed information about it.
 ```
-$ docker inspect web
+docker inspect web
 ```
 
 ## Detailed installation and update description
@@ -117,16 +117,16 @@ Generally you could have installed docker also as a debian package as described 
 ### Update docker
 To update the docker Engine run the following command on your host system:
 ```
-$ curl -sSL https://get.docker.com/ | sh
+curl -sSL https://get.docker.com/ | sh
 ```
 You will see the new version of docker client and server after installing with this script. To find the current version of docker engine and client you can always use the command:
 ```
-$ docker version
+docker version
 ```
 ### Update this repo on your host system
 Pull a new version of the repo by typing
 ```
-$ git pull origin master
+git pull origin master
 ```
 in your directory $USER_DIR/kvwmad-server. This will download all changes in files of this repository, but not the container itself or the images from which the containers has been run. Consider that the downloaded files will have the owner of the user that pull the repo. All files in kvwmap-server should be owned by gisadmin and group gisadmin.
 A known problem when download an repo is, that files has been changed without commiting it to the repo.
@@ -135,47 +135,47 @@ error: Your local changes to the following files would be overwritten by merge:
 ```
 In this case you can find the difference between the local file and the previous version of this file by:
 ```
-$ git diff <file_name_that_has_been_changed>
+git diff <file_name_that_has_been_changed>
 ```
 If you whant to commit this change add the file to the stage
 ```
-$ git add <file_name_that_has_been_changed>
+git add <file_name_that_has_been_changed>
 ```
 and commit it with an appropriated message.
 ```
-$ git commit -m "Changed the file: <file_name_that_has_been_changed> because there was a typo inside."
+git commit -m "Changed the file: <file_name_that_has_been_changed> because there was a typo inside."
 ```
 Than you should be able to pull the new version from the remote repo.
 ```
-$ git pull origin master
+git pull origin master
 ```
 When you do so, the remote master will be merged into the local changed repo. Therefor you will be asked to leave a merge message. Do can it leave as it is and quit with Cntl.-X.
 But do not forget to push your committed change also to the remote repo, so that outher can also benefit from it.
 ```
-$ git push origin master
+git push origin master
 ```
 Therefore you must be a contributor to this repo. Ask the maintainer to become a contributor to this repo.
 
 A new image can be created localy with the build command of docker. But to run the new image the old container must be stopped and the new one created. Therefore the script kvwmap can be used with the following parameters.
 To rebuild the kvwmap container run the following command:
 ```
-$ dcm rebuild web
+dcm rebuild web
 ```
 This will stop and remove only the web container, remove the kvwmap-server image, pull the image kvwmap-server:latest from [dockerhub](https://hub.docker.com/r/pkorduan/kvwmap-server/) and run again the web container as when you start first.
 To not build the image, but download the latest from dockerhub you can use the kvwmap script with reload option
 ```
-$ dcm reload web
+dcm reload web
 ```
 To manually rebuild the kvwmap container with another version of mysql or postgres change the version numbers in kvwmap script for the constants MYSQL_IMAGE_VERSION or POSTGRES_IMAGE_VERSION and call the kvwmap script with the parameter rebuild all. You can download the new version manually before restarting the kvwmap container. This will save some downtime of the kvwmap application.
 ```
-$ docker pull mdillon/postgis:<new_version_number>
-$ sed -i -e "s|POSTGRESQL_IMAGE_VERSION=9.4|POSTGRESQL_IMAGE_VERSION=<new_version_number>|g" \
+docker pull mdillon/postgis:<new_version_number>
+sed -i -e "s|POSTGRESQL_IMAGE_VERSION=9.4|POSTGRESQL_IMAGE_VERSION=<new_version_number>|g" \
 $USER_DIR/kvwmap-server/kvwmap
-$ dcm rebuild all
+dcm rebuild all
 ```
 Replace <new_version_number> by the version you want to have for your postgres-container. Remember that this number will be overwritten when you next time pull the repo from master. Checkout this change with:
 ```
-$ cd $USER_DIR/kvwmap-server
-$ git checkout kvwmap
+cd $USER_DIR/kvwmap-server
+git checkout kvwmap
 ```
 before you pull the repo and rechange it to the new version back if you want.
