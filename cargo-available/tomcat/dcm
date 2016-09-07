@@ -2,7 +2,7 @@
 #echo "Load variables in dcm tomcat"
 CARGOS+=("tomcat")
 tomcat_enabled=true
-tomcat_IMAGE="startext/imageservice"
+tomcat_IMAGE="tomcat:8.0.36-jre8"
 tomcat_CONTAINER_NAME="tomcat"
 tomcat_DATA_DIR=$WWW_ROOT/data/tomcat
 
