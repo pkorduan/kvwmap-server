@@ -50,6 +50,8 @@ Kopiere Konfigurationsdatei für volumes"
   chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud/volumes
   chmod g+w $USER_DIR/etc/owncloud/volumes
 
+  docker pull ${owncloud_IMAGE}:${owncloud_VERSION}
+
 }
 
 remove_owncloud_container() {
@@ -74,12 +76,12 @@ run_owncloud_container() {
   echo "mit volumes: ${owncloud_volumes}"
   docker run --name owncloud \
     -h ${SERVER_NAME}-owncloud-container \
-    -p 8085:80 \
-    -p 8448:443 \
     $owncloud_volumes \
     $owncloud_env_vars \
     --restart=always \
     -d $owncloud_IMAGE
+#  -p 80:80 \
+#  -p 443:443 \
 }
 
 set_owncloud_web_link() {
@@ -197,7 +199,7 @@ cases_owncloud() {
       esac
     ;;
 
-    remove)
+    rm)
       debug "Case remove in owncloud"
       case $2 in
         owncloud)

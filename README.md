@@ -62,9 +62,9 @@ Open a browser and call the kvwmap install script with the url of your host.
 
 `https://yourserver/kvmwmap/install.php`
 Accept the self-signed root certificate to connect with https. You can replace it later with your own certificate of your domain. Then click on the button "Installation starten".
-The result will be open in a new Browser tab. Go to the end of the page and click on the link "kvwmap starten" and login with:
+The result will be open in a new browser tab. Go to the end of the page and click on the link "Login" and login with:
 
-`user: kvwmap and password: kvmwap`
+`user: kvwmap and password: KvwMapPW1 or your initial kvwmap password.`
 
 Ignore the Warning: fclose(): 5 is not a valid stream resource in /var/www/apps/kvwmap/class/log.php on line 106
 
