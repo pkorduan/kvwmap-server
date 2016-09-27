@@ -21,7 +21,7 @@ CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
 CARGO_WEB_LINKS=
 CARGO_PGSQL_LINKS=
-HTTP_PROXY_WEB=http://10.176.128.1:8080
+HTTP_PROXY_WEB=
 NO_PROXY_WEB=localhost,pgsql
 
 if [ "$(id -u)" == '0' ]; then

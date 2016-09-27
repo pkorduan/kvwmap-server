@@ -2,8 +2,8 @@
 #echo "Load variables in dcm owncloud"
 CARGOS+=("owncloud")
 owncloud_enabled=true
-owncloud_IMAGE="l3iggs/owncloud"
-owncloud_VERSION="latest"
+owncloud_IMAGE="owncloud"
+owncloud_VERSION="9.1.1"
 owncloud_CONTAINER_NAME="owncloud"
 
 usage_owncloud() {
@@ -76,10 +76,11 @@ run_owncloud_container() {
   echo "mit volumes: ${owncloud_volumes}"
   docker run --name owncloud \
     -h ${SERVER_NAME}-owncloud-container \
+    --link mysql-server:mysql \
     $owncloud_volumes \
     $owncloud_env_vars \
     --restart=always \
-    -d $owncloud_IMAGE
+    -d "${owncloud_IMAGE}:${owncloud_VERSION}"
 #  -p 80:80 \
 #  -p 443:443 \
 }
