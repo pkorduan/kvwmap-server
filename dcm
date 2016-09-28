@@ -379,7 +379,7 @@ install_kvwmap_images() {
   echo "
   Nächste Schritte zum installieren von kvwmap:"
   echo "    $ dcm run all"
-  echo "    Browser öffnen mit der Adresse: http://${IP_EXTERN}/kvwmap/install.php"
+  echo "    Browser öffnen mit der Adresse: https://${IP_EXTERN}/kvwmap/install.php"
 }
 
 is_stopped() {
@@ -808,8 +808,8 @@ case "$1" in
         install_gdal_image
       ;;
       kvwmap)
-        install_kvwmap_images
         install_gdal_image
+        install_kvwmap_images
       ;;
       *)
         core_sub_cases="all, gdal, kvwmap"
