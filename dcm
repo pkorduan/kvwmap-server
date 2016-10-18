@@ -279,6 +279,9 @@ install_kvwmap_images() {
            $WWW_ROOT/apps \
            $WWW_ROOT/html \
            $WWW_ROOT/logs \
+           $WWW_ROOT/logs/apache2 \
+           $WWW_ROOT/logs/pgsql \
+           $WWW_ROOT/logs/mysql \
            $WWW_ROOT/tmp \
            $WWW_ROOT/cache \
            $WWW_ROOT/wms \
@@ -492,6 +495,7 @@ run_mysql_container() {
     -h ${SERVER_NAME}-mysql-container \
     -v $USER_DIR/etc/mysql:/etc/mysql \
     -v $DB_ROOT/mysql:/var/lib/mysql \
+    -v $WWW_ROOT/logs/mysql:/var/logs/mysql \
     -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
     --restart=always \
     -d mysql:${MYSQL_IMAGE_VERSION}
@@ -622,7 +626,7 @@ start_container() {
       if [ "$(is_stopped $container)" == "false" ]; then
         run_${container}_container
       else
-        echo "Start Container ${container}"
+        echo "Starte Container ${container} ..."
         docker start $container
       fi
     fi
@@ -650,7 +654,7 @@ stop_container() {
   if [ ! -z $container ] ; then
     RUNNING=$(is_running $container)
     if [ "$RUNNING" == "true" ]; then
-      echo "Stoppe Container $container. Bitte warten ..."
+      echo "Stoppe Container $container ..."
       docker stop $container
     fi
   fi
@@ -998,30 +1002,22 @@ case "$1" in
         stop_all_container
         remove_all_container
         run_all_container
-        docker ps -a
       ;;
       gdal)
         stop_gdal_container
         remove_gdal_container
         run_gdal_container
-        docker ps
-      ;;
-      pydio)
-        stop_pydio_container
-        remove_pydio_container
-        run_pydio_container
-        docker ps
       ;;
       web)
         remove_web_container
         run_web_container
-        docker ps
       ;;
       * )
-        core_sub_cases="all, gdal, pydio, web"
+        core_sub_cases="all, gdal, web"
         call_cargo_cases $1 $2
       ;;
     esac
+    docker ps
   ;;
 
   restart)
@@ -1035,10 +1031,11 @@ case "$1" in
         start_web_container
       ;;
       *)
-        echo "Gib nach restart einen der folgenden Parameter ein: all oder web."
+        core_sub_cases="all, web"
+        call_cargo_cases $1 $2
       ;;
     esac
-    docker ps -a
+    docker ps
   ;;
   
   run)

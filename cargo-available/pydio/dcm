@@ -1,13 +1,15 @@
 #!/bin/bash
-#echo "Load variables in dcm pydio"
 CARGOS+=("pydio")
 IMAGE_pydio="kdelfour/pydio-docker:latest"
 CONTAINER_NAME_pydio="pydio"
 
 usage_pydio() {
   echo "inistall pydio     Installiert ein pydio Image."
+  echo "rerun pydio        Stoppt und löscht den pydio Container und erzeugt und startet ihn anschließend wieder."
+  echo "rerun pydio        Stoppt den pydio Container und startet ihn anschließend wieder."
   echo "run pydio          Erzeugt und startet nur den Container pydio."
   echo "start pydio        Startet nur den Container pydio."
+  echo "stop pydio         Stoppt nur den Container pydio."
   echo "uninsall pydio     Deinstalliert das pydio image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner." 
 }
 
@@ -66,11 +68,8 @@ run_pydio_container() {
     -p 9080:80 \
     -p 9443:443 \
     -v $USER_DIR/etc/nginx/sites-enabled:/etc/nginx/sites-enabled \
-    -v $WWW_ROOT/apps/pydio/files/:/pydio-data/files/ \
-    -v $WWW_ROOT/apps/pydio/personal/:/pydio-data/personal/ \
-    -v $WWW_ROOT/apps/pydio/bootstrap.json:/pydio-data/plugins/boot.conf/bootstrap.json \
-    -v $WWW_ROOT/apps/pydio/first_run_passed:/pydio-data/cache/first_run_passed \
-    -v $WWW_ROOT/apps/pydio/de_plugins_messages.ser:/pydio-data/cache/i18n/de_plugins_messages.ser \
+    -v $WWW_ROOT/logs/pydio/nginx:/var/log/nginx \
+    -v $WWW_ROOT/apps/pydio:/pydio-data \
     --restart=always \
     -d $IMAGE_pydio
 }
@@ -85,13 +84,11 @@ show_status() {
 }
 
 start_pydio_container() {
-  echo "Starte pydio Container. Bitte warten ..."
-  docker start pydio
+  start_container 'pydio'
 }
 
 stop_pydio_container() {
-  $container='pydio'
-  stop_container
+  stop_container 'pydio'
 }
 
 uninstall_pydio() {
@@ -150,28 +147,56 @@ cases_pydio() {
       esac
     ;;
 
+    rerun)
+      debug "Case rerun in pydio"
+      case $2 in
+        pydio)
+          stop_pydio_container
+          remove_pydio_container
+          run_pydio_container
+        ;;
+        *)
+          debug "No subcase $2 in pydio"
+          case_found=false
+        ;;
+      esac
+    ;;
+    
+    restart)
+      debug "Case restart in pydio"
+      case $2 in
+        pydio)
+          stop_pydio_container
+          start_pydio_container
+        ;;
+        *)
+          debug "No subcase $2 in pydio"
+          case_found=false
+        ;;
+      esac
+    ;;
+
     run)
       debug "Case run in pydio"
       case $2 in
         pydio)
-          remove_pydio_container
+          run_pydio_container
         ;;
         * )
           debug "No subcase $2 in pydio"
           case_found=false
         ;;
       esac
-      docker ps -a
     ;;
 
     start)
       debug "Case start in pydio"
       case $2 in
-        geoserver)
+        pydio)
           start_pydio_container
         ;;
         *)
-          debug "No subcase $2 in geoserver"
+          debug "No subcase $2 in pydio"
           case_found=false
         ;;
       esac
@@ -181,6 +206,19 @@ cases_pydio() {
       case $2 in
         pydio)
           show_container_status "pydio"
+        ;;
+        *)
+          debug "No subcase $2 in pydio"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    stop)
+      debug "Case stop in pydio"
+      case $2 in
+        pydio)
+          stop_pydio_container
         ;;
         *)
           debug "No subcase $2 in pydio"
