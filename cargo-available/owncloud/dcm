@@ -1,0 +1,288 @@
+#!/bin/bash
+#echo "Load variables in dcm owncloud"
+CARGOS+=("owncloud")
+owncloud_enabled=true
+owncloud_IMAGE="owncloud"
+owncloud_VERSION="9.1.1"
+owncloud_CONTAINER_NAME="owncloud"
+
+usage_owncloud() {
+  echo "install owncloud  Installiert ein owncloud Image."
+  echo "rerun owncloud    Stoppt, löscht, erzeugt und startet nur den Container owncloud."
+  echo "run owncloud      Erzeugt und startet nur den Container owncloud."
+  echo "start owncloud    Startet nur den Container owncloud."
+  echo "status owncloud   Zeigt den aktuellen Status des Container owncloud an."
+  echo "stop owncloud     Startet nur den Container owncloud."
+  echo "uninsall owncloud Deinstalliert das owncloud image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+}
+
+install_owncloud() {
+  echo "Installiere owncloud ..."
+  
+  mkdir -p ${WWW_ROOT}/apps/owncloud
+  chmod g+w ${WWW_ROOT}/apps/owncloud
+
+  mkdir -p ${USER_DIR}/etc/owncloud
+  chmod g+w ${USER_DIR}/etc/owncloud
+
+  mkdir -p ${WWW_ROOT}/data/owncloud
+  chmod g+w ${WWW_ROOT}/data/owncloud
+
+  echo "
+Kopiere Apache Konfigurationsdatei für owncloud."
+  echo "cp $USER_DIR/kvwmap-server/owncloud/etc/apache2/sites-available/owncloud.conf => $USER_DIR/etc/apache2/sites-available/owncloud.conf"
+  cp $USER_DIR/kvwmap-server/owncloud/etc/apache2/sites-available/owncloud.conf $USER_DIR/etc/apache2/sites-available/owncloud.conf
+  chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-available/owncloud.conf
+  chmod g+w $USER_DIR/etc/apache2/sites-available/owncloud.conf
+
+  echo "
+Enable owncloud Web-Site in Apache Konfiguration."
+  echo "ln -s ../sites-available/owncloud.conf $USER_DIR/etc/apache2/sites-enabled/owncloud.conf"
+  ln -s ../sites-available/owncloud.conf $USER_DIR/etc/apache2/sites-enabled/owncloud.conf
+
+  echo "
+Kopiere Konfigurationsdatei für volumes"
+  echo "cp $USER_DIR/kvwmap-server/owncloud/etc/owncloud/volumes => $USER_DIR/etc/owncloud/volumes"
+  mkdir -p $USER_DIR/etc/owncloud
+  chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud
+  chmod g+w $USER_DIR/etc/owncloud
+  cp $USER_DIR/kvwmap-server/owncloud/etc/owncloud/volumes $USER_DIR/etc/owncloud/volumes
+  chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud/volumes
+  chmod g+w $USER_DIR/etc/owncloud/volumes
+
+  docker pull ${owncloud_IMAGE}:${owncloud_VERSION}
+
+}
+
+remove_owncloud_container() {
+  stop_owncloud_container
+
+  if [ "$(docker ps -a -q -f name=owncloud -f status=exited)" ] ; then
+    echo "Lösche Container ..."
+    docker rm owncloud
+  else
+    echo "Container owncloud kann nicht gelöscht werden, weil er nicht existiert."
+  fi
+}
+
+remove_owncloud_image() {
+  echo "Lösche owncloud Image: $owncloud_IMAGE"
+  docker rmi $owncloud_IMAGE
+}
+
+run_owncloud_container() {
+  source $USER_DIR/etc/owncloud/volumes
+  echo "Erzeuge und starte den owncloud Container"
+  echo "mit volumes: ${owncloud_volumes}"
+  docker run --name owncloud \
+    -h ${SERVER_NAME}-owncloud-container \
+    --link mysql-server:mysql \
+    $owncloud_volumes \
+    $owncloud_env_vars \
+    --restart=always \
+    -d "${owncloud_IMAGE}:${owncloud_VERSION}"
+#  -p 80:80 \
+#  -p 443:443 \
+}
+
+set_owncloud_web_link() {
+  echo "Setzte owncloud link zum Starten des web containers: --link owncloud:owncloud"
+  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link owncloud:owncloud"
+}
+
+show_status() {
+  echo "Status of container $COINTAINER_NAME"
+}
+
+start_owncloud_container() {
+  echo "Starte owncloud Container. Bitte warten ..."
+  docker start owncloud
+}
+
+stop_owncloud_container() {
+  if [ "$(docker ps -a -q -f name=owncloud -f status=running)" ] ; then
+    echo "Stoppe Container. Bitte warten ..."
+    docker stop owncloud
+  else
+    echo "Container owncloud kann nicht gestoppt werden, weil er nicht läuft."
+  fi
+}
+
+uninstall_owncloud() {
+  remove_owncloud_container
+  
+  echo "Dieser Befehl deinstalliert das image $owncloud_IMAGE und auf Nachfrage alle dazugehörigen auf diesem Host gespeicherten Daten, die owncloud genutzt hat."
+  read -p "Wollen Sie das Image wirklich deinstallieren? (j/n)? " answer
+  case ${answer:0:1} in
+    j|J )
+      docker rmi $owncloud_IMAGE
+      echo "Lösche owncloud Anwendungsverzeichnis ${WWW_ROOT}/apps/owncloud"
+      ls -l ${WWW_ROOT}/apps/owncloud
+      rm -RI ${WWW_ROOT}/apps/owncloud
+
+      echo "Lösche owncloud Konfigurationsverzeichnis ${WWW_ROOT}/apps/owncloud"
+      ls -l ${USER_DIR}/etc/owncloud
+      rm -RI ${USER_DIR}/etc/owncloud
+
+      echo "Lösche owncloud Datenverzeichnis ${WWW_ROOT}/apps/owncloud"
+      ls -l ${WWW_ROOT}/data/owncloud
+      rm -RI ${WWW_ROOT}/data/owncloud
+
+      echo "Lösche owncloud volumes Konfiguration in etc."
+      rm -R $USER_DIR/etc/owncloud
+
+      echo "So jetzt ist owncloud weg."
+      echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
+      echo " dcm install owncloud"
+      echo " dcm run owncloud"
+      echo " dcm rerun web"
+      echo "Die Anwendung ist im Browser zu erreichen unter:"
+      echo "http://meineserverip/owncloud/web/"
+      echo "Die initialen Zugangsdaten zur Admin GUI von owncloud sind User: admin und Password: owncloud"
+    ;;
+    * )
+      echo "OK, nix passiert!"
+    ;;
+  esac
+}
+
+cases_owncloud() {
+  case_found=true
+  case "$1" in
+    console)
+      case $2 in
+        owncloud)
+          echo "Öffne ein Terminal im Container in dem der owncloud läuft ..."
+          docker exec -it owncloud /bin/bash
+        ;;
+        *)
+          debug "No subcase $2 in owncloud"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    install)
+      case $2 in
+        owncloud)
+          install_owncloud
+        ;;
+        *)
+          debug "No subcase $2 in owncloud"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    ip)
+      case $2 in
+        owncloud)
+          show_container_ip $2
+        ;;
+        * )
+          debug "No subcase $2 in owncloud"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    uninstall)
+      debug "Case uninstall in owncloud"
+      case $2 in
+        owncloud)
+          #echo "Case owncloud"
+          uninstall_owncloud
+        ;;
+        *)
+          debug "No subcase $2 in owncloud"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    rm)
+      debug "Case remove in owncloud"
+      case $2 in
+        owncloud)
+          remove_owncloud_container
+        ;;
+        * )
+          debug "No subcase $2 in owncloud"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    rerun)
+      debug "Case rerun in owncloud"
+      case $2 in
+        owncloud)
+          remove_owncloud_container
+          run_owncloud_container
+          docker ps
+        ;;
+        *)
+          debug "No subcase $2 in owncloud"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    run)
+      debug "Case run in owncloud"
+      case $2 in
+        owncloud)
+          run_owncloud_container
+        ;;
+        *)
+          debug "No subcase $2 in owncloud"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    start)
+      debug "Case start in owncloud"
+      case $2 in
+        owncloud)
+          start_owncloud_container
+        ;;
+        *)
+          debug "No subcase $2 in owncloud"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    status)
+      case $2 in
+        owncloud)
+          show_container_status "owncloud"
+        ;;
+        *)
+          debug "No subcase $2 in owncloud"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    stop)
+      debug "Case stop in owncloud"
+      case $2 in
+        owncloud)
+          stop_owncloud_container
+        ;;
+        *)
+          debug "No subcase $2 in owncloud"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    *)
+      #echo "No case found in dcm owncloud"
+      case_found=false
+    ;;
+  esac
+  debug "Case found after cases owncloud: $case_found"
+}

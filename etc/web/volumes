@@ -1,0 +1,18 @@
+#!/bin/bash
+web_env_vars="-e OS_USER=$OS_USER \
+              -e IP_EXTERN=$IP_EXTERN \
+              -e DOMAIN_EXTERN=$DOMAIN_EXTERN \
+              -e KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD \
+              -e http_proxy=$HTTP_PROXY_WEB \
+              -e no_proxy=localhost,${IP_EXTERN} \
+              -e \"TERM=xterm\""
+web_volumes="--volumes-from wwwdata \
+              -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
+              -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
+              -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \
+              -v $USER_DIR/etc/php5/apache2/php.ini:/etc/php5/apache2/php.ini \
+              -v $USER_DIR/etc/php5/cli/php.ini:/etc/php5/cli/php.ini \
+              -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
+              -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
+              -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
+              -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"
