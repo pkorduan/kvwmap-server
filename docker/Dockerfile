@@ -1,6 +1,6 @@
 FROM debian
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="1.0.0"
+LABEL version="1.1.0"
 
 ENV OS_USER="gisadmin" USER_DIR="/home/${OS_USER}" TZ="Europe/Berlin"
 
@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     apt-utils \
     apache2 \
     cgi-mapserver \
+    cron \
     dialog \
     gdal-bin \
     git \
@@ -56,8 +57,15 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod proxy && \
     a2enmod proxy_http && \
     a2enmod proxy_html && \
-    a2enmod xml2enc && \
-    make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
+    a2enmod xml2enc
+
+RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
+RUN apt-get update
+RUN apt-get install -y python-certbot-apache -t jessie-backports
+#RUN certbot --apache
+
+#     && \
+#    make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
 
 ADD https://github.com/phpmyadmin/phpmyadmin/archive/STABLE.zip /tmp/phpmyadmin.zip
 
@@ -67,6 +75,9 @@ RUN unzip -q phpmyadmin.zip && \
     rm phpmyadmin.zip && \
     mkdir -p /srv/www/ && \
     mv `ls` /srv/www/phpmyadmin
+
+RUN php /usr/local/bin/composer-setup.php && \
+    rm /usr/local/bin/composer-setup.php
 
 RUN groupadd -g 1700 ${OS_USER} && \
   useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
@@ -80,7 +91,11 @@ RUN mkdir -p $USER_DIR/.ssh && \
   chown -R $OS_USER.$OS_USER $USER_DIR/.ssh && \
   sed -i "s|#   IdentityFile ~/.ssh/id_rsa|    IdentityFile ~/.ssh/id_rsa|g" /etc/ssh/ssh_config
 
+# force imagemagick to make sharp images
+RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /etc/ImageMagick-6/delegates.xml
+
 USER $OS_USER
+
 RUN git config --global user.name "gisadmin" && \
     git config --global user.email "gisadmin@`hostname`"
 
