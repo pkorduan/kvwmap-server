@@ -1,6 +1,6 @@
 # kvwmap-server
 
-The repository [https://github.com/pkorduan/kvwmap-server/] include all files to install and run a container based on the docker image [pkorduan/kvwmap-server](https://registry.hub.docker.com/u/pkorduan/kvwmap-server/).
+The git repository [pkorduan/kvwmap-server](https://github.com/pkorduan/kvwmap-server/) include all files to install and run a container based on the docker image [pkorduan/kvwmap-server](https://registry.hub.docker.com/u/pkorduan/kvwmap-server/).
 
 The kvwmap-server contain the Web-GIS application kvwmap from the git repo [srahn/kvwmap](https://github.com/srahn/kvwmap), an [Apache Web Werver](http://httpd.apache.org/),
 [MapServers](http://mapserver.org/) [phpMapScript](http://mapserver.org/mapscript/php/index.html)
