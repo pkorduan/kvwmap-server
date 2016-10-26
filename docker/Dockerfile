@@ -2,7 +2,7 @@ FROM debian
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
 LABEL version="1.1.0"
 
-ENV OS_USER="gisadmin" USER_DIR="/home/${OS_USER}" TZ="Europe/Berlin"
+ENV OS_USER="gisadmin" USER_DIR="/home/${OS_USER}" TZ="Europe/Berlin" TERM=xterm
 
 RUN sed -i \
         -e "s|# alias ls=|alias ls=|g" \
@@ -59,13 +59,13 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod proxy_html && \
     a2enmod xml2enc
 
-RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list
-RUN apt-get update
-RUN apt-get install -y python-certbot-apache -t jessie-backports
-#RUN certbot --apache
+RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list && \
+		apt-get update && apt-get install -y \
+		python-certbot-apache -t jessie-backports
 
-#     && \
-#    make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
+#RUN	certbot --apache
+
+#RUN	make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
 
 ADD https://github.com/phpmyadmin/phpmyadmin/archive/STABLE.zip /tmp/phpmyadmin.zip
 
