@@ -1,9 +1,8 @@
 # kvwmap-server
 
-This repository include all files to install and run a container based on the docker
-image [pkorduan/kvwmap-server](https://registry.hub.docker.com/u/pkorduan/kvwmap-server/).
+The git repository [pkorduan/kvwmap-server](https://github.com/pkorduan/kvwmap-server/) include all files to install and run a container based on the docker image [pkorduan/kvwmap-server](https://registry.hub.docker.com/u/pkorduan/kvwmap-server/).
 
-The kvwmap-server contain a the Web-GIS application kvwmap from the git repo [srahn/kvwmap](https://github.com/srahn/kvwmap), an [Apache Web Werver](http://httpd.apache.org/),
+The kvwmap-server contain the Web-GIS application kvwmap from the git repo [srahn/kvwmap](https://github.com/srahn/kvwmap), an [Apache Web Werver](http://httpd.apache.org/),
 [MapServers](http://mapserver.org/) [phpMapScript](http://mapserver.org/mapscript/php/index.html)
 as well as a [MySQL](http://www.mysql.com/) database for user and map context and [PostgreSQL](http://www.postgres.org) database with [PostGIS](http://www.postgis.org) extension
 for geodata. For loading and exporting geodata with ogr2ogr the image [geodata/gdal](https://hub.docker.com/r/geodata/gdal/) will be used.
