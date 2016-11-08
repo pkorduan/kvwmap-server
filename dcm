@@ -11,7 +11,7 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 MYSQL_IMAGE_VERSION=5.5
 #POSTGRESQL_IMAGE_VERSION=9.4 with oracle client for oracle_fdw Based on mdillon/postgis:9.4 which comes with postgis 2.2
 POSTGRESQL_IMAGE_VERSION=9.4-2.1 # currently the default
-KVWMAP_IMAGE_VERSION=latest
+KVWMAP_IMAGE_VERSION=1.1.2
 GDAL_IMAGE_VERSION=2.1.0
 SERVER_NAME=`hostname`
 DOCKER_ROOT="/var/docker"
@@ -144,7 +144,7 @@ debug() {
 build_kvwmap_server() {
   TAG=$1
   if [ -z "$TAG" ] ; then
-    TAG="latest"
+    TAG=$KVWMAP_IMAGE_VERSION
   fi
   cd $USER_DIR/kvwmap-server/docker
   docker build -t pkorduan/kvwmap-server:${TAG} .
@@ -754,12 +754,12 @@ case "$1" in
       gdal)
         build_gdal_image 'latest'
       ;;
-      kvwmap-server)
-        echo "Build the image pkorduan/kvwmap-server:latest"
+      kvwmap)
+        echo "Build the image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}"
         build_kvwmap_server $KVWMAP_IMAGE_VERSION
       ;;
       *)
-        echo "Gebe das Image an das gebaut werden soll. gdal oder kvwmap-server"
+        echo "Gebe das Image an das gebaut werden soll. gdal oder kvwmap"
       ;;
     esac
   ;;
