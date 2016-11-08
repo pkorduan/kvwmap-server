@@ -1,6 +1,6 @@
 FROM debian
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="1.1.0"
+LABEL version="1.1.2"
 
 ENV OS_USER="gisadmin" USER_DIR="/home/${OS_USER}" TZ="Europe/Berlin" TERM=xterm
 
@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     apt-utils \
     apache2 \
     cgi-mapserver \
+    chkconfig \
     cron \
     dialog \
     gdal-bin \
@@ -42,6 +43,8 @@ RUN apt-get update && apt-get install -y \
     zip \
     ntp
 
+RUN chkconfig cron 1
+
 ADD sources /usr/local/bin
 
 RUN mv /usr/local/bin/liblwgeom-2.1.7.so /usr/lib/liblwgeom-2.1.7.so && \
@@ -52,6 +55,7 @@ RUN mv /usr/local/bin/liblwgeom-2.1.7.so /usr/lib/liblwgeom-2.1.7.so && \
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod authz_groupfile && \
     a2enmod cgi && \
+    a2enmod headers && \
     a2enmod rewrite && \
     a2enmod ssl && \
     a2enmod proxy && \
