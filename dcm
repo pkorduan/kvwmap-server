@@ -8,11 +8,12 @@ getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
 USER_DIR=/home/$OS_USER
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
-MYSQL_IMAGE_VERSION=5.5
+MYSQL_IMAGE_VERSION="5.5"
 #POSTGRESQL_IMAGE_VERSION=9.4 with oracle client for oracle_fdw Based on mdillon/postgis:9.4 which comes with postgis 2.2
 POSTGRESQL_IMAGE_VERSION=9.4-2.1 # currently the default
-KVWMAP_IMAGE_VERSION=1.1.2
-GDAL_IMAGE_VERSION=2.1.0
+KVWMAP_IMAGE_VERSION="1.1.2"
+GDAL_IMAGE="pkorduan/gdal-sshd"
+GDAL_IMAGE_VERSION="2.1.2"
 SERVER_NAME=`hostname`
 DOCKER_ROOT="/var/docker"
 WWW_ROOT="${DOCKER_ROOT}/www"
@@ -490,7 +491,7 @@ run_gdal_container() {
     --link pgsql-server:pgsql \
     --restart=always \
     -P \
-    -d pkorduan/gdal-sshd:${GDAL_IMAGE_VERSION}
+    -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}
 }
 
 run_mysql_container() {
@@ -903,6 +904,10 @@ case "$1" in
       ;;
     esac
   ;;
+
+  ps)
+    docker ps $2
+  ;;
   
   rebuild)
     case $2 in
@@ -1139,6 +1144,7 @@ case "$1" in
         show_container_status "mysql-server"
         show_container_status "pgsql-server"
         show_container_status "web"
+        show_container_status "gdal"
       ;;
       gdal)
         show_container_status "gdal"
