@@ -13,7 +13,7 @@ MYSQL_IMAGE_VERSION="5.5"
 POSTGRESQL_IMAGE_VERSION=9.4-2.1 # currently the default
 KVWMAP_IMAGE_VERSION="1.1.2"
 GDAL_IMAGE="pkorduan/gdal-sshd"
-GDAL_IMAGE_VERSION="2.1.2"
+GDAL_IMAGE_VERSION="2.2.0"
 SERVER_NAME=`hostname`
 DOCKER_ROOT="/var/docker"
 WWW_ROOT="${DOCKER_ROOT}/www"
@@ -271,15 +271,9 @@ install_kvwmap_images() {
   # create directories
   mkdir -p $DB_ROOT/mysql \
            $DB_ROOT/postgresql/data \
-           $USER_DIR/etc/apache2/sites-available \
            $USER_DIR/etc/apache2/sites-enabled \
            $USER_DIR/etc/apache2/ssl \
-           $USER_DIR/etc/mysql \
            $USER_DIR/etc/postgresql \
-           $USER_DIR/etc/php5/apache2 \
-           $USER_DIR/etc/php5/cli \
-           $USER_DIR/etc/phpmyadmin \
-           $USER_DIR/etc/proj \
            $WWW_ROOT/apps \
            $WWW_ROOT/html \
            $WWW_ROOT/logs \
@@ -313,10 +307,11 @@ install_kvwmap_images() {
   Kopiere index.php und Konfigurationsdateien für Apache Web-Server ..."
   cp $USER_DIR/kvwmap-server/www/html/index.php $WWW_ROOT/html/index.php
   cp -R $USER_DIR/kvwmap-server/etc/apache2 $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/gdal $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/mysql $USER_DIR/etc/
-  cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/php5 $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/phpmyadmin $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/web $USER_DIR/etc/
 
   echo "
@@ -325,10 +320,10 @@ install_kvwmap_images() {
   sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" $USER_DIR/etc/apache2/sites-available/000-default.conf
 
   echo "
-  Kopiere Mapfiles, Referenzkarten und PDFClass Dateien ..."
+  Kopiere Mapfiles, Referenzkarten und 3rdparty Dateien ..."
   cp -R $USER_DIR/kvwmap-server/www/data/mapfiles/ $WWW_ROOT/data/
   cp -R $USER_DIR/kvwmap-server/www/data/referencemaps/ $WWW_ROOT/data/
-  cp -R $USER_DIR/kvwmap-server/www/apps/PDFClass $WWW_ROOT/apps/
+  cp -R $USER_DIR/kvwmap-server/www/apps/3rdparty $WWW_ROOT/apps/
 
   echo "
   Clone kvwmap von github ins Web-Verzeichnis ..."
@@ -484,10 +479,12 @@ run_cargo_containers() {
 }
 
 run_gdal_container() {
+  source $USER_DIR/etc/gdal/volumes
   echo "Erzeuge und Starte den gdal Container ..."
   docker run --name gdal \
     -h ${SERVER_NAME}-gdal-container \
-    --volumes-from wwwdata \
+    $gdal_env_vars \
+    $gdal_volumes \
     --link pgsql-server:pgsql \
     --restart=always \
     -P \

@@ -1,0 +1,286 @@
+#!/bin/bash
+#echo "Load variables in dcm osm2po"
+CARGOS+=("osm2po")
+osm2po_enabled=true
+osm2po_IMAGE="pkorduan/osm2po-server"
+osm2po_VERSION="5.1.0"
+osm2po_CONTAINER_NAME="osm2po"
+
+usage_osm2po() {
+  echo "install osm2po  Installiert ein osm2po Image."
+  echo "rerun osm2po    Stoppt, löscht, erzeugt und startet nur den Container osm2po."
+  echo "run osm2po      Erzeugt und startet nur den Container osm2po."
+  echo "start osm2po    Startet nur den Container osm2po."
+  echo "status osm2po   Zeigt den aktuellen Status des Container osm2po an."
+  echo "stop osm2po     Startet nur den Container osm2po."
+  echo "uninsall osm2po Deinstalliert das osm2po image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+}
+
+install_osm2po() {
+  echo "Installiere osm2po ..."
+  
+  mkdir -p ${WWW_ROOT}/apps/osm2po
+  chmod g+w ${WWW_ROOT}/apps/osm2po
+
+  mkdir -p ${USER_DIR}/etc/osm2po
+  chmod g+w ${USER_DIR}/etc/osm2po
+
+  mkdir -p ${WWW_ROOT}/logs/osm2po
+  chmod g+w ${WWW_ROOT}/logs/osm2po
+
+  echo "
+Kopiere Apache Konfigurationsdatei für osm2po."
+  echo "cp $USER_DIR/kvwmap-server/osm2po/etc/apache2/sites-available/osm2po.conf => $USER_DIR/etc/apache2/sites-available/osm2po.conf"
+  cp $USER_DIR/kvwmap-server/osm2po/etc/apache2/sites-available/osm2po.conf $USER_DIR/etc/apache2/sites-available/osm2po.conf
+  chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-available/osm2po.conf
+  chmod g+w $USER_DIR/etc/apache2/sites-available/osm2po.conf
+
+  echo "
+Enable osm2po Web-Site in Apache Konfiguration."
+  echo "ln -s ../sites-available/osm2po.conf $USER_DIR/etc/apache2/sites-enabled/osm2po.conf"
+  ln -s ../sites-available/osm2po.conf $USER_DIR/etc/apache2/sites-enabled/osm2po.conf
+
+  echo "
+Kopiere Konfigurationsdatei für volumes"
+  echo "cp $USER_DIR/kvwmap-server/osm2po/etc/osm2po/volumes => $USER_DIR/etc/osm2po/volumes"
+  mkdir -p $USER_DIR/etc/osm2po
+  chown $OS_USER.$OS_USER $USER_DIR/etc/osm2po
+  chmod g+w $USER_DIR/etc/osm2po
+  cp $USER_DIR/kvwmap-server/osm2po/etc/osm2po/volumes $USER_DIR/etc/osm2po/volumes
+  chown $OS_USER.$OS_USER $USER_DIR/etc/osm2po/volumes
+  chmod g+w $USER_DIR/etc/osm2po/volumes
+
+  docker pull ${osm2po_IMAGE}:${osm2po_VERSION}
+
+}
+
+remove_osm2po_container() {
+  stop_osm2po_container
+
+  if [ "$(docker ps -a -q -f name=osm2po -f status=exited)" ] ; then
+    echo "Lösche Container ..."
+    docker rm osm2po
+  else
+    echo "Container osm2po kann nicht gelöscht werden, weil er nicht existiert."
+  fi
+}
+
+remove_osm2po_image() {
+  echo "Lösche osm2po Image: $osm2po_IMAGE"
+  docker rmi $osm2po_IMAGE
+}
+
+run_osm2po_container() {
+  source $USER_DIR/etc/osm2po/volumes
+  echo "Erzeuge und starte den osm2po Container"
+  echo "mit volumes: ${osm2po_volumes}"
+  echo "docker run --name osm2po -h ${SERVER_NAME}-osm2po-container $osm2po_volumes --restart=always -d ${osm2po_IMAGE}:${osm2po_VERSION}"
+  docker run --name osm2po \
+    -h ${SERVER_NAME}-osm2po-container \
+    $osm2po_env_vars \
+    $osm2po_volumes \
+    --restart=always \
+    -d "${osm2po_IMAGE}:${osm2po_VERSION}"
+}
+
+set_osm2po_web_link() {
+  echo "Setzte osm2po link zum Starten des web containers: --link osm2po:osm2po"
+  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link osm2po:osm2po"
+}
+
+show_status() {
+  echo "Status of container $COINTAINER_NAME"
+}
+
+start_osm2po_container() {
+  echo "Starte osm2po Container. Bitte warten ..."
+  docker start osm2po
+}
+
+stop_osm2po_container() {
+  if [ "$(docker ps -a -q -f name=osm2po -f status=running)" ] ; then
+    echo "Stoppe Container. Bitte warten ..."
+    docker stop osm2po
+  else
+    echo "Container osm2po kann nicht gestoppt werden, weil er nicht läuft."
+  fi
+}
+
+uninstall_osm2po() {
+  remove_osm2po_container
+  
+  echo "Dieser Befehl deinstalliert das image $osm2po_IMAGE und auf Nachfrage alle dazugehörigen auf diesem Host gespeicherten Daten, die osm2po genutzt hat."
+  read -p "Wollen Sie das Image wirklich deinstallieren? (j/n)? " answer
+  case ${answer:0:1} in
+    j|J )
+      docker rmi $osm2po_IMAGE
+      echo "Lösche osm2po Anwendungsverzeichnis ${WWW_ROOT}/apps/osm2po"
+      ls -l ${WWW_ROOT}/apps/osm2po
+      rm -RI ${WWW_ROOT}/apps/osm2po
+
+      echo "Lösche osm2po Konfigurationsverzeichnis ${WWW_ROOT}/apps/osm2po"
+      ls -l ${USER_DIR}/etc/osm2po
+      rm -RI ${USER_DIR}/etc/osm2po
+
+      echo "Lösche osm2po Datenverzeichnis ${WWW_ROOT}/apps/osm2po"
+      ls -l ${WWW_ROOT}/data/osm2po
+      rm -RI ${WWW_ROOT}/data/osm2po
+
+      echo "Lösche osm2po volumes Konfiguration in etc."
+      rm -R $USER_DIR/etc/osm2po
+
+      echo "So jetzt ist osm2po weg."
+      echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
+      echo " dcm install osm2po"
+      echo " dcm run osm2po"
+      echo " dcm rerun web"
+      echo "Die Anwendung ist im Browser zu erreichen unter:"
+      echo "http://meineserverip/osm2po/web/"
+      echo "Die initialen Zugangsdaten zur Admin GUI von osm2po sind User: admin und Password: osm2po"
+    ;;
+    * )
+      echo "OK, nix passiert!"
+    ;;
+  esac
+}
+
+cases_osm2po() {
+  case_found=true
+  case "$1" in
+    console)
+      case $2 in
+        osm2po)
+          echo "Öffne ein Terminal im Container in dem der osm2po läuft ..."
+          docker exec -it osm2po /bin/bash
+        ;;
+        *)
+          debug "No subcase $2 in osm2po"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    install)
+      case $2 in
+        osm2po)
+          install_osm2po
+        ;;
+        *)
+          debug "No subcase $2 in osm2po"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    ip)
+      case $2 in
+        osm2po)
+          show_container_ip $2
+        ;;
+        * )
+          debug "No subcase $2 in osm2po"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    uninstall)
+      debug "Case uninstall in osm2po"
+      case $2 in
+        osm2po)
+          #echo "Case osm2po"
+          uninstall_osm2po
+        ;;
+        *)
+          debug "No subcase $2 in osm2po"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    rm)
+      debug "Case remove in osm2po"
+      case $2 in
+        osm2po)
+          remove_osm2po_container
+        ;;
+        * )
+          debug "No subcase $2 in osm2po"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    rerun)
+      debug "Case rerun in osm2po"
+      case $2 in
+        osm2po)
+          remove_osm2po_container
+          run_osm2po_container
+          docker ps
+        ;;
+        *)
+          debug "No subcase $2 in osm2po"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    run)
+      debug "Case run in osm2po"
+      case $2 in
+        osm2po)
+          run_osm2po_container
+        ;;
+        *)
+          debug "No subcase $2 in osm2po"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    start)
+      debug "Case start in osm2po"
+      case $2 in
+        osm2po)
+          start_osm2po_container
+        ;;
+        *)
+          debug "No subcase $2 in osm2po"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    status)
+      case $2 in
+        osm2po)
+          show_container_status "osm2po"
+        ;;
+        *)
+          debug "No subcase $2 in osm2po"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    stop)
+      debug "Case stop in osm2po"
+      case $2 in
+        osm2po)
+          stop_osm2po_container
+        ;;
+        *)
+          debug "No subcase $2 in osm2po"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    *)
+      #echo "No case found in dcm osm2po"
+      case_found=false
+    ;;
+  esac
+  debug "Case found after cases osm2po: $case_found"
+}
