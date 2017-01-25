@@ -1,0 +1,3 @@
+#!/bin/bash
+geoserver_volumes="-v $GEOSERVER_DATA_DIR:/opt/geoserver/data_dir"
+geoserver_env_vars="-e \"TERM=xterm\""

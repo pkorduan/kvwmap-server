@@ -10,7 +10,7 @@ for geodata. For loading and exporting geodata with ogr2ogr the image [geodata/g
 ## Installation
 The preferred way to install the `pkorduan/kvwmap-server` image and run the container onto
 your system is to clone the kvwmap-server repository from github first and than install
-all required components with the included administration script `kvwmap`.
+all required components with the included administration script `dcm` (docker container manager).
 
 ### Pull kvwmap-server
 **Note:** You must be logged in as root and have installed at least the debian
@@ -35,19 +35,26 @@ git clone https://github.com/pkorduan/kvwmap-server.git
 Logout as user gisadmin
 
 ### Install kvwmap-server
-Login as other user than gisadmin and login as root.
-Get and install all the components that uses kvwmap-server.
+Login to your remote server via ssh as other user than gisadmin and login as root.
+Get and install all required components for kvwmap-server.
 This step do not as user gisadmin and gisadmin must have no open connections to the server, because we want to change its uid and gid.
 
 ```
 kvwmap-server/dcm install kvwmap
 ```
 
-This scrpit should ended up with the message: Successfully built or a message that the image pkorduan/kvwmap-server has been successfull pulled.
+This scrpit should ended up with the message: "Status: Downloaded newer image for pkorduan/kvwmap-server:latest" and
+Nächste Schritte zum installieren von kvwmap:
+    $ dcm run all
+    Browser öffnen mit der Adresse: https://{ip-of-your-server}/kvwmap/install.php
 
 ### Start kvwmap-server
-Start the containers with volumes and link it together. You will be asked to
-choose passwords for the MySQL root and PostgreSQL postgres super user as well as for a kvwmap user. The Password for kvwmap user will be used as initial password for the database access to the kvwmap databases, for the phpMyAdmin web client which has the alias userDbAdmin and for the admin page of the web application kvwmap itself.
+Logout and login as root to reload the bash settings or call
+```
+source ~/.bashrc
+```
+
+Start the containers with volumes and link it together. You will be asked to choose initial passwords for the MySQL root and PostgreSQL postgres super user as well as for a kvwmap user. The Password for kvwmap user will be used as initial password for the database access to the kvwmap databases, for the phpMyAdmin web client, which has the alias userDbAdmin, and for the admin page of the web application kvwmap itself.
 
 ```
 dcm run all
@@ -57,9 +64,15 @@ After this step the container named web, pgsql-server and mysql-server shoud be
 set up and run. The output of `docker ps -a` is shown.
 
 ### Install kvwmap web application
-Open a browser and call the kvwmap install script with the url of your host.
+The default Protocol for using kvwmap in a Browser is HTTPS. 
+You can comment out SSLRequireSSL in /home/gisadmin/etc/apache2/sites-available/kvwmap.conf to disable HTTPS. Reload Apache in web container with
 
-`https://yourserver/kvmwmap/install.php`
+```
+docker exec web service apache2 reload
+````
+To init kvwmap app open a browser and call the kvwmap install script with the url of your host.
+
+`https://{yourserver}/kvmwmap/install.php`
 Accept the self-signed root certificate to connect with https. You can replace it later with your own certificate of your domain. Then click on the button "Installation starten".
 The result will be open in a new browser tab. Go to the end of the page and click on the link "Login" and login with:
 
