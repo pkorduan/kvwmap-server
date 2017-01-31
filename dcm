@@ -8,12 +8,18 @@ getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
 USER_DIR=/home/$OS_USER
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
+
+PGSQL_USER=postgres
+PGSQL_PASSWORD=postgres
+PGSQL_DB=postgres
+PGSQL_MAJOR_VERSION=9.4
+POSTGIS_VERSION=2.3
+
 MYSQL_IMAGE_VERSION="5.5"
-#POSTGRESQL_IMAGE_VERSION=9.4 with oracle client for oracle_fdw Based on mdillon/postgis:9.4 which comes with postgis 2.2
-POSTGRESQL_IMAGE_VERSION=9.4-2.1 # currently the default
+PGSQL_IMAGE_VERSION="${PGSQL_MAJOR_VERSION}-${POSTGIS_VERSION}"
 KVWMAP_IMAGE_VERSION="1.1.2"
-GDAL_IMAGE="pkorduan/gdal-sshd"
 GDAL_IMAGE_VERSION="2.2.0"
+
 SERVER_NAME=`hostname`
 DOCKER_ROOT="/var/docker"
 WWW_ROOT="${DOCKER_ROOT}/www"
@@ -364,7 +370,7 @@ install_kvwmap_images() {
   
   echo "
   Pull PostgreSQL image mit PostGIS von docker hup ..."
-  docker pull pkorduan/postgis:${POSTGRESQL_IMAGE_VERSION}
+  docker pull pkorduan/postgis:${PGSQL_IMAGE_VERSION}
 
   echo "
   Pull kvwmap-server image mit Apache, PHP, MapServer etc. von docker hup ..."
@@ -488,7 +494,7 @@ run_gdal_container() {
     --link pgsql-server:pgsql \
     --restart=always \
     -P \
-    -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}
+    -d pkorduan/gdal-sshd:${GDAL_IMAGE_VERSION}
 }
 
 run_mysql_container() {
@@ -505,6 +511,7 @@ run_mysql_container() {
 }
 
 run_pgsql_container() {
+  # docker run --name pgtest -h pgtest-container --volumes-from wwwdata -e POSTGRES_USER=postgres -e POSTGRES_DB=postgres2 -e PG_MAJOR=9.4 -e POSTGRES_PASSWORD=postgres -d pkorduan/postgis:9.4-2.3  
   # link also running cargo containers
   set_cargo_pgsql_links
   read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
@@ -517,9 +524,12 @@ run_pgsql_container() {
     -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
     -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
     -p 5432:5432 \
-    -e POSTGRES_PASSWORD=$PGSQL_ROOT_PASSWORD \
+    -e POSTGRES_USER=$PGSQL_USER \
+    -e POSTGRES_PASSWORD=$PGSQL_PASSWORD \
+    -e POSTGRES_DB=$PGSQL_DB \
+    -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
     --restart=always \
-    -d pkorduan/postgis:${POSTGRESQL_IMAGE_VERSION}
+    -d pkorduan/postgis:${PGSQL_IMAGE_VERSION}
 }
 
 run_web_container() {
