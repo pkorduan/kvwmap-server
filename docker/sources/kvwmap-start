@@ -5,4 +5,6 @@ then
 	/usr/local/bin/kvwmap-firstrun
 fi
 
+service cron start
+
 /usr/sbin/apache2ctl -d /etc/apache2 -DFOREGROUND

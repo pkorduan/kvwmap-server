@@ -1,6 +1,6 @@
 FROM debian
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="1.1.2"
+LABEL version="1.1.3"
 
 ENV OS_USER="gisadmin" USER_DIR="/home/${OS_USER}" TZ="Europe/Berlin" TERM=xterm
 

@@ -17,7 +17,7 @@ POSTGIS_VERSION=2.3
 
 MYSQL_IMAGE_VERSION="5.5"
 PGSQL_IMAGE_VERSION="${PGSQL_MAJOR_VERSION}-${POSTGIS_VERSION}"
-KVWMAP_IMAGE_VERSION="1.1.2"
+KVWMAP_IMAGE_VERSION="1.1.3"
 GDAL_IMAGE_VERSION="2.2.0"
 
 SERVER_NAME=`hostname`
@@ -381,7 +381,7 @@ install_kvwmap_images() {
 
   echo "
   Pull kvwmap-server image mit Apache, PHP, MapServer etc. von docker hup ..."
-  docker pull pkorduan/kvwmap-server:latest
+  docker pull pkorduan/kvwmap-server:$KVWMAP_IMAGE_VERSION
 
   # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
   #build_kvwmap_server $KVWMAP_IMAGE_VERSION
@@ -911,18 +911,15 @@ case "$1" in
         run_gdal_container
       ;;
       web)
-        stop_web_container
         remove_web_container
-        docker rmi -f $(docker images -q pkorduan/kvwmap-server)
-        build_kvwmap_server "latest"
+        build_kvwmap_server $KVWMAP_IMAGE_VERSION
         run_web_container
       ;;
       *)
         stop_all_container
         remove_all_container
-        docker rmi -f $(docker images -q pkorduan/kvwmap-server)
         build_gdal_image 
-        build_kvwmap_server "latest"
+        build_kvwmap_server $KVWMAP_IMAGE_VERSION
         run_all_container
       ;;
     esac
@@ -940,7 +937,6 @@ case "$1" in
         run_all_container
       ;;
       web)
-        stop_web_container
         remove_web_container
         docker rmi -f $(docker images -q pkorduan/kvwmap-server)
         docker pull pkorduan/kvwmap-server:latest
@@ -1210,7 +1206,11 @@ case "$1" in
   update)
     case $2 in
       cron)
-        docker exec web crontab -u gisadmin /var/www/cron/crontab_gisadmin
+        docker exec web /etc/cron.hourly/kvwmap
+        echo "Crontab für Nutzer gisadmin im Web-Container geschrieben." 
+      ;;
+      *)
+        usage
       ;;
     esac
   ;;
