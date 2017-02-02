@@ -1,0 +1,5 @@
+#!/bin/bash
+CRONTAB_FILE="/var/www/cron/crontab_gisadmin"
+if [ -s $CRONTAB_FILE ] ; then
+  crontab -u gisadmin $CRONTAB_FILE
+fi

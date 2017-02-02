@@ -123,6 +123,8 @@ Verzeichnisse und lokale Dateien für den Betrieb von Containern auf der Basis d
   echo "               Dazu gehört alles in  ${WWW_ROOT} sowie die Verzeichnisse db, etc und kvwmap-server"
   echo "               unter dem Installationsverzeichnis z.B. unter /home/gisadmin"
   echo "               Damit werden auch alle Daten und Datenbankinhalte gelöscht."
+  echo "update cron    Aktualisiert umgehend die cronjobs des Nutzers gisadmin im Web Container durch die Eintragungen,"
+  echo "               die mit kvwmap in die Datei /var/www/cron/crontab_gisadmin geschrieben wurden."
   echo ""
   echo "Beispiele:"
   echo "$0 start"
@@ -165,6 +167,28 @@ build_gdal_image() {
   echo "Build the image pkorduan/gdal-sshd:$TAG"
   cd $USER_DIR/gdal-sshd
   docker build -t pkorduan/gdal-sshd:$TAG .
+}
+
+call_cargo_cases() {
+  debug "Call cargo cases with Arguments '$1' and '$2'"
+  any_case_found=false
+  for cargo in "${CARGOS[@]}"
+  do :
+    debug "Search for case $1 $2 in cargo $cargo"
+    cases_$cargo $1 $2
+    if $case_found ; then
+      #echo "Found case in cargo $cargo $1 $2"
+      any_case_found=true
+    fi
+  done
+  debug "Any case found after call all cargo cases: $any_case_found"
+  if ! $any_case_found ; then
+    echo "Gib nach $1 die Parameter $core_sub_cases"
+    if [ "${#CARGOS[@]}" -gt "0" ] ; then
+      printf "oder %s " "${CARGOS[@]}"
+    fi
+    echo "an."
+  fi
 }
 
 create_www_data_volume() {
@@ -271,17 +295,18 @@ install_kvwmap_images() {
     $USER_DIR/.bashrc
   cp $USER_DIR/.bashrc ~/.bashrc
   source ~/.bashrc
-  
+
+  echo "Kopiere www Verzeichnisse die vordefinierte Daten enthalten."
+  cp -R $USER_DIR/kvwmap-server/www/* $WWW_ROOT
+
   echo "
-  Erzeuge Verzeichnisstruktur für die Datenbank und Web-Anwendungen von kvwmap ..."
+  Erzeuge restliche Verzeichnisstruktur für die Datenbank und Web-Anwendungen von kvwmap ..."
   # create directories
   mkdir -p $DB_ROOT/mysql \
            $DB_ROOT/postgresql/data \
            $USER_DIR/etc/apache2/sites-enabled \
            $USER_DIR/etc/apache2/ssl \
            $USER_DIR/etc/postgresql \
-           $WWW_ROOT/apps \
-           $WWW_ROOT/html \
            $WWW_ROOT/logs \
            $WWW_ROOT/logs/apache2 \
            $WWW_ROOT/logs/pgsql \
@@ -289,13 +314,11 @@ install_kvwmap_images() {
            $WWW_ROOT/tmp \
            $WWW_ROOT/cache \
            $WWW_ROOT/wms \
-           $WWW_ROOT/data/mapfiles \
            $WWW_ROOT/data/synchro \
            $WWW_ROOT/data/upload \
            $WWW_ROOT/data/druckrahmen \
            $WWW_ROOT/data/bilder \
            $WWW_ROOT/data/alb \
-           $WWW_ROOT/data/referencemaps \
            $WWW_ROOT/data/nachweise \
            $WWW_ROOT/data/recherchierte_antraege \
            $WWW_ROOT/data/festpunkte/archiv
@@ -310,8 +333,7 @@ install_kvwmap_images() {
   ln -s $DB_ROOT/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
 
   echo "
-  Kopiere index.php und Konfigurationsdateien für Apache Web-Server ..."
-  cp $USER_DIR/kvwmap-server/www/html/index.php $WWW_ROOT/html/index.php
+  Kopiere Konfigurationsdateien für Apache Web-Server ..."
   cp -R $USER_DIR/kvwmap-server/etc/apache2 $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/gdal $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/mysql $USER_DIR/etc/
@@ -326,12 +348,6 @@ install_kvwmap_images() {
   sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" $USER_DIR/etc/apache2/sites-available/000-default.conf
 
   echo "
-  Kopiere Mapfiles, Referenzkarten und 3rdparty Dateien ..."
-  cp -R $USER_DIR/kvwmap-server/www/data/mapfiles/ $WWW_ROOT/data/
-  cp -R $USER_DIR/kvwmap-server/www/data/referencemaps/ $WWW_ROOT/data/
-  cp -R $USER_DIR/kvwmap-server/www/apps/3rdparty $WWW_ROOT/apps/
-
-  echo "
   Clone kvwmap von github ins Web-Verzeichnis ..."
   if [ ! -d "${WWW_ROOT}/apps/kvwmap" ]; then
     # clone kvwmap repository into apps
@@ -341,7 +357,7 @@ install_kvwmap_images() {
   fi
 
   echo "
-  Erzeuge kvwmap Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
+  Erzeuge kvwmap custom Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
   mkdir -p $WWW_ROOT/apps/kvwmap/fonts/custom \
            $WWW_ROOT/apps/kvwmap/graphics/custom \
            $WWW_ROOT/apps/kvwmap/layouts/custom \
@@ -353,16 +369,7 @@ install_kvwmap_images() {
   echo "
   Setze Rechte auf kvwmap Datenverzeichnisse ..."
   chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
-  chmod g+w $WWW_ROOT/apps/kvwmap \
-            $WWW_ROOT/apps/kvwmap/graphics/wappen \
-            $WWW_ROOT/data/bilder \
-            $WWW_ROOT/data/festpunkte \
-            $WWW_ROOT/data/nachweise \
-            $WWW_ROOT/data/recherchierte_antraege \
-            $WWW_ROOT/data/synchro \
-            $WWW_ROOT/data/upload \
-            $WWW_ROOT/logs \
-            $WWW_ROOT/tmp
+  chmod -R g+w $WWW_ROOT
 
   echo "
   Pull MySQL image von docker hup ..."
@@ -726,28 +733,6 @@ uninstall_kvwmap() {
       echo "OK, nix passiert!"
     ;;
   esac
-}
-
-call_cargo_cases() {
-  debug "Call cargo cases with Arguments '$1' and '$2'"
-  any_case_found=false
-  for cargo in "${CARGOS[@]}"
-  do :
-    debug "Search for case $1 $2 in cargo $cargo"
-    cases_$cargo $1 $2
-    if $case_found ; then
-      #echo "Found case in cargo $cargo $1 $2"
-      any_case_found=true
-    fi
-  done
-  debug "Any case found after call all cargo cases: $any_case_found"
-  if ! $any_case_found ; then
-    echo "Gib nach $1 die Parameter $core_sub_cases"
-    if [ "${#CARGOS[@]}" -gt "0" ] ; then
-      printf "oder %s " "${CARGOS[@]}"
-    fi
-    echo "an."
-  fi
 }
 
 fail_unless_root
@@ -1218,6 +1203,14 @@ case "$1" in
       *)
         core_sub_cases="all, gdal, kvwmap"
         call_cargo_cases $1 $2
+      ;;
+    esac
+  ;;
+
+  update)
+    case $2 in
+      cron)
+        docker exec web crontab -u gisadmin /var/www/cron/crontab_gisadmin
       ;;
     esac
   ;;
