@@ -17,7 +17,7 @@ POSTGIS_VERSION=2.3
 
 MYSQL_IMAGE_VERSION="5.5"
 PGSQL_IMAGE_VERSION="${PGSQL_MAJOR_VERSION}-${POSTGIS_VERSION}"
-KVWMAP_IMAGE_VERSION="1.1.3"
+KVWMAP_IMAGE_VERSION="latest"
 GDAL_IMAGE_VERSION="2.2.0"
 
 SERVER_NAME=`hostname`
@@ -933,13 +933,13 @@ case "$1" in
         stop_all_container
         remove_all_container
         docker rmi -f $(docker images -q pkorduan/kvwmap-server)
-        docker pull pkorduan/kvwmap-server:latest
+        docker pull pkorduan/kvwmap-server:$KVWMAP_IMAGE_VERSION
         run_all_container
       ;;
       web)
         remove_web_container
         docker rmi -f $(docker images -q pkorduan/kvwmap-server)
-        docker pull pkorduan/kvwmap-server:latest
+        docker pull pkorduan/kvwmap-server:$KVWMAP_IMAGE_VERSION
         run_web_container
       ;;
       *)
