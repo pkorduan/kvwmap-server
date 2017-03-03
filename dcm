@@ -21,7 +21,8 @@ KVWMAP_IMAGE_VERSION="latest"
 GDAL_IMAGE_VERSION="2.2.0"
 
 SERVER_NAME=`hostname`
-DOCKER_ROOT="/var/docker"
+DOMAIN_NAME="domain_name"
+DOCKER_ROOT="${USER_DIR}/docker"
 WWW_ROOT="${DOCKER_ROOT}/www"
 DB_ROOT="${DOCKER_ROOT}/db"
 CARGOPATH="$SCRIPTPATH/cargo-enabled"
@@ -33,7 +34,10 @@ NO_PROXY_WEB=localhost,pgsql
 
 if [ "$(id -u)" == '0' ]; then
   IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
+else
+  IP_EXTERN="server_ip"
 fi
+
 if [ -f $USER_DIR/etc/apache2/domain ]; then
   DOMAIN_EXTERN=$(head -n 1 $USER_DIR/etc/apache2/domain)
 fi
@@ -296,6 +300,9 @@ install_kvwmap_images() {
   cp $USER_DIR/.bashrc ~/.bashrc
   source ~/.bashrc
 
+  echo "Erzeuge www_root Verzeichnis."
+  mkdir -p $WWW_ROOT
+
   echo "Kopiere www Verzeichnisse die vordefinierte Daten enthalten."
   cp -R $USER_DIR/kvwmap-server/www/* $WWW_ROOT
 
@@ -555,7 +562,7 @@ run_web_container() {
       -p 443:443 \
       $web_env_vars \
       $web_volumes \
-      --add-host=$SERVER_NAME.d10643.imv.de:${IP_EXTERN} \
+      --add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
       --add-host=$SERVER_NAME:${IP_EXTERN} \
       --restart=always \
       -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
