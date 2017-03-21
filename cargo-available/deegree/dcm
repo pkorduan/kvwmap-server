@@ -99,7 +99,7 @@ run_deegree_container() {
 }
 
 set_deegree_web_link() {
-  echo "Setzte deegree link zum Starten des web containers: --link deegree:deegree"
+  echo "Setze deegree link zum Starten des web containers: --link deegree:deegree"
   CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link deegree:deegree"
 }
 
