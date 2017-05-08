@@ -35,14 +35,14 @@ Enable deegree Web-Site in Apache Konfiguration."
   ln -s ../sites-available/deegree.conf $USER_DIR/etc/apache2/sites-enabled/deegree.conf
 
   echo "
-Kopiere Konfigurationsdatei für volumes"
-  echo "cp $USER_DIR/kvwmap-server/deegree/etc/deegree/volumes => $USER_DIR/etc/deegree/volumes"
+Kopiere Konfigurationsdatei für env_and_volumes"
+  echo "cp $USER_DIR/kvwmap-server/deegree/etc/deegree/env_and_volumes => $USER_DIR/etc/deegree/env_and_volumes"
   mkdir -p $USER_DIR/etc/deegree
   chown $OS_USER.$OS_USER $USER_DIR/etc/deegree
   chmod g+w $USER_DIR/etc/deegree
-  cp $USER_DIR/kvwmap-server/deegree/etc/deegree/volumes $USER_DIR/etc/deegree/volumes
-  chown $OS_USER.$OS_USER $USER_DIR/etc/deegree/volumes
-  chmod g+w $USER_DIR/etc/deegree/volumes
+  cp $USER_DIR/kvwmap-server/deegree/etc/deegree/env_and_volumes $USER_DIR/etc/deegree/env_and_volumes
+  chown $OS_USER.$OS_USER $USER_DIR/etc/deegree/env_and_volumes
+  chmod g+w $USER_DIR/etc/deegree/env_and_volumes
 
   echo "
 Kopiere Konfigurationsdatei für tomcat"
@@ -86,7 +86,7 @@ remove_deegree_image() {
 }
 
 run_deegree_container() {
-  source $USER_DIR/etc/deegree/volumes
+  source $USER_DIR/etc/deegree/env_and_volumes
   echo "Erzeuge und starte den deegree Container"
   echo "mit volumes: ${deegree_volumes}"
   docker run --name deegree \
@@ -137,7 +137,7 @@ uninstall_deegree() {
       rm $USER_DIR/etc/apache2/sites-enabled/deegree.conf
       rm $USER_DIR/etc/apache2/sites-available/deegree.conf
 
-      echo "Lösche deegree volumes Konfiguration in etc."
+      echo "Lösche deegree env_and_volumes Konfiguration in etc."
       rm -R $USER_DIR/etc/deegree
 
       echo "So jetzt ist deegree weg."

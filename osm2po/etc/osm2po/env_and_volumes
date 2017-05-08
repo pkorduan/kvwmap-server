@@ -1,0 +1,3 @@
+osm2po_env_vars="-e \"OSM2PO_VERSION=5.1.0\""
+osm2po_volumes="-v ${USER_DIR}/etc/osm2po/config/osm2po.config:/usr/local/osm2po-5.1.0/osm2po.config \
+                -v /var/docker/www/logs/osm2po:/usr/local/osm2po-5.1.0/logs"

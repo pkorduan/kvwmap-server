@@ -35,12 +35,12 @@ Enable tomcat Web-Site in Apache Konfiguration."
   ln -s ../sites-available/tomcat.conf $USER_DIR/etc/apache2/sites-enabled/tomcat.conf
 
   echo "
-Kopiere Konfigurationsdatei für volumes"
-  echo "cp $USER_DIR/kvwmap-server/tomcat/etc/tomcat/volumes => $USER_DIR/etc/tomcat/volumes"
+Kopiere Konfigurationsdatei für env_and_volumes"
+  echo "cp $USER_DIR/kvwmap-server/tomcat/etc/tomcat/env_and_volumes => $USER_DIR/etc/tomcat/env_and_volumes"
   mkdir -p $USER_DIR/etc/tomcat
-  cp $USER_DIR/kvwmap-server/tomcat/etc/tomcat/volumes $USER_DIR/etc/tomcat/volumes
-  chown $OS_USER.$OS_USER $USER_DIR/etc/tomcat/volumes
-  chmod g+w $USER_DIR/etc/tomcat/volumes
+  cp $USER_DIR/kvwmap-server/tomcat/etc/tomcat/env_and_volumes $USER_DIR/etc/tomcat/env_and_volumes
+  chown $OS_USER.$OS_USER $USER_DIR/etc/tomcat/env_and_volumes
+  chmod g+w $USER_DIR/etc/tomcat/env_and_volumes
 
   echo "
 Kopiere tomcat Datenverzeichnis nach $tomcat_DATA_DIR"
@@ -86,7 +86,7 @@ remove_tomcat_image() {
 #    --restart=always \
 #    -d $tomcat_IMAGE
 run_tomcat_container() {
-  source $USER_DIR/etc/tomcat/volumes
+  source $USER_DIR/etc/tomcat/env_and_volumes
   echo "Erzeuge und starte den tomcat Container"
   #echo "mit volumes: ${webapp_volumes}"
   docker run --name tomcat \

@@ -9,38 +9,15 @@ USER_DIR=/home/$OS_USER
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
-PGSQL_USER=postgres
-PGSQL_PASSWORD=postgres
-PGSQL_DB=postgres
-PGSQL_MAJOR_VERSION=9.4
-POSTGIS_VERSION=2.3
-
-MYSQL_IMAGE_VERSION="5.5"
-PGSQL_IMAGE_VERSION="${PGSQL_MAJOR_VERSION}-${POSTGIS_VERSION}"
-KVWMAP_IMAGE_VERSION="latest"
-GDAL_IMAGE_VERSION="2.2.0"
-
 SERVER_NAME=`hostname`
 DOMAIN_NAME="domain_name"
-DOCKER_ROOT="${USER_DIR}/docker"
+DOCKER_ROOT="/var/docker"
 WWW_ROOT="${DOCKER_ROOT}/www"
 DB_ROOT="${DOCKER_ROOT}/db"
 CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
 CARGO_WEB_LINKS=
 CARGO_PGSQL_LINKS=
-HTTP_PROXY_WEB=
-NO_PROXY_WEB=localhost,pgsql
-
-if [ "$(id -u)" == '0' ]; then
-  IP_EXTERN=`ifconfig eth0 | grep 'inet ' | awk '{ print $2 }' | cut -d: -f2`
-else
-  IP_EXTERN="server_ip"
-fi
-
-if [ -f $USER_DIR/etc/apache2/domain ]; then
-  DOMAIN_EXTERN=$(head -n 1 $USER_DIR/etc/apache2/domain)
-fi
 
 usage() {
   echo ""
@@ -59,11 +36,9 @@ usage() {
   echo "console pgsql  Öffnet eine Console im PostgreSQL Container."
   echo "console web    Öffnet eine Console im Web Container"
   echo "install        - Installiert auf dem Hostrechner den Docker-Server und Utilities zum Betrieb der Container,"
-  echo "               - Zieht die im zweiten Parameter angegebenen Images von docker hup und richtet ggf. benötigte
-Verzeichnisse und lokale Dateien für den Betrieb von Containern auf der Basis dier Images."
-  echo "install all    Installiert alle Images."
-  echo "install gdal   Installiert das gdal Image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION}."
-  echo "install kvwmap Installieirt kvwmap-server Image sowie von ihm benötigten images für MySQL und PostgreSQL."
+  echo "               - Richtet ggf. benötigte Verzeichnisse und lokale Dateien für den Betrieb der Container ein."
+  echo "install all    Installiert die Voraussetzungen zum Betrieb aller Container."
+  echo "install kvwmap Installiert die Voraussetzungen zum Betrieb des web Containers."
   echo "install pydio  Installiert pydio Image."
   echo "mysql client   Öffnet eine Komandozeile im mysql Client."
   echo "mysql start    Startet nur den Container mit der MySQL-Datenbank (mysql-server)"
@@ -267,18 +242,8 @@ install_docker() {
   update-grub
 }
 
-install_gdal_image() {
-  echo "Installiere gdal Image ..."
-  echo "
-  Pull GDAL image mit integriertem sshd von docker hup ..."
-  # download gdal image for NAS Imports
-  # this can be used to execute ogr2ogr like in the following example
-  # docker run --rm --volumes-from wwwdata --link pgsql-server:pgsql geodata/gdal /bin/bash -c "/ogr2ogr -f PostgreSQL --config PG_USE_COPY YES -skipfailures -nlt CONVERT_TO_LINEAR -append PG:\"dbname=<POSTNASDB> active_schema=alkis user=<DBUSER> host=pgsql\" -a_srs EPSG:25833  /PFAD/ZU/DEN/NASDATEN.XML 2>> /var/www/logs/postnas_err.log"
-  docker pull pkorduan/gdal-sshd:${GDAL_IMAGE_VERSION}
-}
-
 install_kvwmap_images() {
-  echo "Installiere kvwmap images ..."
+  echo "Installiere Voraussetzungen für den Betrieb von kvwmap ..."
   
   echo "
   Erzeuge user: ${OS_USER} ..."
@@ -344,6 +309,7 @@ install_kvwmap_images() {
   cp -R $USER_DIR/kvwmap-server/etc/apache2 $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/gdal $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/mysql $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/postgresql $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/php5 $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/phpmyadmin $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
@@ -379,22 +345,9 @@ install_kvwmap_images() {
   chmod -R g+w $WWW_ROOT
 
   echo "
-  Pull MySQL image von docker hup ..."
-  docker pull mysql:${MYSQL_IMAGE_VERSION}
-  
-  echo "
-  Pull PostgreSQL image mit PostGIS von docker hup ..."
-  docker pull pkorduan/postgis:${PGSQL_IMAGE_VERSION}
+  Setze Rechte 600 auf .pgpass ..."
+  chmod 600 $USER_DIR/etc/postgresql/.pgpass
 
-  echo "
-  Pull kvwmap-server image mit Apache, PHP, MapServer etc. von docker hup ..."
-  docker pull pkorduan/kvwmap-server:$KVWMAP_IMAGE_VERSION
-
-  # build the kvwmap-server images from the Dockerfilie in the git repository kvwmap-server
-  #build_kvwmap_server $KVWMAP_IMAGE_VERSION
-  
-  #mkdir /etc/systemd/system/docker.service.d
-  #cp docker/sources/kvwmap-container.conf /etc/systemd/system/docker.service.d/kvwmap-container.conf
   echo "
   Nächste Schritte zum installieren von kvwmap:"
   echo "    $ dcm run all"
@@ -499,73 +452,72 @@ run_cargo_containers() {
 }
 
 run_gdal_container() {
-  source $USER_DIR/etc/gdal/volumes
-  echo "Erzeuge und Starte den gdal Container ..."
+  echo "Erzeuge und Starte container gdal"
+
+  source $USER_DIR/etc/gdal/env_and_volumes
+
   docker run --name gdal \
     -h ${SERVER_NAME}-gdal-container \
+    --link pgsql-server:pgsql \
     $gdal_env_vars \
     $gdal_volumes \
-    --link pgsql-server:pgsql \
-    --restart=always \
     -P \
-    -d pkorduan/gdal-sshd:${GDAL_IMAGE_VERSION}
+    --restart=always \
+    -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}
 }
 
 run_mysql_container() {
-  read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
+  echo "Erzeuge und Starte container mysql"
+
+  source $USER_DIR/etc/mysql/env_and_volumes
+
   docker run --name mysql-server \
     -h ${SERVER_NAME}-mysql-container \
-    -v $USER_DIR/etc/mysql:/etc/mysql \
-    -v $DB_ROOT/mysql:/var/lib/mysql \
-    -v $WWW_ROOT/logs/mysql:/var/logs/mysql \
+    $mysql_env_vars \
+    $mysql_volumes \
     -p 3306:3306 \
-    -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
     --restart=always \
-    -d mysql:${MYSQL_IMAGE_VERSION}
+    -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}
 }
 
 run_pgsql_container() {
-  # docker run --name pgtest -h pgtest-container --volumes-from wwwdata -e POSTGRES_USER=postgres -e POSTGRES_DB=postgres2 -e PG_MAJOR=9.4 -e POSTGRES_PASSWORD=postgres -d pkorduan/postgis:9.4-2.3  
-  # link also running cargo containers
+  echo "Erzeuge und Starte container pgsql"
+
+  source $USER_DIR/etc/postgres/env_and_volumes
+
   set_cargo_pgsql_links
-  read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
+
   docker run --name pgsql-server \
     -h ${SERVER_NAME}-pgsql-container \
     $CARGO_PGSQL_LINKS \
-    --volumes-from wwwdata \
-    -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
-    -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
-    -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
-    -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
+    $pgsql_env_vars \
+    $pgsql_volumes \
     -p 5432:5432 \
-    -e POSTGRES_USER=$PGSQL_USER \
-    -e POSTGRES_PASSWORD=$PGSQL_PASSWORD \
-    -e POSTGRES_DB=$PGSQL_DB \
-    -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
     --restart=always \
-    -d pkorduan/postgis:${PGSQL_IMAGE_VERSION}
+    -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}
 }
 
 run_web_container() {
-  source $USER_DIR/etc/web/volumes
   echo "Erzeuge und Starte container web"
-  # link also running cargo containers
+ 
+  source $USER_DIR/etc/web/env_and_volumes
+ 
   set_cargo_web_links
-  read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
+
   docker run --name web \
-      -h ${SERVER_NAME}-web-container \
-      --link mysql-server:mysql \
-      --link pgsql-server:pgsql \
-      --link gdal:gdal \
-      $CARGO_WEB_LINKS \
-      -p 80:80 \
-      -p 443:443 \
-      $web_env_vars \
-      $web_volumes \
-      --add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
-      --add-host=$SERVER_NAME:${IP_EXTERN} \
-      --restart=always \
-      -d pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}
+    -h ${SERVER_NAME}-web-container \
+    --link mysql-server:mysql \
+    --link pgsql-server:pgsql \
+    --link gdal:gdal \
+    $CARGO_WEB_LINKS \
+    $web_env_vars \
+    $web_volumes \
+    --add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
+    --add-host=$SERVER_NAME:${IP_EXTERN} \
+    -p 80:80 \
+    -p 443:443 \
+    --restart=always \
+    -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}
 }
 
 set_cargo_web_links() {
@@ -769,7 +721,7 @@ case "$1" in
     docker rm $(docker ps -q -f status=exited)
     
     echo "Lösche alle Images mit Namen <none>."
-    docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
+    docker rmi $(docker images -a | grep "^<none>" | awk '{print $3}')
   ;;
 
   console)
@@ -805,14 +757,9 @@ case "$1" in
     case $2 in
       all)
         install_kvwmap_images
-        install_gdal_image
         install_cargos
       ;;
-      gdal)
-        install_gdal_image
-      ;;
       kvwmap)
-        install_gdal_image
         install_kvwmap_images
       ;;
       *)

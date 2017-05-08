@@ -1,3 +1,0 @@
-#!/bin/bash
-gdal_env_vars="-e \"TERM=xterm\""
-gdal_volumes="--volumes-from wwwdata"

@@ -41,14 +41,14 @@ Enable owncloud Web-Site in Apache Konfiguration."
   ln -s ../sites-available/owncloud.conf $USER_DIR/etc/apache2/sites-enabled/owncloud.conf
 
   echo "
-Kopiere Konfigurationsdatei für volumes"
-  echo "cp $USER_DIR/kvwmap-server/owncloud/etc/owncloud/volumes => $USER_DIR/etc/owncloud/volumes"
+Kopiere Konfigurationsdatei für env_and_volumes"
+  echo "cp $USER_DIR/kvwmap-server/owncloud/etc/owncloud/env_and_volumes => $USER_DIR/etc/owncloud/env_and_volumes"
   mkdir -p $USER_DIR/etc/owncloud
   chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud
   chmod g+w $USER_DIR/etc/owncloud
-  cp $USER_DIR/kvwmap-server/owncloud/etc/owncloud/volumes $USER_DIR/etc/owncloud/volumes
-  chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud/volumes
-  chmod g+w $USER_DIR/etc/owncloud/volumes
+  cp $USER_DIR/kvwmap-server/owncloud/etc/owncloud/env_and_volumes $USER_DIR/etc/owncloud/env_and_volumes
+  chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud/env_and_volumes
+  chmod g+w $USER_DIR/etc/owncloud/env_and_volumes
 
   docker pull ${owncloud_IMAGE}:${owncloud_VERSION}
 
@@ -71,7 +71,7 @@ remove_owncloud_image() {
 }
 
 run_owncloud_container() {
-  source $USER_DIR/etc/owncloud/volumes
+  source $USER_DIR/etc/owncloud/env_and_volumes
   echo "Erzeuge und starte den owncloud Container"
   echo "mit volumes: ${owncloud_volumes}"
   docker run --name owncloud \
@@ -128,7 +128,7 @@ uninstall_owncloud() {
       ls -l ${WWW_ROOT}/data/owncloud
       rm -RI ${WWW_ROOT}/data/owncloud
 
-      echo "Lösche owncloud volumes Konfiguration in etc."
+      echo "Lösche owncloud env_and_volumes Konfiguration in etc."
       rm -R $USER_DIR/etc/owncloud
 
       echo "So jetzt ist owncloud weg."

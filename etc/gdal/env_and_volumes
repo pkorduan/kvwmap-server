@@ -1,0 +1,10 @@
+#!/bin/bash
+GDAL_IMAGE=pkorduan/gdal-sshd
+GDAL_IMAGE_VERSION=2.2.1
+
+# USER_DIR is defined in dcm
+# PGSQL_PASSFILE is defined in $USER_DIR/etc/postgresql/volumes loaded previously in dcm
+gdal_env_vars="-e \"TERM=xterm\" \
+               -e PGPASSFILE=$PGSQL_PASSFILE"
+gdal_volumes="--volumes-from wwwdata \
+              -v $USER_DIR/etc/postgresql/.pgpass:$PGSQL_PASSFILE"

@@ -1,0 +1,21 @@
+#!/bin/bash
+PGSQL_DB=postgres
+PGSQL_USER=postgres
+read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
+# PGSQL_PASSFILE must have permission 600
+PGSQL_PASSFILE=/root/.pgpass
+PGSQL_MAJOR_VERSION=9.4
+POSTGIS_VERSION=2.3
+PGSQL_IMAGE=pkorduan/postgis
+PGSQL_IMAGE_VERSION="${PGSQL_MAJOR_VERSION}-${POSTGIS_VERSION}"
+pgsql_env_vars="-e \"TERM=xterm\" \
+               -e POSTGRES_USER=$PGSQL_USER \
+               -e POSTGRES_DB=$PGSQL_DB \
+               -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
+               -e PGPASSFILE=$PGSQL_PASSFILE"
+pgsql_volumes="--volumes-from wwwdata \
+              -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
+              -v $USER_DIR/etc/postgresql/.pgpass:$PGSQL_PASSFILE \
+              -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
+              -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
+              -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"

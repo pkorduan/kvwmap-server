@@ -41,9 +41,9 @@ Kopiere geoserver Datenverzeichnis nach $GEOSERVER_DATA_DIR"
 
   echo "
 Kopiere geoserver Konfigurationsdatien nach $USER_DIR/etc/geoserver/"
-  echo "cp ${USER_DIR}/kvwmap-server/geoserver/etc/geoserver/volumes ${USER_DIR}/etc/geoserver/volumes"
+  echo "cp ${USER_DIR}/kvwmap-server/geoserver/etc/geoserver/env_and_volumes ${USER_DIR}/etc/geoserver/env_and_volumes"
 	mkdir ${USER_DIR}/etc/geoserver
-  cp ${USER_DIR}/kvwmap-server/geoserver/etc/geoserver/volumes ${USER_DIR}/etc/geoserver/volumes
+  cp ${USER_DIR}/kvwmap-server/geoserver/etc/geoserver/env_and_volumes ${USER_DIR}/etc/geoserver/env_and_volumes
   chown -R $OS_USER.$OS_USER ${USER_DIR}/etc/geoserver
   chmod -R a+w ${USER_DIR}/etc/geoserver
 
@@ -84,7 +84,7 @@ remove_geoserver_image() {
 #    --restart=always \
 #    -d $GEOSERVER_IMAGE
 run_geoserver_container() {
-  source $USER_DIR/etc/geoserver/volumes
+  source $USER_DIR/etc/geoserver/env_and_volumes
   echo "Erzeuge und starte den geoserver Container"
   echo "mit volumes: ${geoserver_volumes}"
   docker run --name ${GEOSERVER_CONTAINER_NAME} \
