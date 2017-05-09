@@ -441,6 +441,15 @@ run_all_container() {
   if type -t run_pydio_container | grep -q "^function$" ; then
     run_pydio_container
   fi
+  if type -t run_owncloud_container | grep -q "^function$" ; then
+    run_owncloud_container
+  fi
+  if type -t run_deegree_container | grep -q "^function$" ; then
+    run_deegree_container
+  fi
+  if type -t run_osm2po_container | grep -q "^function$" ; then
+    run_osm2po_container
+  fi
   run_web_container
 }
 
