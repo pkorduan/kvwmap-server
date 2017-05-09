@@ -2,12 +2,11 @@
 #echo "Load variables in dcm geoserver"
 CARGOS+=("geoserver")
 geoserver_enabled=true
-GEOSERVER_IMAGE="pkorduan/geoserver_inspire:2.9.1"
 GEOSERVER_CONTAINER_NAME="geoserver"
 GEOSERVER_DATA_DIR=$WWW_ROOT/data/geoserver_data_dir
 
 usage_geoserver() {
-  echo "install geoserver  Installiert ein geoserver Image."
+  echo "install geoserver  Installiert das geoserver Image."
   echo "run geoserver      Erzeugt und startet nur den Container geoserver."
   echo "start geoserver    Startet nur den Container geoserver."
   echo "status geoserver   Zeigt den aktuellen Status des Container geoserver an."
@@ -47,9 +46,11 @@ Kopiere geoserver Konfigurationsdatien nach $USER_DIR/etc/geoserver/"
   chown -R $OS_USER.$OS_USER ${USER_DIR}/etc/geoserver
   chmod -R a+w ${USER_DIR}/etc/geoserver
 
+  source $USER_DIR/etc/geoserver/env_and_volumes
+
   echo "
-  Ziehe Image $GEOSERVER_IMAGE von dockerhub"
-  docker pull $GEOSERVER_IMAGE
+  Ziehe Image ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION} von dockerhub"
+  docker pull ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}
 
   echo "Der geoserver container kann nun gestartet werden mit dem Befehl:"
   echo "dcm run geoserver"
@@ -74,15 +75,16 @@ remove_geoserver_container() {
 }
 
 remove_geoserver_image() {
-  echo "Lösche geoserver Image: $GEOSERVER_IMAGE"
-  docker rmi $GEOSERVER_IMAGE
+  source $USER_DIR/etc/geoserver/env_and_volumes
+  echo "Lösche geoserver Image: ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}"
+  docker rmi ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}
 }
 
 #    -v /home/gisadmin/geoserver_data:/opt/geoserver/data_dir \
   #    -p 443:443 \
 #    --volumes-from wwwdata \
 #    --restart=always \
-#    -d $GEOSERVER_IMAGE
+#    -d $GEOSERVER_IMAGE:${GEOSERVER_IMAGE_VERSION}
 run_geoserver_container() {
   source $USER_DIR/etc/geoserver/env_and_volumes
   echo "Erzeuge und starte den geoserver Container"
@@ -93,7 +95,7 @@ run_geoserver_container() {
     $geoserver_volumes \
     $geoserver_env_vars \
     --restart=always \
-    -d $GEOSERVER_IMAGE
+    -d ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}
 }
 
 set_geoserver_web_link() {
@@ -120,13 +122,14 @@ stop_geoserver_container() {
 }
 
 uninstall_geoserver() {
+  source $USER_DIR/etc/geoserver/env_and_volumes
   remove_geoserver_container
   
-  echo "Dieser Befehl deinstalliert das image $GEOSERVER_IMAGE und auf Nachfrage alle dazugehörigen auf diesem Host gespeicherten Daten, die geoserver genutzt hat."
+  echo "Dieser Befehl deinstalliert das image $GEOSERVER_IMAGE:$GEOSERVER_IMAGE_VERSION und auf Nachfrage alle dazugehörigen auf diesem Host gespeicherten Daten, die geoserver genutzt hat."
   read -p "Wollen Sie das Image wirklich deinstallieren? (j/n)? " answer
   case ${answer:0:1} in
     j|J )
-      docker rmi $GEOSERVER_IMAGE
+      docker rmi ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}
       echo "Lösche geoserver Datenverzeichnis $GEOSERVER_DATA_DIR"
       ls -l $GEOSERVER_DATA_DIR
       rm -RI $GEOSERVER_DATA_DIR
