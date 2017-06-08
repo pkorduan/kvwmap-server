@@ -42,11 +42,7 @@ This step do not as user gisadmin and gisadmin must have no open connections to 
 ```
 kvwmap-server/dcm install kvwmap
 ```
-
-This scrpit should ended up with the message: "Status: Downloaded newer image for pkorduan/kvwmap-server:latest" and
-Nächste Schritte zum installieren von kvwmap:
-    $ dcm run all
-    Browser öffnen mit der Adresse: https://{ip-of-your-server}/kvwmap/install.php
+This scrpit should ended up with the message: "Die Installation ist erfolgreich abgeschlossen."
 
 ### Start kvwmap-server
 Logout and login as root to reload the bash settings or call
