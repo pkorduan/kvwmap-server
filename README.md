@@ -60,16 +60,16 @@ After this step the container named web, pgsql-server and mysql-server shoud be
 set up and run. The output of `docker ps -a` is shown.
 
 ### Install kvwmap web application
-The default Protocol for using kvwmap in a Browser is HTTPS. 
-You can comment out SSLRequireSSL in /home/gisadmin/etc/apache2/sites-available/kvwmap.conf to disable HTTPS. Reload Apache in web container with
-
+The default Protocol for using kvwmap should be HTTPS.
+You can remove the commented out line SSLRequireSSL in /home/gisadmin/etc/apache2/sites-available/kvwmap.conf to enable HTTPS, but must install the required certificate files by yourself. Reload Apache in web container then with:
 ```
 docker exec web service apache2 reload
-````
-To init kvwmap app open a browser and call the kvwmap install script with the url of your host.
+```
 
-`https://{yourserver}/kvmwmap/install.php`
-Accept the self-signed root certificate to connect with https. You can replace it later with your own certificate of your domain. Then click on the button "Installation starten".
+To init the kvwmap app open a browser and call the kvwmap install script with the url of your host.
+`http[s]://{yourserver}/kvmwmap/install.php`
+
+Then click on the button "Installation starten".
 The result will be open in a new browser tab. Go to the end of the page and click on the link "Login" and login with:
 
 `user: kvwmap and password: KvwMapPW1 or your initial kvwmap password.`
