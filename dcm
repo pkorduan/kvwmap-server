@@ -174,7 +174,7 @@ create_www_data_volume() {
   docker create --name wwwdata \
     -v  $WWW_ROOT:/var/www \
     --restart=always \
-    pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} /bin/true
+    debian /bin/true
 }
 
 fail_unless_root() {
@@ -352,6 +352,8 @@ install_kvwmap_images() {
   Nächste Schritte zum installieren von kvwmap:"
   echo "    $ dcm run all"
   echo "    Browser öffnen mit der Adresse: https://${IP_EXTERN}/kvwmap/install.php"
+  echo ""
+  echo "Die Installation ist erfolgreich abgeschlossen."
 }
 
 is_stopped() {
@@ -502,7 +504,7 @@ run_mysql_container() {
 run_pgsql_container() {
   echo "Erzeuge und Starte container pgsql"
 
-  source $USER_DIR/etc/postgres/env_and_volumes
+  source $USER_DIR/etc/postgresql/env_and_volumes
 
   set_cargo_pgsql_links
 
