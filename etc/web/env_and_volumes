@@ -21,6 +21,7 @@ web_env_vars="-e OS_USER=$OS_USER \
               -e IP_EXTERN=$IP_EXTERN \
               -e DOMAIN_EXTERN=$DOMAIN_EXTERN \
               -e KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD \
+              -e PGSQL_ROOT_PASSWORD=$PGSQL_ROOT_PASSWORD \
               -e http_proxy=$HTTP_PROXY_WEB \
               -e no_proxy=localhost,${IP_EXTERN} \
               -e \"TERM=xterm\""
