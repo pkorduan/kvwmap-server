@@ -465,7 +465,6 @@ run_cargo_containers() {
 run_gdal_container() {
   echo "Erzeuge und Starte container gdal"
 
-  source $USER_DIR/etc/postgresql/env_and_volumes
   source $USER_DIR/etc/gdal/env_and_volumes
 
   echo "docker run --name gdal \
