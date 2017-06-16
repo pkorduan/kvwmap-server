@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     cgi-mapserver \
     chkconfig \
     cron \
+    curl \
     dialog \
     gdal-bin \
     git \
@@ -28,20 +29,21 @@ RUN apt-get update && apt-get install -y \
     less \
     mapserver-bin \
     mysql-client \
+    ntp \
     php5 \
-    php5-mapscript \
-    php5-mysql \
-    php5-pgsql \
+    php5-cli \
     php5-curl \
     php5-gd \
+    php5-mapscript \
     php5-mcrypt \
+    php5-mysql \
+    php5-pgsql \
     postgresql-client \
     sudo \
     unzip \
     vim \
     wget \
-    zip \
-    ntp
+    zip
 
 RUN chkconfig cron 1
 
@@ -79,8 +81,7 @@ RUN unzip -q phpmyadmin.zip && \
     rm phpmyadmin.zip && \
     mkdir -p /srv/www/ && \
     mv `ls` /srv/www/phpmyadmin && \
-    sudo apt-get install curl php5-cli && \
-    curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR /srv/www/phpmyadmin
 
