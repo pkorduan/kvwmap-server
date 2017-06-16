@@ -1,0 +1,4 @@
+#!/bin/bash
+WWWDATA_IMAGE=debian
+
+wwwdata_volumes="-v $WWW_ROOT:/var/www"

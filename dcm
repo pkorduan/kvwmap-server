@@ -1,23 +1,15 @@
 #!/bin/bash
 
-#settings
-DEBUG=false
-OS_USER="gisadmin"
-OS_USER_EXISTS=false
-getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
-USER_DIR=/home/$OS_USER
-SCRIPT=$(readlink -f "$0")
-SCRIPTPATH=$(dirname "$SCRIPT")
+#load settings
+CONFIG_FILE=$( dirname "${BASH_SOURCE[0]}" )
+if [ -f $CONFIG_FILE/config/config ] ; then
+  CONFIG_FILE=$CONFIG_FILE/config/config
+else
+  CONFIG_FILE=$CONFIG_FILE/config/config-default
+fi
 
-SERVER_NAME=`hostname`
-DOMAIN_NAME="domain_name"
-DOCKER_ROOT="/var/docker"
-WWW_ROOT="${DOCKER_ROOT}/www"
-DB_ROOT="${DOCKER_ROOT}/db"
-CARGOPATH="$SCRIPTPATH/cargo-enabled"
-CARGOS=()
-CARGO_WEB_LINKS=
-CARGO_PGSQL_LINKS=
+echo "Load config file ${CONFIG_FILE}"
+source $CONFIG_FILE
 
 usage() {
   echo ""
@@ -59,11 +51,11 @@ usage() {
   echo "reload         Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
   echo "reload all     Läd alle Container neu."
   echo "reload web     Läd nur den Web Container neu."
-  echo "remove         Löscht Container."
-  echo "remove all     Löscht alle Container."
-  echo "remove mysql   Löscht nur den Container mysql-server."
-  echo "remove pgsql   Löscht nur den Container pgsql-server."
-  echo "remove web     Löscht nur den Container web."
+  echo "rm             Löscht Container."
+  echo "rm all         Löscht alle Container."
+  echo "rm mysql       Löscht nur den Container mysql-server."
+  echo "rm pgsql       Löscht nur den Container pgsql-server."
+  echo "rm web         Löscht nur den Container web."
   echo "rerun          Stoppt und löscht alle oder die angegebenen Container und erzeugt und startet sie danach wieder."
   echo "rerun all      Rerun für alle Container."
   echo "rerun gdal     Stopped und löscht nur den gdal Container und erzeugt und startet ihn anschließend neu."
@@ -171,10 +163,14 @@ call_cargo_cases() {
 }
 
 create_www_data_volume() {
+  echo "Erzeuge data volume to share in other container"
+
+  source $USER_DIR/etc/wwwdata/volumes
+
   docker create --name wwwdata \
-    -v  $WWW_ROOT:/var/www \
+    $wwwdata_volumes \
     --restart=always \
-    debian /bin/true
+    $WWWDATA_IMAGE /bin/true
 }
 
 fail_unless_root() {
@@ -921,33 +917,6 @@ case "$1" in
       ;;
     esac
     docker images
-    docker ps -a
-  ;;
-  
-  remove)
-    echo "Der Parameter remove ist veraltet. Bitte nutze in Zukunft rm stall remove!"
-    case $2 in
-      all)
-        stop_all_container
-        remove_all_container
-      ;;
-      gdal)
-        remove_gdal_container
-      ;;
-      mysql)
-        remove_mysql_container
-      ;;
-      pgsql)
-        remove_pgsql_container
-      ;;
-      web)
-        remove_web_container
-      ;;
-      * )
-        core_sub_cases="all, gdal, mysql, pgsql, web"
-        call_cargo_cases $1 $2
-      ;;
-    esac
     docker ps -a
   ;;
 

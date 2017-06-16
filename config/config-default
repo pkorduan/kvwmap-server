@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#settings
+DEBUG=false
+OS_USER="gisadmin"
+OS_USER_EXISTS=false
+getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
+USER_DIR=/home/$OS_USER
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+
+SERVER_NAME=`hostname`
+DOMAIN_NAME="domain_name"
+DOCKER_ROOT="/home/gisadmin/docker"
+WWW_ROOT="${DOCKER_ROOT}/www"
+DB_ROOT="${DOCKER_ROOT}/db"
+CARGOPATH="$SCRIPTPATH/cargo-enabled"
+CARGOS=()
+CARGO_WEB_LINKS=
+CARGO_PGSQL_LINKS=

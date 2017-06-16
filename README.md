@@ -14,44 +14,56 @@ all required components with the included administration script `dcm` (docker co
 
 ### Pull kvwmap-server
 **Note:** You must be logged in as root and have installed at least the debian
-packages git, wget and curl to use git and run the dcm script on your host successfully.
-
+package git to use git and run the dcm script on your host successfully.
 ```
 apt-get update && apt-get install -y \
   apt-utils \
-  curl \
-  git \
-  wget
+  git
 ```
 
 Clone the `pkorduan/kvwmap-server` repository from github in to your user
 directory. Assume you have a user directory /home/gisadmin
-
 ```
-USER_DIR=/home/gisadmin
-cd $USER_DIR
 git clone https://github.com/pkorduan/kvwmap-server.git
 ```
 Logout as user gisadmin
 
-### Install kvwmap-server
-Login to your remote server via ssh as other user than gisadmin and login as root.
-Get and install all required components for kvwmap-server.
-This step do not as user gisadmin and gisadmin must have no open connections to the server, because we want to change its uid and gid.
+### Configure kvwmap-server
+$OS_USER is by default gisadmin and $USER_DIR /home/gisadmin
+If you have cloned kvwmap-server repository at a special place other than /home/gisadmin copy the file config-default to config in config directory and make your changes.
+You may change the name of the user in $OS_USER
+OS_USER="your_user_name"
+OS_USER_EXISTS=false
+You may change the direktory where kvwmap-server has been cloned
+USER_DIR="your_user_dir"
+You may change the directory where the Volumes for the docker container will reside
+DOCKER_ROOT="your/directory"
+In the following $OS_USER means the user that you have defined in config or config-default file.
 
+### Clone kvwmap-server repository
+Login to your remote server via ssh as other user than $OS_USER. Go to the directory $USER_DIR.
+The next step do not as user $OS_USER and $OS_USER must have no open connections to the server, because we want to change its uid and gid.
+You must run dcm script allways as user root other than you have enabled your $OS_USER to execute docker commands.
 ```
 kvwmap-server/dcm install kvwmap
 ```
 This scrpit should ended up with the message: "Die Installation ist erfolgreich abgeschlossen."
+Now you can logout and login again as $OS_USER. All Files in $USER_DIR will own now $OS_USER.
+
+### Configure containers
+Each container used by kvwmap have its own config file in $USER_DIR/etc
+wwwdata/volumes for container wwwdata
+mysql/env_and_volumes for container mysql-server
+postgresql/env_and_volumes for container pgsql-server
+gdal/env_and_volumes for container gdal
+web/env_and_volumes for container web
+
+More 3rdparty container can configured in kvwmap-server/cargo-available and cargo-enabled.
+Change the dcm files in cargo-available and create links in cargo-enabled to include theses containers.
+Consider, that changes under kvwmap-server will be overwritten by git pull or git merge commands. Save your changes bevore updating kvwmap-server.
 
 ### Start kvwmap-server
-Logout and login as root to reload the bash settings or call
-```
-source ~/.bashrc
-```
-
 Start the containers with volumes and link it together. You will be asked to choose initial passwords for the MySQL root and PostgreSQL postgres super user as well as for a kvwmap user. The Password for kvwmap user will be used as initial password for the database access to the kvwmap databases, for the phpMyAdmin web client, which has the alias userDbAdmin, and for the admin page of the web application kvwmap itself.
-
 ```
 dcm run all
 ```
@@ -84,16 +96,13 @@ in config.php. See the kvwmap documentation for more information at:
 ### Unistall kvwmap-server
 This stoped all container, remove it, remove all images and remove the volumes inclusive of the database volumes.
 Be careful with this command, because it will remove also the data in the directories /var/www and db, etc, kvwmap-server in your home directory.
-
 ```
-dcm uninstall
+dcm uninstall all
 ```
 
 If you only whant to remove the container and images use this commands:
-
 ```
-dcm stop all
-dcm remove all
+dcm rm all
 ```
 
 ## Server status
@@ -118,13 +127,17 @@ The parameter -a shows you also the not running container. The command inspect s
 ```
 docker inspect web
 ```
+To see the log file of the web containers type:
+```
+docker logs web
+```
 
 ## Detailed installation and update description
 
 ### Install docker
-The installation of docker will be performed in the script kvwmap which has been downloaded with this repository.
-The install command of the kvwmap script make use of the install script at get.docker.com
-Generally you could have installed docker also as a debian package as described in docker docu [here] (https://docs.docker.com/installation/debian/#installation) But the package must not include the newest version. Therefor it is recommended to use the docker install script from get.docker.com, as we do in the kvwmap install command.
+The installation of docker will be performed in the script dcm which has been downloaded with this repository.
+The install command of the dcm script make use of the install script at get.docker.com to install docker.
+Generally you could have installed docker also as a debian package as described in docker docu [here] (https://docs.docker.com/installation/debian/#installation) But the package must not include the newest version. Therefor it is recommended to use the docker install script from get.docker.com, as we do in the dcm install command.
 
 ### Update docker
 To update the docker Engine run the following command on your host system:
@@ -136,7 +149,7 @@ You will see the new version of docker client and server after installing with t
 docker version
 ```
 ### Update this repo on your host system
-Pull a new version of the repo by typing
+Pull a new version of the kvwmap-server repo by typing
 ```
 git pull origin master
 ```
@@ -168,26 +181,19 @@ git push origin master
 ```
 Therefore you must be a contributor to this repo. Ask the maintainer to become a contributor to this repo.
 
-A new image can be created localy with the build command of docker. But to run the new image the old container must be stopped and the new one created. Therefore the script kvwmap can be used with the following parameters.
-To rebuild the kvwmap container run the following command:
+A new image can be created localy with the build command of docker. But to run the new image the old container must be stopped and the new one created. Therefore the script dcm can be used with the following parameters.
+To rebuild the web container for apache2 with kvwmap run the following command:
 ```
 dcm rebuild web
 ```
 This will stop and remove only the web container, remove the kvwmap-server image, pull the image kvwmap-server:latest from [dockerhub](https://hub.docker.com/r/pkorduan/kvwmap-server/) and run again the web container as when you start first.
-To not build the image, but download the latest from dockerhub you can use the kvwmap script with reload option
+To not build the image, but download the latest from dockerhub you can use the dcm script with reload option
 ```
 dcm reload web
 ```
-To manually rebuild the kvwmap container with another version of mysql or postgres change the version numbers in kvwmap script for the constants MYSQL_IMAGE_VERSION or POSTGRES_IMAGE_VERSION and call the kvwmap script with the parameter rebuild all. You can download the new version manually before restarting the kvwmap container. This will save some downtime of the kvwmap application.
+To manually rebuild the web container with another version of mysql or postgres change the version numbers in env_and_volumes script for the constants MYSQL_IMAGE_VERSION or POSTGRES_IMAGE_VERSION and call the dcm script with the parameter rebuild all. You can download the new version manually before restarting the web container. This will save some downtime of the kvwmap application.
 ```
-docker pull mdillon/postgis:<new_version_number>
+docker pull pkorduan/postgis:<new_version_number>
 sed -i -e "s|POSTGRESQL_IMAGE_VERSION=9.4|POSTGRESQL_IMAGE_VERSION=<new_version_number>|g" \
-$USER_DIR/kvwmap-server/kvwmap
+$USER_DIR/kvwmap-server/dcm
 dcm rebuild all
-```
-Replace <new_version_number> by the version you want to have for your postgres-container. Remember that this number will be overwritten when you next time pull the repo from master. Checkout this change with:
-```
-cd $USER_DIR/kvwmap-server
-git checkout kvwmap
-```
-before you pull the repo and rechange it to the new version back if you want.
