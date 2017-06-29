@@ -1,6 +1,6 @@
 FROM debian
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="1.2.0"
+LABEL version="latest"
 
 ENV OS_USER="gisadmin" USER_DIR="/home/${OS_USER}" TZ="Europe/Berlin" TERM=xterm
 
@@ -15,25 +15,39 @@ RUN sed -i \
 
 RUN apt-get update && apt-get install -y \
     apt-utils \
-    apache2 \
+    apache2
+
+RUN apt-get install -y \
     cgi-mapserver \
-    chkconfig \
-    cron \
+    chkconfig
+
+RUN apt-get install -y \
+    cron
+
+RUN apt-get install -y \
     curl \
     dialog \
-    gdal-bin \
+    gdal-bin
+
+RUN apt-get install -y \
     git \
     htop \
     imagemagick \
     libjson0 \
-    less \
+    less
+
+RUN apt-get install -y \
     mapserver-bin \
-    mysql-client \
+    mysql-client
+
+RUN apt-get install -y \
     ntp \
     php5 \
     php5-cli \
     php5-curl \
-    php5-gd \
+    php5-gd
+
+RUN apt-get install -y \
     php5-mapscript \
     php5-mcrypt \
     php5-mysql \
@@ -85,8 +99,6 @@ RUN unzip -q phpmyadmin.zip && \
 
 WORKDIR /srv/www/phpmyadmin
 
-RUN composer update
-
 RUN groupadd -g 1700 ${OS_USER} && \
   useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
   usermod -G ${OS_USER} www-data && \
@@ -103,6 +115,8 @@ RUN mkdir -p $USER_DIR/.ssh && \
 RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /etc/ImageMagick-6/delegates.xml
 
 USER $OS_USER
+
+RUN composer update
 
 RUN git config --global user.name "gisadmin" && \
     git config --global user.email "gisadmin@`hostname`"
