@@ -214,6 +214,8 @@ install_docker() {
   apt-get update && apt-get install -y \
     apt-utils \
     curl \
+    jq \
+    sendemail \
     unzip \
     wget
 
