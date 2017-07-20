@@ -50,6 +50,13 @@ Kopiere Konfigurationsdatei für env_and_volumes"
   chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud/env_and_volumes
   chmod g+w $USER_DIR/etc/owncloud/env_and_volumes
 
+  echo "
+Kopiere um Bug korrigierte Request.php"
+  echo "cp $USER_DIR/kvwmap-server/owncloud/source/Request.php => $USER_DIR/etc/owncloud/source/Request.php"
+  cp $USER_DIR/kvwmap-server/owncloud/source/Request.php $USER_DIR/etc/owncloud/source/Request.php
+  chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud/source/Request.php
+  chmod g+w $USER_DIR/etc/owncloud/source/Request.php
+
   docker pull ${owncloud_IMAGE}:${owncloud_VERSION}
 
 }

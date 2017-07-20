@@ -12,7 +12,8 @@ The preferred way to install the `pkorduan/kvwmap-server` image and run the cont
 your system is to clone the kvwmap-server repository from github first and than install
 all required components with the included administration script `dcm` (docker container manager).
 
-### Pull kvwmap-server
+### Clone kvwmap-server repository
+
 **Note:** You must be logged in as root and have installed at least the debian
 package git to use git and run the dcm script on your host successfully.
 ```
@@ -40,7 +41,7 @@ You may change the directory where the Volumes for the docker container will res
 DOCKER_ROOT="your/directory"
 In the following $OS_USER means the user that you have defined in config or config-default file.
 
-### Clone kvwmap-server repository
+### Install ressources for docker container
 Login to your remote server via ssh as other user than $OS_USER. Go to the directory $USER_DIR.
 The next step do not as user $OS_USER and $OS_USER must have no open connections to the server, because we want to change its uid and gid.
 You must run dcm script allways as user root other than you have enabled your $OS_USER to execute docker commands.
@@ -62,7 +63,7 @@ More 3rdparty container can configured in kvwmap-server/cargo-available and carg
 Change the dcm files in cargo-available and create links in cargo-enabled to include theses containers.
 Consider, that changes under kvwmap-server will be overwritten by git pull or git merge commands. Save your changes bevore updating kvwmap-server.
 
-### Start kvwmap-server
+### Run container for kvwmap
 Start the containers with volumes and link it together. You will be asked to choose initial passwords for the MySQL root and PostgreSQL postgres super user as well as for a kvwmap user. The Password for kvwmap user will be used as initial password for the database access to the kvwmap databases, for the phpMyAdmin web client, which has the alias userDbAdmin, and for the admin page of the web application kvwmap itself.
 ```
 dcm run all
@@ -71,7 +72,7 @@ dcm run all
 After this step the container named web, pgsql-server and mysql-server shoud be
 set up and run. The output of `docker ps -a` is shown.
 
-### Install kvwmap web application
+### Initialize kvwmap web application
 The default Protocol for using kvwmap should be HTTPS.
 You can remove the commented out line SSLRequireSSL in /home/gisadmin/etc/apache2/sites-available/kvwmap.conf to enable HTTPS, but must install the required certificate files by yourself. Reload Apache in web container then with:
 ```
@@ -93,7 +94,7 @@ after the initial installation. Further configuration settings can be performed
 in config.php. See the kvwmap documentation for more information at:
 <http://www.kvwmap.de>
 
-### Unistall kvwmap-server
+### Unistall
 This stoped all container, remove it, remove all images and remove the volumes inclusive of the database volumes.
 Be careful with this command, because it will remove also the data in the directories /var/www and db, etc, kvwmap-server in your home directory.
 ```
@@ -105,7 +106,7 @@ If you only whant to remove the container and images use this commands:
 dcm rm all
 ```
 
-## Server status
+## Get container status
 To check if everything works well, you have different options.
 ```
 dcm status all
