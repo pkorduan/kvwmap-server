@@ -266,7 +266,7 @@ install_kvwmap_images() {
   echo "Erzeuge www_root Verzeichnis."
   mkdir -p $WWW_ROOT
 
-  echo "Kopiere www Verzeichnisse die vordefinierte Daten enthalten."
+  echo "Kopiere www Verzeichnisse die vordefinierte Daten enthalten, apps, cron, data, html."
   cp -R $USER_DIR/kvwmap-server/www/* $WWW_ROOT
 
   echo "
@@ -274,9 +274,6 @@ install_kvwmap_images() {
   # create directories
   mkdir -p $DB_ROOT/mysql \
            $DB_ROOT/postgresql/data \
-           $USER_DIR/etc/apache2/sites-enabled \
-           $USER_DIR/etc/apache2/ssl \
-           $USER_DIR/etc/postgresql \
            $WWW_ROOT/logs \
            $WWW_ROOT/logs/apache2 \
            $WWW_ROOT/logs/pgsql \
@@ -297,12 +294,6 @@ install_kvwmap_images() {
   ln -s $DB_ROOT $USER_DIR/db
 
   echo "
-  Erzeuge Links für den Zugriff auf die Datenbankverzeichnisse ..."
-  # create links to have access to the postgres config files, even if the files do not exist yet
-  ln -s $DB_ROOT/postgresql/data/pg_hba.conf $USER_DIR/etc/postgresql/pg_hba.conf
-  ln -s $DB_ROOT/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
-
-  echo "
   Kopiere Konfigurationsdateien für Apache Web-Server ..."
   cp -R $USER_DIR/kvwmap-server/etc/apache2 $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/gdal $USER_DIR/etc/
@@ -313,6 +304,17 @@ install_kvwmap_images() {
   cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/web $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/wwwdata $USER_DIR/etc/
+
+  echo "
+  Erzeuge Unterverzeichnisse im Apache Konfigurationsverzeichnis..."
+  mkdir -p $USER_DIR/etc/apache2/sites-enabled \
+           $USER_DIR/etc/apache2/ssl
+
+  echo "
+  Erzeuge Links für den Zugriff auf die Datenbankverzeichnisse ..."
+  # create links to have access to the postgres config files, even if the files do not exist yet
+  ln -s $DB_ROOT/postgresql/data/pg_hba.conf $USER_DIR/etc/postgresql/pg_hba.conf
+  ln -s $DB_ROOT/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
 
   echo "
   Setze Servername für Apache default Konfiguration ..."
