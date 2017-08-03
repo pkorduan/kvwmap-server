@@ -19,7 +19,6 @@ RUN sed -i \
 RUN apt-get update && apt-get install -y \
     apt-utils \
     apache2 \
-    cgi-mapserver \
     cron \
     curl \
     dialog \
@@ -48,6 +47,8 @@ RUN apt-get update && apt-get install -y \
     zip
 
 RUN apt-get update && apt-get install chkconfig && chkconfig cron 1
+
+RUN apt-get update && apt-get install cgi-mapserver
 
 ADD sources /usr/local/bin
 
