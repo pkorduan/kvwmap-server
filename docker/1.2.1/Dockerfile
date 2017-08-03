@@ -1,4 +1,4 @@
-FROM debian
+FROM debian:jessie
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
 LABEL version="latest"
 
@@ -18,7 +18,4 @@ RUN sed -i \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
-    apt-utils \
-    apache2 \
-    cgi-mapserver \
-    chkconfig \
+    chkconfig
