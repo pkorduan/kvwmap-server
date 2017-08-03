@@ -16,39 +16,38 @@ RUN sed -i \
     dpkg-reconfigure -f noninteractive tzdata && \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-RUN apt-get update && apt-get install -y \
-    apt-utils \
-    apache2 \
-    cron \
-    curl \
-    dialog \
-    gdal-bin \
-    git \
-    htop \
-    imagemagick \
-    libjson0 \
-    less \
-    mapserver-bin \
-    mysql-client \
-    ntp \
-    php5 \
-    php5-cli \
-    php5-curl \
-    php5-gd \
-    php5-mapscript \
-    php5-mcrypt \
-    php5-mysql \
-    php5-pgsql \
-    postgresql-client \
-    sudo \
-    unzip \
-    vim \
-    wget \
-    zip
+RUN apt-get install -y apt-utils
+RUN apt-get install -y apache2
+RUN apt-get install -y cgi-mapserver
+RUN apt-get install chkconfig 
+RUN apt-get install -y cron
+RUN apt-get install -y curl
+RUN apt-get install -y dialog
+RUN apt-get install -y gdal-bin
+RUN apt-get install -y git
+RUN apt-get install -y htop
+RUN apt-get install -y imagemagick
+RUN apt-get install -y libjson0
+RUN apt-get install -y less
+RUN apt-get install -y mapserver-bin
+RUN apt-get install -y mysql-client
+RUN apt-get install -y ntp
+RUN apt-get install -y php5
+RUN apt-get install -y php5-cli
+RUN apt-get install -y php5-curl
+RUN apt-get install -y php5-gd
+RUN apt-get install -y php5-mapscript
+RUN apt-get install -y php5-mcrypt
+RUN apt-get install -y php5-mysql
+RUN apt-get install -y php5-pgsql
+RUN apt-get install -y postgresql-client
+RUN apt-get install -y sudo
+RUN apt-get install -y unzip
+RUN apt-get install -y vim
+RUN apt-get install -y wget
+RUN apt-get install -y zip
 
-RUN apt-get update && apt-get install chkconfig && chkconfig cron 1
-
-RUN apt-get update && apt-get install cgi-mapserver
+RUN chkconfig cron 1
 
 ADD sources /usr/local/bin
 
