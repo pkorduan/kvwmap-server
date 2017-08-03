@@ -1,6 +1,6 @@
 FROM debian:jessie
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="latest"
+LABEL version="1.2.1"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
