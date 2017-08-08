@@ -1,11 +1,12 @@
-FROM debian
+FROM debian:jessie
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
 LABEL version="latest"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
+ARG TZ="Europe/Berlin"
 
-ENV OS_USER=$OS_USER USER_DIR=$USER_DIR TZ="Europe/Berlin" TERM=xterm
+ENV OS_USER=$OS_USER USER_DIR=$USER_DIR TZ=$TZ TERM=xterm
 
 RUN sed -i \
         -e "s|# alias ls=|alias ls=|g" \
@@ -16,10 +17,11 @@ RUN sed -i \
     dpkg-reconfigure -f noninteractive tzdata && \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-RUN apt-get update && apt-get install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     apt-utils \
     apache2 \
     cgi-mapserver \
+    chkconfig \
     cron \
     curl \
     dialog \
@@ -47,7 +49,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     zip
 
-RUN apt-get update && apt-get install chkconfig && chkconfig cron 1
+RUN chkconfig cron 1
 
 ADD sources /usr/local/bin
 
