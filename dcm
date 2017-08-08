@@ -274,6 +274,7 @@ install_kvwmap_images() {
   # create directories
   mkdir -p $DB_ROOT/mysql \
            $DB_ROOT/postgresql/data \
+           $USER_DIR/etc \
            $WWW_ROOT/logs \
            $WWW_ROOT/logs/apache2 \
            $WWW_ROOT/logs/pgsql \
