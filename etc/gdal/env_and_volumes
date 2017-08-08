@@ -1,6 +1,6 @@
 #!/bin/bash
 GDAL_IMAGE=pkorduan/gdal-sshd
-GDAL_IMAGE_VERSION=2.2.1
+GDAL_IMAGE_VERSION=2.3.0
 
 # USER_DIR is defined in dcm
 if [ -z $PGSQL_PASSFILE ] ; then
