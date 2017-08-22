@@ -15,7 +15,7 @@ pgsql_env_vars="-e \"TERM=xterm\" \
                -e PGPASSFILE=$PGSQL_PASSFILE"
 pgsql_volumes="--volumes-from wwwdata \
               -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
-              -v $USER_DIR/etc/postgresql/pgpass:$PGSQL_PASSFILE \
+              -v $USER_DIR/etc/postgresql/.pgpass:$PGSQL_PASSFILE \
               -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
               -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
               -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"
