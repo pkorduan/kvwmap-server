@@ -1,7 +1,7 @@
 # Supported tags and respective Dockerfile
-  * 1.2.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.0/Dockerfile)
-	* 1.2.1 [docker/1.2.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.1/Dockerfile)
-	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+ * 1.2.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.0/Dockerfile)
+ * 1.2.1 [docker/1.2.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.1/Dockerfile)
+ * latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
 
 # kvwmap-server
 
@@ -206,9 +206,9 @@ dcm rebuild all
 
 # Changelog
 # 1.2.1
-  * Use debian with tag, here jessie to ensure that dockerhub uses the same resources for installation as when build localy
-	* Use ARG to set variable in Dockerfile
-	* Change README to docker folder and update Tags and Changelog Section for each change in latest and in version folder
+ * Use debian with tag, here jessie to ensure that dockerhub uses the same resources for installation as when build localy
+ * Use ARG to set variable in Dockerfile
+ * Change README to docker folder and update Tags and Changelog Section for each change in latest and in version folder
 # 1.2.0
-  * Start to build images in separate version folders
-  * Composer for PHP
+ * Start to build images in separate version folders
+ * Composer for PHP
