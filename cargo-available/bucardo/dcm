@@ -69,10 +69,8 @@ run_bucardo_container() {
     --link pgsql-server:pgsql \
     $bucardo_volumes \
     $bucardo_env_vars \
-    -it $BUCARDO_IMAGE:$BUCARDO_IMAGE_VERSION \
-    /bin/bash
-#    --restart=always \
-#    -d $BUCARDO_IMAGE:$BUCARDO_IMAGE_VERSION
+    --restart=always \
+    -d $BUCARDO_IMAGE:$BUCARDO_IMAGE_VERSION
 }
 
 set_bucardo_web_link() {

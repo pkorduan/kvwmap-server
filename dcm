@@ -454,6 +454,9 @@ run_all_container() {
   if type -t run_osm2po_container | grep -q "^function$" ; then
     run_osm2po_container
   fi
+  if type -t run_bucardo_container | grep -q "^function$" ; then
+    run_bucardo_container
+  fi
   run_web_container
 }
 
