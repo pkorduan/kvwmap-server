@@ -529,6 +529,21 @@ run_web_container() {
  
   set_cargo_web_links
 
+	echo "run web container with command:   docker run --name web \
+    -h ${SERVER_NAME}-web-container \
+    --link mysql-server:mysql \
+    --link pgsql-server:pgsql \
+    --link gdal:gdal \
+    $CARGO_WEB_LINKS \
+    $web_env_vars \
+    $web_volumes \
+    --add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
+    --add-host=$SERVER_NAME:${IP_EXTERN} \
+    -p 80:80 \
+    -p 443:443 \
+    --restart=always \
+    -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}"
+
   docker run --name web \
     -h ${SERVER_NAME}-web-container \
     --link mysql-server:mysql \
