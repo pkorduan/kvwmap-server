@@ -9,6 +9,7 @@ ARG TZ="Europe/Berlin"
 ENV OS_USER=$OS_USER USER_DIR=$USER_DIR TZ=$TZ TERM=xterm
 
 RUN sed -i \
+        -e "s|# export LS_OPTIONS=|export LS_OPTIONS=|g" \
         -e "s|# alias ls=|alias ls=|g" \
         -e "s|# alias ll=|alias ll=|g" \
         -e "s|# alias rm=|alias rm=|g" \
