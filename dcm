@@ -347,6 +347,11 @@ install_kvwmap_images() {
   chmod -R g+w $WWW_ROOT
 
   echo "
+  Setze Rechte auf logs Verzeichnisse ..."
+  chown 999.gisadmin $WWW_ROOT/logs/pgsql
+  chmod a+r $WWW_ROOT/logs/pgsql
+
+  echo "
   Setze Rechte 600 auf .pgpass ..."
   chmod 600 $USER_DIR/etc/postgresql/.pgpass
 

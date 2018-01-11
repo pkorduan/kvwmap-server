@@ -208,6 +208,7 @@ dcm rebuild all
 # Changelog
 # 1.2.2
 	* do things in kvwmap-firstrun only if not allready done
+	* enable apache mod expires
 # 1.2.1
 	* ssUse debian with tag, here jessie to ensure that dockerhub uses the same resources for installation as when build localy
 	* Use ARG to set variable in Dockerfile

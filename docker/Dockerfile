@@ -1,6 +1,6 @@
 FROM debian:jessie
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="latest"
+LABEL version="1.2.2"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -72,9 +72,7 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
 RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list && \
 		apt-get update && apt-get install -y \
 		python-certbot-apache -t jessie-backports
-
 #RUN	certbot --apache
-
 #RUN	make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
 
 ADD https://github.com/phpmyadmin/phpmyadmin/archive/STABLE.zip /tmp/phpmyadmin.zip
