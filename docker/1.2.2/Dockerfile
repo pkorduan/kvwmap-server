@@ -76,15 +76,15 @@ RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/so
 #RUN	certbot --apache
 #RUN	make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
 
-ADD https://github.com/phpmyadmin/phpmyadmin/archive/STABLE.zip /tmp/phpmyadmin.zip
-
-WORKDIR /tmp
+WORKDIR /usr/local/bin
 
 RUN unzip -q phpmyadmin.zip && \
-    rm phpmyadmin.zip && \
+    mv phpmyadmin-STABLE phpmyadmin && \
+    rm /usr/local/bin/phpmyadmin.zip && \
     mkdir -p /srv/www/ && \
-    mv `ls` /srv/www/phpmyadmin && \
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    mv /usr/local/bin/phpmyadmin /srv/www
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR /srv/www/phpmyadmin
 
