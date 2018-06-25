@@ -1,9 +1,6 @@
 #!/bin/bash
 #echo "Load variables in dcm geoserver"
 CARGOS+=("geoserver")
-geoserver_enabled=true
-GEOSERVER_CONTAINER_NAME="geoserver"
-GEOSERVER_DATA_DIR=$WWW_ROOT/data/geoserver_data_dir
 
 usage_geoserver() {
   echo "install geoserver  Installiert das geoserver Image."
