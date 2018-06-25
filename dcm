@@ -309,7 +309,8 @@ install_kvwmap_images() {
   echo "
   Erzeuge Unterverzeichnisse im Apache Konfigurationsverzeichnis..."
   mkdir -p $USER_DIR/etc/apache2/sites-enabled \
-           $USER_DIR/etc/apache2/ssl
+           $USER_DIR/etc/apache2/ssl \
+           $USER_DIR/etc/apache2/letsencrypt
 
   echo "
   Erzeuge Links für den Zugriff auf die Datenbankverzeichnisse ..."
