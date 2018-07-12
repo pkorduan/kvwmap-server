@@ -209,6 +209,7 @@ dcm rebuild all
 # Changelog
 # 1.2.3
 	* add docker to be able to call commands in other containers
+	* add user www-data to docker group
 # 1.2.2
 	* do things in kvwmap-firstrun only if not allready done
 	* enable apache mod expires
