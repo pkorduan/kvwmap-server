@@ -69,7 +69,6 @@ usage() {
   echo "run mysql      Erzeugt und startet nur den Container mysql-server."
   echo "run pgsql      Erzeugt und startet nur den Container pgsql-server."
   echo "run web        Erzeugt und startet nur den Container web."
-  echo "run wwwdata    Erzeug den Volume Container wwwdata."
   echo "show_ip        Zeigt die IP Adressen der Container an. Der Containername als zusätzlicher Parameter zeigt nur die IP dieses Containers an."
   echo "start          Startet alle oder den angegebenen Container."
   echo "start all      Startet alle Container."
@@ -160,17 +159,6 @@ call_cargo_cases() {
     fi
     echo "an."
   fi
-}
-
-create_www_data_volume() {
-  echo "Erzeuge data volume to share in other container"
-
-  source $USER_DIR/etc/wwwdata/volumes
-
-  docker create --name wwwdata \
-    $wwwdata_volumes \
-    --restart=always \
-    $WWWDATA_IMAGE /bin/true
 }
 
 fail_unless_root() {
@@ -304,7 +292,6 @@ install_kvwmap_images() {
   cp -R $USER_DIR/kvwmap-server/etc/phpmyadmin $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/web $USER_DIR/etc/
-  cp -R $USER_DIR/kvwmap-server/etc/wwwdata $USER_DIR/etc/
 
   echo "
   Erzeuge Unterverzeichnisse im Apache Konfigurationsverzeichnis..."
@@ -438,7 +425,6 @@ remove_all_images() {
 
 run_all_container() {
   echo "Erzeuge und Starte alle Container ..."
-  create_www_data_volume
   run_mysql_container
   if type -t run_oracle_container | grep -q "^function$" ; then
     run_oracle_container
@@ -613,7 +599,6 @@ show_container_status() {
 
 start_all_container() {
   echo "Startet alle existierenden Container."
-  docker start wwwdata
   docker start mysql-server
   docker start pgsql-server
   
@@ -1026,7 +1011,6 @@ case "$1" in
         run_gdal_container
       ;;
       kvwmap)
-        create_www_data_volume
         run_mysql_container
         run_pgsql_container
         run_gdal_container
@@ -1041,11 +1025,8 @@ case "$1" in
       web)
         run_web_container
       ;;
-      wwwdata)
-        create_www_data_volume
-      ;;
       * )
-        core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web, wwwdata"
+        core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web"
         call_cargo_cases $1 $2
       ;;
     esac
@@ -1091,7 +1072,7 @@ case "$1" in
         start_container $2
       ;;
       * )
-        core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web, wwwdata"
+        core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web"
         call_cargo_cases $1 $2
       ;;
     esac

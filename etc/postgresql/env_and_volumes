@@ -13,7 +13,7 @@ pgsql_env_vars="-e \"TERM=xterm\" \
                -e POSTGRES_DB=$PGSQL_DB \
                -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
                -e PGPASSFILE=$PGSQL_PASSFILE"
-pgsql_volumes="--volumes-from wwwdata \
+pgsql_volumes="-v $WWW_ROOT:/var/www\
               -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
               -v $USER_DIR/etc/postgresql/.pgpass:$PGSQL_PASSFILE \
               -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \

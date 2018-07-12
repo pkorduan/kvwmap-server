@@ -8,5 +8,5 @@ if [ -z $PGSQL_PASSFILE ] ; then
 fi
 gdal_env_vars="-e \"TERM=xterm\" \
                -e PGPASSFILE=/root/$PGSQL_PASSFILE"
-gdal_volumes="--volumes-from wwwdata \
+gdal_volumes="-v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/postgresql/.pgpass:/root/$PGSQL_PASSFILE"

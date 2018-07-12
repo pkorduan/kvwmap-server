@@ -25,7 +25,7 @@ web_env_vars="-e OS_USER=$OS_USER \
               -e http_proxy=$HTTP_PROXY_WEB \
               -e no_proxy=localhost,${IP_EXTERN} \
               -e \"TERM=xterm\""
-web_volumes="--volumes-from wwwdata \
+web_volumes=" -v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
               -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
               -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \
