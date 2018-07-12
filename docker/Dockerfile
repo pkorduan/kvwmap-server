@@ -9,6 +9,7 @@ ARG TZ="Europe/Berlin"
 ENV OS_USER=$OS_USER USER_DIR=$USER_DIR TZ=$TZ TERM=xterm
 
 RUN sed -i \
+        -e "s|# export LS_OPTIONS=|export LS_OPTIONS=|g" \
         -e "s|# alias ls=|alias ls=|g" \
         -e "s|# alias ll=|alias ll=|g" \
         -e "s|# alias rm=|alias rm=|g" \
@@ -75,15 +76,15 @@ RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/so
 #RUN	certbot --apache
 #RUN	make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
 
-ADD https://github.com/phpmyadmin/phpmyadmin/archive/STABLE.zip /tmp/phpmyadmin.zip
-
-WORKDIR /tmp
+WORKDIR /usr/local/bin
 
 RUN unzip -q phpmyadmin.zip && \
-    rm phpmyadmin.zip && \
+    mv phpmyadmin-STABLE phpmyadmin && \
+    rm /usr/local/bin/phpmyadmin.zip && \
     mkdir -p /srv/www/ && \
-    mv `ls` /srv/www/phpmyadmin && \
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    mv /usr/local/bin/phpmyadmin /srv/www
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR /srv/www/phpmyadmin
 
@@ -101,6 +102,8 @@ RUN mkdir -p $USER_DIR/.ssh && \
 
 # force imagemagick to make sharp images
 RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /etc/ImageMagick-6/delegates.xml
+
+RUN apt-get update && apt-get install docker.io -y
 
 USER $OS_USER
 
