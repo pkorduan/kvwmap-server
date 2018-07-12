@@ -60,7 +60,6 @@ Now you can logout and login again as $OS_USER. All Files in $USER_DIR will own 
 
 ### Configure containers
 Each container used by kvwmap have its own config file in $USER_DIR/etc
-wwwdata/volumes for container wwwdata
 mysql/env_and_volumes for container mysql-server
 postgresql/env_and_volumes for container pgsql-server
 gdal/env_and_volumes for container gdal

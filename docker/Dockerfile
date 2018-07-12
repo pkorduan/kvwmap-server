@@ -1,6 +1,6 @@
 FROM debian:jessie
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="1.2.2"
+LABEL version="1.2.3"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -103,7 +103,9 @@ RUN mkdir -p $USER_DIR/.ssh && \
 # force imagemagick to make sharp images
 RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /etc/ImageMagick-6/delegates.xml
 
-RUN apt-get update && apt-get install docker.io -y
+RUN apt-get update && apt-get install docker.io -y && \
+    groupmod -g 999 docker && \
+    usermod -a -G docker www-data
 
 USER $OS_USER
 
