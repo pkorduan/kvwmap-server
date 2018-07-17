@@ -53,7 +53,7 @@ Kopiere Konfigurationsdatei für env_and_volumes"
   echo "
 Kopiere um Bug korrigierte Request.php"
   echo "cp $USER_DIR/kvwmap-server/owncloud/source/Request.php => $USER_DIR/etc/owncloud/source/Request.php"
-  cp $USER_DIR/kvwmap-server/owncloud/source/Request.php $USER_DIR/etc/owncloud/source/Request.php
+  cp -R $USER_DIR/kvwmap-server/owncloud/source $USER_DIR/etc/owncloud
   chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud/source/Request.php
   chmod g+w $USER_DIR/etc/owncloud/source/Request.php
 
