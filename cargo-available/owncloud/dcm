@@ -23,7 +23,8 @@ install_owncloud() {
   chmod g+w ${WWW_ROOT}/apps/owncloud
 
   mkdir -p ${USER_DIR}/etc/owncloud
-  chmod g+w ${USER_DIR}/etc/owncloud
+  chown -R $OS_USER.$OS_USER $USER_DIR/etc/owncloud
+  chmod -R g+w $USER_DIR/etc/owncloud
 
   mkdir -p ${WWW_ROOT}/data/owncloud
   chmod g+w ${WWW_ROOT}/data/owncloud
@@ -43,19 +44,17 @@ Enable owncloud Web-Site in Apache Konfiguration."
   echo "
 Kopiere Konfigurationsdatei für env_and_volumes"
   echo "cp $USER_DIR/kvwmap-server/owncloud/etc/owncloud/env_and_volumes => $USER_DIR/etc/owncloud/env_and_volumes"
-  mkdir -p $USER_DIR/etc/owncloud
-  chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud
-  chmod g+w $USER_DIR/etc/owncloud
+
   cp $USER_DIR/kvwmap-server/owncloud/etc/owncloud/env_and_volumes $USER_DIR/etc/owncloud/env_and_volumes
   chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud/env_and_volumes
   chmod g+w $USER_DIR/etc/owncloud/env_and_volumes
 
   echo "
-Kopiere um Bug korrigierte Request.php"
-  echo "cp $USER_DIR/kvwmap-server/owncloud/source/Request.php => $USER_DIR/etc/owncloud/source/Request.php"
+Kopiere source Verzeichnis mit um Bug korrigierte Request.php"
+  echo "cp $USER_DIR/kvwmap-server/owncloud/source => $USER_DIR/etc/owncloud/source"
   cp -R $USER_DIR/kvwmap-server/owncloud/source $USER_DIR/etc/owncloud
-  chown $OS_USER.$OS_USER $USER_DIR/etc/owncloud/source/Request.php
-  chmod g+w $USER_DIR/etc/owncloud/source/Request.php
+  chown -R $OS_USER.$OS_USER $USER_DIR/etc/owncloud/source
+  chmod -R g+w $USER_DIR/etc/owncloud/source
 
   docker pull ${owncloud_IMAGE}:${owncloud_VERSION}
 
