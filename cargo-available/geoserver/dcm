@@ -91,6 +91,7 @@ run_geoserver_container() {
     --link pgsql-server:pgsql \
     $geoserver_volumes \
     $geoserver_env_vars \
+    $geoserver_ports \
     --restart=always \
     -d ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}
 }
