@@ -3,7 +3,8 @@ geoserver_enabled=true
 GEOSERVER_CONTAINER_NAME="geoserver"
 GEOSERVER_DATA_DIR=/var/docker/www/data/geoserver_data
 GEOSERVER_IMAGE=pkorduan/geoserver_inspire
-GEOSERVER_IMAGE_VERSION=2.12.0
+GEOSERVER_IMAGE_VERSION=2.13.2
 
 geoserver_env_vars="-e \"TERM=xterm\""
 geoserver_volumes="-v $GEOSERVER_DATA_DIR:/opt/geoserver/data_dir"
+geoserver_ports="-p 8080:8080"

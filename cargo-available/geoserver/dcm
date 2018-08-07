@@ -5,6 +5,7 @@ CARGOS+=("geoserver")
 usage_geoserver() {
   echo "install geoserver  Installiert das geoserver Image."
   echo "run geoserver      Erzeugt und startet nur den Container geoserver."
+  echo "rerun geoserver    Stoppt, Entfernt und Erzeugt und Startet einen neuen geoserver-Container."
   echo "start geoserver    Startet nur den Container geoserver."
   echo "status geoserver   Zeigt den aktuellen Status des Container geoserver an."
   echo "stop geoserver     Startet nur den Container geoserver."
@@ -216,6 +217,20 @@ cases_geoserver() {
           remove_geoserver_image
         ;;
         * )
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    rerun)
+      debug "Case rerun in geoserver"
+      case $2 in
+        geoserver)
+          remove_geoserver_container
+          run_geoserver_container
+        ;;
+        *)
           debug "No subcase $2 in geoserver"
           case_found=false
         ;;
