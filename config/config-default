@@ -11,7 +11,7 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 
 SERVER_NAME=`hostname`
 DOMAIN_NAME="domain_name"
-DOCKER_ROOT="/home/gisadmin/docker"
+DOCKER_ROOT="${USER_DIR}/docker"
 WWW_ROOT="${DOCKER_ROOT}/www"
 DB_ROOT="${DOCKER_ROOT}/db"
 CARGOPATH="$SCRIPTPATH/cargo-enabled"
