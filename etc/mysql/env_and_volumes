@@ -2,8 +2,10 @@
 read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
 MYSQL_IMAGE=mysql
 MYSQL_IMAGE_VERSION=5.5
+
 mysql_env_vars="-e \"TERM=xterm\" \
                 -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD"
+
 mysql_volumes="-v $USER_DIR/etc/mysql:/etc/mysql \
                -v $DB_ROOT/mysql:/var/lib/mysql \
                -v $WWW_ROOT/logs/mysql:/var/logs/mysql"

@@ -1,13 +1,9 @@
 #!/bin/bash
 #echo "Load variables in dcm owncloud"
 CARGOS+=("owncloud")
-owncloud_enabled=true
-owncloud_IMAGE="owncloud"
-owncloud_VERSION="9.1.1"
-owncloud_CONTAINER_NAME="owncloud"
 
 usage_owncloud() {
-  echo "install owncloud  Installiert ein owncloud Image."
+  echo "install owncloud  Installiert die Komponenten für die Verwendung eines owncloud Containers."
   echo "rerun owncloud    Stoppt, löscht, erzeugt und startet nur den Container owncloud."
   echo "run owncloud      Erzeugt und startet nur den Container owncloud."
   echo "start owncloud    Startet nur den Container owncloud."
@@ -22,7 +18,8 @@ install_owncloud() {
   mkdir -p ${WWW_ROOT}/apps/owncloud
   chmod g+w ${WWW_ROOT}/apps/owncloud
 
-  mkdir -p ${USER_DIR}/etc/owncloud
+  mkdir -p ${USER_DIR}/etc/owncloud/config
+  mkdir -p ${USER_DIR}/etc/owncloud/source
   chown -R $OS_USER.$OS_USER $USER_DIR/etc/owncloud
   chmod -R g+w $USER_DIR/etc/owncloud
 
@@ -56,8 +53,9 @@ Kopiere source Verzeichnis mit um Bug korrigierte Request.php"
   chown -R $OS_USER.$OS_USER $USER_DIR/etc/owncloud/source
   chmod -R g+w $USER_DIR/etc/owncloud/source
 
-  docker pull ${owncloud_IMAGE}:${owncloud_VERSION}
+  source $USER_DIR/etc/owncloud/env_and_volumes
 
+  docker pull "${owncloud_IMAGE}:${owncloud_VERSION}"
 }
 
 remove_owncloud_container() {
@@ -72,8 +70,8 @@ remove_owncloud_container() {
 }
 
 remove_owncloud_image() {
-  echo "Lösche owncloud Image: $owncloud_IMAGE"
-  docker rmi $owncloud_IMAGE
+  echo "Lösche owncloud Image: ${owncloud_IMAGE}:${owncloud_VERSION}"
+  docker rmi "${owncloud_IMAGE}:${owncloud_VERSION}"
 }
 
 run_owncloud_container() {
@@ -115,13 +113,13 @@ stop_owncloud_container() {
 }
 
 uninstall_owncloud() {
-  remove_owncloud_container
-  
-  echo "Dieser Befehl deinstalliert das image $owncloud_IMAGE und auf Nachfrage alle dazugehörigen auf diesem Host gespeicherten Daten, die owncloud genutzt hat."
+  echo "Dieser Befehl stopt und löscht den owncloud Container und deinstalliert das Image ${owncloud_IMAGE}:${owncloud_VERSION} und auf Nachfrage alle dazugehörigen auf diesem Host gespeicherten Daten, die owncloud genutzt hat, außer falls verwendet die MySQL-Datenbank und den Nutzer."
   read -p "Wollen Sie das Image wirklich deinstallieren? (j/n)? " answer
   case ${answer:0:1} in
     j|J )
-      docker rmi $owncloud_IMAGE
+      remove_owncloud_container
+      remove_owncloud_image
+
       echo "Lösche owncloud Anwendungsverzeichnis ${WWW_ROOT}/apps/owncloud"
       ls -l ${WWW_ROOT}/apps/owncloud
       rm -RI ${WWW_ROOT}/apps/owncloud
@@ -134,8 +132,12 @@ uninstall_owncloud() {
       ls -l ${WWW_ROOT}/data/owncloud
       rm -RI ${WWW_ROOT}/data/owncloud
 
-      echo "Lösche owncloud env_and_volumes Konfiguration in etc."
-      rm -R $USER_DIR/etc/owncloud
+      echo "Lösche Apache Konfigurationsdateien für owncloud Container"
+      rm $USER_DIR/etc/apache2/sites-enabled/owncloud.conf
+      rm $USER_DIR/etc/apache2/sites-available/owncloud.conf
+
+      echo "Reload Apache Konfiguration"
+      docker exec web service apache2 reload
 
       echo "So jetzt ist owncloud weg."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
@@ -143,7 +145,7 @@ uninstall_owncloud() {
       echo " dcm run owncloud"
       echo " dcm rerun web"
       echo "Die Anwendung ist im Browser zu erreichen unter:"
-      echo "http://meineserverip/owncloud/web/"
+      echo "http://meineserverip/owncloud/"
       echo "Die initialen Zugangsdaten zur Admin GUI von owncloud sind User: admin und Password: owncloud"
     ;;
     * )

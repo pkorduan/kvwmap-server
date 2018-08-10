@@ -1,6 +1,7 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
-	* 1.2.3 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.3/Dockerfile)
+	* 1.2.4 [docker/1.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.4/Dockerfile)
+	* 1.2.3 [docker/1.2.3/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.3/Dockerfile)
 	* 1.2.2 [docker/1.2.2/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.2/Dockerfile)
 	* 1.2.1 [docker/1.2.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.1/Dockerfile)
 	* 1.2.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.0/Dockerfile)
@@ -206,14 +207,19 @@ $USER_DIR/kvwmap-server/dcm
 dcm rebuild all
 
 # Changelog
+# 1.2.4
+	* Add apache module expires finally, because it was not added in 1.2.2.
+	* Add pgpass to web container config
+	* Set image and version in env_and_volumes config of owncloud container.
+	* Change owncloud install function
 # 1.2.3
-	* add docker to be able to call commands in other containers
-	* add user www-data to docker group
+	* Add docker to be able to call commands in other containers
+	* Add user www-data to docker group
 # 1.2.2
-	* do things in kvwmap-firstrun only if not allready done
-	* enable apache mod expires
+	* Do things in kvwmap-firstrun only if not allready done
+	* Enable apache mod expires
 # 1.2.1
-	* ssUse debian with tag, here jessie to ensure that dockerhub uses the same resources for installation as when build localy
+	* Use debian with tag, here jessie to ensure that dockerhub uses the same resources for installation as when build localy
 	* Use ARG to set variable in Dockerfile
 	* Change README to docker folder and update Tags and Changelog Section for each change in latest and in version folder
 # 1.2.0

@@ -1,6 +1,6 @@
 FROM debian:jessie
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="1.2.3"
+LABEL version="latest"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -63,6 +63,7 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod authz_groupfile && \
     a2enmod cgi && \
     a2enmod headers && \
+    a2enmod expires && \
     a2enmod rewrite && \
     a2enmod ssl && \
     a2enmod proxy && \

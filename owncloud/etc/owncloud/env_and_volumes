@@ -1,5 +1,11 @@
 #!/bin/bash
+owncloud_enabled=true
+owncloud_IMAGE="owncloud"
+owncloud_VERSION="10"
+owncloud_CONTAINER_NAME="owncloud"
+
 owncloud_volumes="-v ${WWW_ROOT}/apps/owncloud:/var/www/html/apps \
                   -v ${USER_DIR}/etc/owncloud/config:/var/www/html/config \
                   -v ${WWW_ROOT}/data/owncloud:/var/www/html/data"
+
 owncloud_env_vars="-e TERM=xterm"

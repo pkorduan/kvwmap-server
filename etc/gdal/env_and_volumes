@@ -6,7 +6,9 @@ GDAL_IMAGE_VERSION=2.3.0
 if [ -z $PGSQL_PASSFILE ] ; then
   read -p "Enter Name of PostgreSql pgpass password file: " PGSQL_PASSFILE
 fi
+
 gdal_env_vars="-e \"TERM=xterm\" \
                -e PGPASSFILE=/root/$PGSQL_PASSFILE"
+
 gdal_volumes="-v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/postgresql/.pgpass:/root/$PGSQL_PASSFILE"
