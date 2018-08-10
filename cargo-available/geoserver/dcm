@@ -14,8 +14,8 @@ usage_geoserver() {
 
 install_geoserver() {
   echo "Installiere geoserver ..."
-  
-  mkdir -p $GEOSERVER_DATA_DIR
+
+  source $USER_DIR/kvwmap-server/geoserver/etc/geoserver/env_and_volumes
 
   echo "
 Kopiere Apache Konfigurationsdatei für geoserver."
@@ -28,10 +28,14 @@ Enable geoserver Web-Site in Apache Konfiguration."
   echo "ln -s ../sites-available/geoserver.conf $USER_DIR/etc/apache2/sites-enabled/geoserver.conf"
   ln -s ../sites-available/geoserver.conf $USER_DIR/etc/apache2/sites-enabled/geoserver.conf
   chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-enabled/geoserver.conf 
-  
+
   echo "
-Kopiere geoserver Datenverzeichnis nach $GEOSERVER_DATA_DIR"
-  echo "cp -R $USER_DIR/kvwmap-server/geoserver/data $GEOSERVER_DATA_DIR"
+Erzeuge geoserver Data-Verzeichnis: ${$GEOSERVER_DATA_DIR}"
+  mkdir -p $GEOSERVER_DATA_DIR
+
+  echo "
+Kopiere geoserver Datenverzeichnis nach ${GEOSERVER_DATA_DIR}"
+  echo "cp -R $USER_DIR/kvwmap-server/geoserver/data ${GEOSERVER_DATA_DIR}"
   cp -R $USER_DIR/kvwmap-server/geoserver/data/* $GEOSERVER_DATA_DIR
   chown -R $OS_USER.$OS_USER $GEOSERVER_DATA_DIR
   chmod -R a+w $GEOSERVER_DATA_DIR
@@ -43,8 +47,6 @@ Kopiere geoserver Konfigurationsdatien nach $USER_DIR/etc/geoserver/"
   cp ${USER_DIR}/kvwmap-server/geoserver/etc/geoserver/env_and_volumes ${USER_DIR}/etc/geoserver/env_and_volumes
   chown -R $OS_USER.$OS_USER ${USER_DIR}/etc/geoserver
   chmod -R a+w ${USER_DIR}/etc/geoserver
-
-  source $USER_DIR/etc/geoserver/env_and_volumes
 
   echo "
   Ziehe Image ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION} von dockerhub"
