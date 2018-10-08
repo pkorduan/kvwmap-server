@@ -1,5 +1,6 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+	* 1.2.5 [docker/1.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.5/Dockerfile)
 	* 1.2.4 [docker/1.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.4/Dockerfile)
 	* 1.2.3 [docker/1.2.3/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.3/Dockerfile)
 	* 1.2.2 [docker/1.2.2/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.2/Dockerfile)
@@ -207,6 +208,8 @@ $USER_DIR/kvwmap-server/dcm
 dcm rebuild all
 
 # Changelog
+# 1.2.5
+	* Add xslt Extension php-xsl
 # 1.2.4
 	* Add apache module expires finally, because it was not added in 1.2.2.
 	* Add pgpass to web container config
