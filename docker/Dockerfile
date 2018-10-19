@@ -1,6 +1,6 @@
 FROM debian:jessie
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="latest"
+LABEL version="1.2.5"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -43,6 +43,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     php5-mcrypt \
     php5-mysql \
     php5-pgsql \
+    php5-xsl \
     postgresql-client \
     sudo \
     unzip \
