@@ -767,6 +767,7 @@ case "$1" in
       pgsql)
         echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft..."
         docker exec -it pgsql-server /bin/bash
+        #docker exec -it -e TERM=$TERM -e COLUMNS=$COLUMNS -e LINES=$LINES pgsql-server /bin/bash # Option -e erst ab Versiom 1.25+ unterstützt
       ;;
 
       web)
