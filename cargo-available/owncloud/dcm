@@ -55,7 +55,7 @@ Kopiere source Verzeichnis mit um Bug korrigierte Request.php"
 
   source $USER_DIR/etc/owncloud/env_and_volumes
 
-  docker pull "${owncloud_IMAGE}:${owncloud_VERSION}"
+#  docker pull "${owncloud_IMAGE}:${owncloud_VERSION}"
 }
 
 remove_owncloud_container() {
