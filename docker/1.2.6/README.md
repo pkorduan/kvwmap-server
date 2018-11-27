@@ -214,6 +214,7 @@ dcm rebuild all
 	* Improve install process and change doku
 	* Use command hostname --fqd for HOSTNAME constante in config-default
 	* Change to xterm linux in env_and_volumes and set all to a+x
+	* add correct install of certbot for apache2 and debian 8
 # 1.2.5
 	* Add xslt Extension php-xsl
 # 1.2.4
