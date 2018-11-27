@@ -1,3 +1,3 @@
 #!/bin/bash
 deegree_volumes="-v ${USER_DIR}/etc/deegree/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml"
-deegree_env_vars="-e \"TERM=xterm\""
+deegree_env_vars="-e \"TERM=linux\""

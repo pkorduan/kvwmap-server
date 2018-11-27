@@ -24,7 +24,7 @@ web_env_vars="-e OS_USER=$OS_USER \
               -e PGSQL_ROOT_PASSWORD=$PGSQL_ROOT_PASSWORD \
               -e http_proxy=$HTTP_PROXY_WEB \
               -e no_proxy=localhost,${IP_EXTERN} \
-              -e \"TERM=xterm\""
+              -e \"TERM=linux\""
 
 web_volumes=" -v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/postgresql/.pgpass:/root/.pgpass \
