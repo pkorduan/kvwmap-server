@@ -212,6 +212,7 @@ dcm rebuild all
 # Changelog
 # 1.2.6
 	* Improve install process and change doku
+	* Use command hostname --fqd for HOSTNAME constante in config-default
 # 1.2.5
 	* Add xslt Extension php-xsl
 # 1.2.4
