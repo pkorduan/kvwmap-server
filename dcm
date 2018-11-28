@@ -503,12 +503,12 @@ run_pgsql_container() {
 
   set_cargo_pgsql_links
 
-  docker run --name pgsql-server \
-    -h ${SERVER_NAME}-pgsql-container \
+  docker run --name ${CONTAINER_NAME} \
+    -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
     $CARGO_PGSQL_LINKS \
     $pgsql_env_vars \
     $pgsql_volumes \
-    -p 5432:5432 \
+    -p ${PGSQL_PORT}:5432 \
     --restart=always \
     -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}
 }
