@@ -503,7 +503,16 @@ run_pgsql_container() {
 
   set_cargo_pgsql_links
 
-  docker run --name ${CONTAINER_NAME} \
+  echo "run pgsql container with command: docker run --name ${PGSQL_CONTAINER_NAME} \
+    -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
+    $CARGO_PGSQL_LINKS \
+    $pgsql_env_vars \
+    $pgsql_volumes \
+    -p ${PGSQL_PORT}:5432 \
+    --restart=always \
+    -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}"
+
+  docker run --name ${PGSQL_CONTAINER_NAME} \
     -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
     $CARGO_PGSQL_LINKS \
     $pgsql_env_vars \
@@ -520,7 +529,7 @@ run_web_container() {
  
   set_cargo_web_links
 
-	echo "run web container with command:   docker run --name web \
+	echo "run web container with command: docker run --name web \
     -h ${SERVER_NAME}-web-container \
     --link mysql-server:mysql \
     --link pgsql-server:pgsql \
