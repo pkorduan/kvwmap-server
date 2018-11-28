@@ -72,9 +72,12 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod proxy_html && \
     a2enmod xml2enc
 
-RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list && \
-		apt-get update && apt-get install -y \
-		python-certbot-apache -t jessie-backports
+RUN wget -o /usr/local/certbot-auto https://dl.eff.org/certbot-auto; && \
+    chmod a+x /usr/local/certbot-auto
+
+#RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list && \
+#		apt-get update && apt-get install -y \
+#		python-certbot-apache -t jessie-backports
 #RUN	certbot --apache
 #RUN	make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
 
