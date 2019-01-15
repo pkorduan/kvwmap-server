@@ -141,10 +141,12 @@ build_gdal_image() {
 
 call_cargo_cases() {
   debug "Call cargo cases with Arguments '$1' and '$2'"
+  echo "Call cargo cases with Arguments '$1' and '$2'"
   any_case_found=false
   for cargo in "${CARGOS[@]}"
   do :
     debug "Search for case $1 $2 in cargo $cargo"
+    echo "   Search for case $1 $2 in cargo $cargo cases_$cargo"
     cases_$cargo $1 $2
     if $case_found ; then
       #echo "Found case in cargo $cargo $1 $2"
@@ -153,6 +155,7 @@ call_cargo_cases() {
   done
   debug "Any case found after call all cargo cases: $any_case_found"
   if ! $any_case_found ; then
+    echo "$any_case_found nicht gefunden"
     echo "Gib nach $1 die Parameter $core_sub_cases"
     if [ "${#CARGOS[@]}" -gt "0" ] ; then
       printf "oder %s " "${CARGOS[@]}"
@@ -463,7 +466,7 @@ run_gdal_container() {
   echo "Erzeuge und Starte container gdal"
 
   source $USER_DIR/etc/gdal/env_and_volumes
-
+  echo  ${SERVER_NAME}-gdal-container 
   echo "docker run --name gdal \
 -h ${SERVER_NAME}-gdal-container \
 --link pgsql-server:pgsql \
@@ -733,7 +736,7 @@ uninstall_kvwmap() {
   esac
 }
 
-fail_unless_root
+# fail_unless_root
 
 load_cargo
 

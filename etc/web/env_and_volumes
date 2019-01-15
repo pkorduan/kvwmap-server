@@ -1,6 +1,9 @@
 #!/bin/bash
 KVWMAP_IMAGE=pkorduan/kvwmap-server
-KVWMAP_IMAGE_VERSION="1.2.5"
+KVWMAP_IMAGE_VERSION="1.2.6"
+TERM=linux
+COLUMNS=80
+LINES=120
 
 read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
 
@@ -24,7 +27,9 @@ web_env_vars="-e OS_USER=$OS_USER \
               -e PGSQL_ROOT_PASSWORD=$PGSQL_ROOT_PASSWORD \
               -e http_proxy=$HTTP_PROXY_WEB \
               -e no_proxy=localhost,${IP_EXTERN} \
-              -e \"TERM=linux\""
+              -e \"TERM=${TERM}\" \
+              -e \"COLUMNS=${COLUMNS}\" \
+              -e \"LINES=${LINES}\""
 
 web_volumes=" -v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/postgresql/.pgpass:/root/.pgpass \
