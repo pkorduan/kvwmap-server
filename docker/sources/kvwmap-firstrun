@@ -6,8 +6,8 @@ MYSQL_KVWMAP_USERNAME="kvwmap"
 echo "Create phpmyadmin database if not exists."
 mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /srv/www/phpmyadmin/sql/create_tables.sql
 
-echo "Create pamcontroluser with initial password."
-mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /usr/local/bin/create_pmacontrol_user.sql
+#echo "Create pamcontroluser with initial password."
+#mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root #--password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /usr/local/bin/create_pmacontrol_user.sql
 rm /usr/local/bin/create_pmacontrol_user.sql
 
 echo "Create symbolic links to enable apache conifg files if not exists."
