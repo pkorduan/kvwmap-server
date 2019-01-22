@@ -437,6 +437,9 @@ run_all_container() {
   if type -t run_geoserver_container | grep -q "^function$" ; then
     run_geoserver_container
   fi
+  if type -t run_tomcat_container | grep -q "^function$" ; then
+    run_tomcat_container
+  fi
   if type -t run_pydio_container | grep -q "^function$" ; then
     run_pydio_container
   fi
