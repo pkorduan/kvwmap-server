@@ -42,4 +42,5 @@ web_volumes=" -v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
               -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
               -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
-              -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"
+              -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
+              -v /var/run/docker.sock:/var/run/docker.sock"

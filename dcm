@@ -520,7 +520,7 @@ run_pgsql_container() {
     $CARGO_PGSQL_LINKS \
     $pgsql_env_vars \
     $pgsql_volumes \
-    -p ${PGSQL_PORT}:5432 \
+    -p ${PGSQL_PORT}:${PGSQL_PORT_INTERN} \
     --restart=always \
     -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}
 }
