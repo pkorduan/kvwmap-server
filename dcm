@@ -535,7 +535,10 @@ run_web_container() {
   echo "Erzeuge und Starte container web"
  
   source $USER_DIR/etc/web/env_and_volumes
- 
+  if [ -z "${web_hosts}" ]; then
+    web_hosts="--add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
+               --add-host=$SERVER_NAME:${IP_EXTERN}"
+  fi
   set_cargo_web_links
 
 	echo "run web container with command: docker run --name web \
