@@ -475,7 +475,7 @@ run_gdal_container() {
 --link pgsql-server:pgsql \
 $gdal_env_vars \
 $gdal_volumes \
--P \
+$gdal_ports \
 --restart=always \
 -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}"
 
@@ -484,7 +484,7 @@ $gdal_volumes \
     --link pgsql-server:pgsql \
     $gdal_env_vars \
     $gdal_volumes \
-    -P \
+    $gdal_ports \
     --restart=always \
     -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}
 }

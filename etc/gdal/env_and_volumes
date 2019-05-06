@@ -7,6 +7,8 @@ if [ -z $PGSQL_PASSFILE ] ; then
   read -p "Enter Name of PostgreSql pgpass password file: " PGSQL_PASSFILE
 fi
 
+gdal_ports="-P"
+
 gdal_env_vars="-e \"TERM=linux\" \
                -e PGPASSFILE=$PGSQL_PASSFILE"
 
