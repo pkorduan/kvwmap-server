@@ -8,7 +8,7 @@ if [ -z $PGSQL_PASSFILE ] ; then
 fi
 
 gdal_env_vars="-e \"TERM=linux\" \
-               -e PGPASSFILE=/root/$PGSQL_PASSFILE"
+               -e PGPASSFILE=$PGSQL_PASSFILE"
 
 gdal_volumes="-v $WWW_ROOT:/var/www \
-              -v $USER_DIR/etc/postgresql/.pgpass:/root/$PGSQL_PASSFILE"
+              -v $USER_DIR/etc/postgresql/.pgpass:$PGSQL_PASSFILE"

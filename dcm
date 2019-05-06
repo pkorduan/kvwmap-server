@@ -506,6 +506,9 @@ run_pgsql_container() {
   echo "Erzeuge und Starte container pgsql"
 
   source $USER_DIR/etc/postgresql/env_and_volumes
+  if [ -z "$pgsql_ports" ]; then
+    pgsql_ports="-p 5432:5432"
+  fi
 
   set_cargo_pgsql_links
 
@@ -514,7 +517,7 @@ run_pgsql_container() {
     $CARGO_PGSQL_LINKS \
     $pgsql_env_vars \
     $pgsql_volumes \
-    -p ${PGSQL_PORT}:5432 \
+    $pgsql_ports \
     --restart=always \
     -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}"
 
@@ -523,7 +526,7 @@ run_pgsql_container() {
     $CARGO_PGSQL_LINKS \
     $pgsql_env_vars \
     $pgsql_volumes \
-    -p ${PGSQL_PORT}:${PGSQL_PORT_INTERN} \
+    $pgsql_ports \
     --restart=always \
     -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}
 }
@@ -543,8 +546,7 @@ run_web_container() {
     $CARGO_WEB_LINKS \
     $web_env_vars \
     $web_volumes \
-    --add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
-    --add-host=$SERVER_NAME:${IP_EXTERN} \
+    $web_hosts \
     -p 80:80 \
     -p 443:443 \
     --restart=always \
@@ -558,8 +560,7 @@ run_web_container() {
     $CARGO_WEB_LINKS \
     $web_env_vars \
     $web_volumes \
-    --add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
-    --add-host=$SERVER_NAME:${IP_EXTERN} \
+    $web_hosts \
     -p 80:80 \
     -p 443:443 \
     --restart=always \

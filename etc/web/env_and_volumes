@@ -20,6 +20,9 @@ if [ -f $USER_DIR/etc/apache2/domain ]; then
   DOMAIN_EXTERN=$(head -n 1 $USER_DIR/etc/apache2/domain)
 fi
 
+web_hosts="--add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
+           --add-host=$SERVER_NAME:${IP_EXTERN}"
+
 web_env_vars="-e OS_USER=$OS_USER \
               -e IP_EXTERN=$IP_EXTERN \
               -e DOMAIN_EXTERN=$DOMAIN_EXTERN \
