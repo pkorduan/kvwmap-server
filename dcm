@@ -164,12 +164,24 @@ call_cargo_cases() {
   fi
 }
 
+# Bricht ab, wenn nutzer nicht root ist und nicht in docker gruppe
 fail_unless_root() {
-  if [ "$(id -u)" != '0' ]; then
-    echo "This script must be run as root!"
-    echo ""
-    echo ""
-    exit 1
+  dcm_user=$(id -nu)
+  dcm_user_group=$(id -nG | awk -F ' ' '{print $2}')
+  # Wenn ausführender Nutzer nicht root ist
+  if [ "${dcm_user}" != "root" ]; then
+    # Prüfe ob ausführende Nutzer in Gruppe docker ist
+    if [ "${dcm_user_group}" != "docker" ] ; then
+      echo "Nutzer ${dcm_user} ist nicht berechtigt das Script dcm auszuführen."
+      echo "Führen Sie das Script als root aus oder fügen Sie den Nutzer ${dcm_user} mit dem Befehhl"
+      echo "usermod -a -G docker ${dcm_user}"
+      echo "zur Gruppe von docker hinzu."
+      exit 1
+    else
+      echo "${dcm_user} in gruppe ${dcm_user_group}"
+    fi
+  else
+    echo 'root'
   fi
 }
 
@@ -240,6 +252,7 @@ install_kvwmap_images() {
   $OS_USER_EXISTS || adduser $OS_USER
   usermod -u 17000 $OS_USER
   groupmod -g 1700 $OS_USER
+  usermod -a -G docker $OS_USER
   
   echo "
   Setze bash Einstellungen für user: ${OS_USER} ..."
@@ -268,6 +281,7 @@ install_kvwmap_images() {
            $USER_DIR/etc \
            $WWW_ROOT/logs \
            $WWW_ROOT/logs/apache2 \
+           $WWW_ROOT/logs/cron \
            $WWW_ROOT/logs/pgsql \
            $WWW_ROOT/logs/mysql \
            $WWW_ROOT/tmp \
@@ -506,8 +520,12 @@ run_pgsql_container() {
   echo "Erzeuge und Starte container pgsql"
 
   source $USER_DIR/etc/postgresql/env_and_volumes
-  if [ -z "$pgsql_ports" ]; then
+  if [ -z "$pgsql_ports" ] ; then
     pgsql_ports="-p 5432:5432"
+  fi
+
+  if [ -z "${PGSQL_CONTAINER_NAME}" ] ; then
+    PGSQL_CONTAINER_NAME="pgsql-server"
   fi
 
   set_cargo_pgsql_links
@@ -743,7 +761,7 @@ uninstall_kvwmap() {
   esac
 }
 
-# fail_unless_root
+fail_unless_root
 
 load_cargo
 
@@ -1105,6 +1123,9 @@ case "$1" in
         show_container_status "pgsql-server"
         show_container_status "web"
         show_container_status "gdal"
+        if type -t run_geoserver_container | grep -q "^function$" ; then
+          show_container_status "geoserver"
+        fi
       ;;
       gdal)
         show_container_status "gdal"

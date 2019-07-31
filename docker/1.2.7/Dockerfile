@@ -78,6 +78,9 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
 RUN wget -O /usr/local/certbot-auto https://dl.eff.org/certbot-auto && \
     chmod a+x /usr/local/certbot-auto
 # /usr/local/certbot-auto must be run manually in the container to install the cert
+# Diese Einträge und keine backport funktioniert für certbot-auto in jessie
+#deb http://security.debian.org stable/updates main contrib non-free
+#deb http://ftp2.de.debian.org/debian unstable main contrib non-free
 
 WORKDIR /usr/local/bin
 
