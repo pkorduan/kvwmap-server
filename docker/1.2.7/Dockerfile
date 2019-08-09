@@ -109,10 +109,10 @@ RUN mkdir -p $USER_DIR/.ssh && \
 # force imagemagick to make sharp images
 RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /etc/ImageMagick-6/delegates.xml
 
-RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list.d/backports.list
-RUN apt-get install docker.io -y && \
-    groupmod -g 999 docker && \
-    usermod -a -G docker www-data
+#RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list.d/backports.list
+#RUN apt-get install docker.io -y && \
+#    groupmod -g 999 docker && \
+#    usermod -a -G docker www-data
 
 USER $OS_USER
 

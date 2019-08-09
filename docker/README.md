@@ -1,5 +1,6 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+	* 1.2.7 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.7/Dockerfile)
 	* 1.2.6 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.6/Dockerfile)
 	* 1.2.5 [docker/1.2.5/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.5/Dockerfile)
 	* 1.2.3 [docker/1.2.3/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.3/Dockerfile)
@@ -210,6 +211,8 @@ $USER_DIR/kvwmap-server/dcm
 dcm rebuild all
 
 # Changelog
+# 1.2.7
+	* Switch to http://archive.debian.org/debian for apt since jessie is no longer on debian mirrors
 # 1.2.6
 	* Improve install process and change doku
 	* Use command hostname --fqd for HOSTNAME constante in config-default
