@@ -4,16 +4,26 @@ PGSQL_USER=postgres
 read -s -p "Enter Password for PostgreSql user root: " PGSQL_ROOT_PASSWORD
 # PGSQL_PASSFILE must have permission 600
 PGSQL_PASSFILE=/root/.pgpass
-PGSQL_MAJOR_VERSION=9.4
-POSTGIS_VERSION=2.3
+PGSQL_MAJOR_VERSION=9.6
+POSTGIS_VERSION=2.5
 PGSQL_IMAGE=pkorduan/postgis
 PGSQL_IMAGE_VERSION="${PGSQL_MAJOR_VERSION}-${POSTGIS_VERSION}"
+PGSQL_PORT=5432
+PGSQL_PORT_INTERN=5432
+PGSQL_CONTAINER_NAME="pgsql-server"
+TERM=linux
+COLUMNS=180
+LINES=200
 
-pgsql_env_vars="-e \"TERM=xterm\" \
-               -e POSTGRES_USER=$PGSQL_USER \
-               -e POSTGRES_DB=$PGSQL_DB \
-               -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
-               -e PGPASSFILE=$PGSQL_PASSFILE"
+pgsql_ports="-p ${PGSQL_PORT}:${PGSQL_PORT_INTERN}"
+
+pgsql_env_vars="-e POSTGRES_USER=$PGSQL_USER \
+                -e POSTGRES_DB=$PGSQL_DB \
+                -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
+                -e PGPASSFILE=$PGSQL_PASSFILE \
+                -e \"TERM=${TERM}\" \
+                -e \"COLUMNS=${COLUMNS}\" \
+                -e \"LINES=${LINES}\""
 
 pgsql_volumes="-v $WWW_ROOT:/var/www\
                -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \

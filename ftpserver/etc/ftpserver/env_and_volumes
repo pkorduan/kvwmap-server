@@ -1,0 +1,17 @@
+#!/bin/bash
+ftpserver_CONTAINER_NAME="ftp"
+ftpserver_IMAGE="bogem/ftp"
+ftpserver_IMAGE_VERSION="latest"
+ftpserver_DATA_DIR=${DOCKER_ROOT}/www/data/ftp_data
+TERM=linux
+COLUMNS=80
+LINES=120
+
+ftpserver_ports="-p 20:20 -p 21:21 -p 47400-47470:47400-47470"
+ftpserver_volumes="-v ${ftpserver_DATA_DIR}:/home/vsftpd"
+ftpserver_env_vars="-e \"TERM=${TERM}\" \
+                    -e \"COLUMNS=${COLUMNS}\" \
+                    -e \"LINES=${LINES}\" \
+                    -e FTP_USER=<username> \
+                    -e FTP_PASS=<password> \
+                    -e PASV_ADDRESS=<ip>"

@@ -1,5 +1,7 @@
 MAP
 
+	#CONFIG "MS_ERRORFILE" "/var/www/logs/mapserver.log"
+
   OUTPUTFORMAT
     NAME jpeg
     MIMETYPE image/jpeg

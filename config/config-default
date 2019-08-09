@@ -10,7 +10,7 @@ SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
 SERVER_NAME=`hostname`
-DOMAIN_NAME="domain_name"
+DOMAIN_NAME=`hostname --fqd`
 DOCKER_ROOT="${USER_DIR}/docker"
 WWW_ROOT="${DOCKER_ROOT}/www"
 DB_ROOT="${DOCKER_ROOT}/db"
@@ -18,3 +18,4 @@ CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
 CARGO_WEB_LINKS=
 CARGO_PGSQL_LINKS=
+KVWMAP_SERVER_VERSION=2.0.0

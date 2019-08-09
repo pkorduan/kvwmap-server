@@ -30,7 +30,7 @@ Enable geoserver Web-Site in Apache Konfiguration."
   chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-enabled/geoserver.conf 
 
   echo "
-Erzeuge geoserver Data-Verzeichnis: ${$GEOSERVER_DATA_DIR}"
+Erzeuge geoserver Data-Verzeichnis: ${GEOSERVER_DATA_DIR}"
   mkdir -p $GEOSERVER_DATA_DIR
 
   echo "
@@ -209,7 +209,7 @@ cases_geoserver() {
       esac
     ;;
 
-    remove)
+    rm
       debug "Case remove in geoserver"
       case $2 in
         geoserver)

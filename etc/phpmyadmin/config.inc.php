@@ -19,7 +19,7 @@ $cfg['blowfish_secret'] = "blowfish_secret"; /* YOU MUST FILL IN THIS FOR COOKIE
 /*
  * Absolute URI
  */
-$cfg['PmaAbsoluteUri'] = 'https://' . getenv('IP_EXTERN') . '/userDbAdmin/';
+$cfg['PmaAbsoluteUri'] = 'http://' . getenv('IP_EXTERN') . '/userDbAdmin/';
 
 /*
  * Servers configuration
@@ -31,7 +31,7 @@ $i = 0;
  */
 $i++;
 /* Authentication type */
-$cfg['Servers'][$i]['auth_type'] = 'cookie';
+$cfg['Servers'][$i]['auth_type'] = 'http';
 /* Server parameters */
 $cfg['Servers'][$i]['host'] = getenv('MYSQL_PORT_3306_TCP_ADDR');
 $cfg['Servers'][$i]['port'] = getenv('MYSQL_PORT_3306_TCP_PORT');

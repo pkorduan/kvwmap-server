@@ -141,10 +141,12 @@ build_gdal_image() {
 
 call_cargo_cases() {
   debug "Call cargo cases with Arguments '$1' and '$2'"
+  echo "Call cargo cases with Arguments '$1' and '$2'"
   any_case_found=false
   for cargo in "${CARGOS[@]}"
   do :
     debug "Search for case $1 $2 in cargo $cargo"
+    echo "   Search for case $1 $2 in cargo $cargo cases_$cargo"
     cases_$cargo $1 $2
     if $case_found ; then
       #echo "Found case in cargo $cargo $1 $2"
@@ -153,6 +155,7 @@ call_cargo_cases() {
   done
   debug "Any case found after call all cargo cases: $any_case_found"
   if ! $any_case_found ; then
+    echo "$any_case_found nicht gefunden"
     echo "Gib nach $1 die Parameter $core_sub_cases"
     if [ "${#CARGOS[@]}" -gt "0" ] ; then
       printf "oder %s " "${CARGOS[@]}"
@@ -161,12 +164,24 @@ call_cargo_cases() {
   fi
 }
 
+# Bricht ab, wenn nutzer nicht root ist und nicht in docker gruppe
 fail_unless_root() {
-  if [ "$(id -u)" != '0' ]; then
-    echo "This script must be run as root!"
-    echo ""
-    echo ""
-    exit 1
+  dcm_user=$(id -nu)
+  dcm_user_group=$(id -nG | awk -F ' ' '{print $2}')
+  # Wenn ausführender Nutzer nicht root ist
+  if [ "${dcm_user}" != "root" ]; then
+    # Prüfe ob ausführende Nutzer in Gruppe docker ist
+    if [ "${dcm_user_group}" != "docker" ] ; then
+      echo "Nutzer ${dcm_user} ist nicht berechtigt das Script dcm auszuführen."
+      echo "Führen Sie das Script als root aus oder fügen Sie den Nutzer ${dcm_user} mit dem Befehhl"
+      echo "usermod -a -G docker ${dcm_user}"
+      echo "zur Gruppe von docker hinzu."
+      exit 1
+    else
+      echo "${dcm_user} in gruppe ${dcm_user_group}"
+    fi
+  else
+    echo 'root'
   fi
 }
 
@@ -237,6 +252,7 @@ install_kvwmap_images() {
   $OS_USER_EXISTS || adduser $OS_USER
   usermod -u 17000 $OS_USER
   groupmod -g 1700 $OS_USER
+  usermod -a -G docker $OS_USER
   
   echo "
   Setze bash Einstellungen für user: ${OS_USER} ..."
@@ -265,6 +281,7 @@ install_kvwmap_images() {
            $USER_DIR/etc \
            $WWW_ROOT/logs \
            $WWW_ROOT/logs/apache2 \
+           $WWW_ROOT/logs/cron \
            $WWW_ROOT/logs/pgsql \
            $WWW_ROOT/logs/mysql \
            $WWW_ROOT/tmp \
@@ -434,6 +451,9 @@ run_all_container() {
   if type -t run_geoserver_container | grep -q "^function$" ; then
     run_geoserver_container
   fi
+  if type -t run_tomcat_container | grep -q "^function$" ; then
+    run_tomcat_container
+  fi
   if type -t run_pydio_container | grep -q "^function$" ; then
     run_pydio_container
   fi
@@ -463,13 +483,13 @@ run_gdal_container() {
   echo "Erzeuge und Starte container gdal"
 
   source $USER_DIR/etc/gdal/env_and_volumes
-
+  echo  ${SERVER_NAME}-gdal-container 
   echo "docker run --name gdal \
 -h ${SERVER_NAME}-gdal-container \
 --link pgsql-server:pgsql \
 $gdal_env_vars \
 $gdal_volumes \
--P \
+$gdal_ports \
 --restart=always \
 -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}"
 
@@ -478,7 +498,7 @@ $gdal_volumes \
     --link pgsql-server:pgsql \
     $gdal_env_vars \
     $gdal_volumes \
-    -P \
+    $gdal_ports \
     --restart=always \
     -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}
 }
@@ -500,15 +520,31 @@ run_pgsql_container() {
   echo "Erzeuge und Starte container pgsql"
 
   source $USER_DIR/etc/postgresql/env_and_volumes
+  if [ -z "$pgsql_ports" ] ; then
+    pgsql_ports="-p 5432:5432"
+  fi
+
+  if [ -z "${PGSQL_CONTAINER_NAME}" ] ; then
+    PGSQL_CONTAINER_NAME="pgsql-server"
+  fi
 
   set_cargo_pgsql_links
 
-  docker run --name pgsql-server \
-    -h ${SERVER_NAME}-pgsql-container \
+  echo "run pgsql container with command: docker run --name ${PGSQL_CONTAINER_NAME} \
+    -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
     $CARGO_PGSQL_LINKS \
     $pgsql_env_vars \
     $pgsql_volumes \
-    -p 5432:5432 \
+    $pgsql_ports \
+    --restart=always \
+    -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}"
+
+  docker run --name ${PGSQL_CONTAINER_NAME} \
+    -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
+    $CARGO_PGSQL_LINKS \
+    $pgsql_env_vars \
+    $pgsql_volumes \
+    $pgsql_ports \
     --restart=always \
     -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}
 }
@@ -517,10 +553,13 @@ run_web_container() {
   echo "Erzeuge und Starte container web"
  
   source $USER_DIR/etc/web/env_and_volumes
- 
+  if [ -z "${web_hosts}" ]; then
+    web_hosts="--add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
+               --add-host=$SERVER_NAME:${IP_EXTERN}"
+  fi
   set_cargo_web_links
 
-	echo "run web container with command:   docker run --name web \
+	echo "run web container with command: docker run --name web \
     -h ${SERVER_NAME}-web-container \
     --link mysql-server:mysql \
     --link pgsql-server:pgsql \
@@ -528,8 +567,7 @@ run_web_container() {
     $CARGO_WEB_LINKS \
     $web_env_vars \
     $web_volumes \
-    --add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
-    --add-host=$SERVER_NAME:${IP_EXTERN} \
+    $web_hosts \
     -p 80:80 \
     -p 443:443 \
     --restart=always \
@@ -543,8 +581,7 @@ run_web_container() {
     $CARGO_WEB_LINKS \
     $web_env_vars \
     $web_volumes \
-    --add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
-    --add-host=$SERVER_NAME:${IP_EXTERN} \
+    $web_hosts \
     -p 80:80 \
     -p 443:443 \
     --restart=always \
@@ -767,6 +804,7 @@ case "$1" in
       pgsql)
         echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft..."
         docker exec -it pgsql-server /bin/bash
+        #docker exec -it -e TERM=$TERM -e COLUMNS=$COLUMNS -e LINES=$LINES pgsql-server /bin/bash # Option -e erst ab Versiom 1.25+ unterstützt
       ;;
 
       web)
@@ -1085,6 +1123,9 @@ case "$1" in
         show_container_status "pgsql-server"
         show_container_status "web"
         show_container_status "gdal"
+        if type -t run_geoserver_container | grep -q "^function$" ; then
+          show_container_status "geoserver"
+        fi
       ;;
       gdal)
         show_container_status "gdal"

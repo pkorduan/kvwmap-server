@@ -1,7 +1,7 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
-	* 1.2.5 [docker/1.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.5/Dockerfile)
-	* 1.2.4 [docker/1.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.4/Dockerfile)
+	* 1.2.6 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.6/Dockerfile)
+	* 1.2.5 [docker/1.2.5/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.5/Dockerfile)
 	* 1.2.3 [docker/1.2.3/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.3/Dockerfile)
 	* 1.2.2 [docker/1.2.2/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.2/Dockerfile)
 	* 1.2.1 [docker/1.2.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.1/Dockerfile)
@@ -48,6 +48,7 @@ You may change the direktory where kvwmap-server has been cloned
 USER_DIR="your_user_dir"
 You may change the directory where the Volumes for the docker container will reside
 DOCKER_ROOT="your/directory"
+You may change the host and or domainname of this server.
 In the following $OS_USER means the user that you have defined in config or config-default file.
 
 ### Install ressources for docker container
@@ -90,6 +91,7 @@ docker exec web service apache2 reload
 To init the kvwmap app open a browser and call the kvwmap install script with the url of your host.
 `http[s]://{yourserver}/kvmwmap/install.php`
 
+Set your database account credentials with MYSQL_HOST = mysql and POSTGRES_HOST = pgsql.
 Then click on the button "Installation starten".
 The result will be open in a new browser tab. Go to the end of the page and click on the link "Login" and login with:
 
@@ -208,6 +210,11 @@ $USER_DIR/kvwmap-server/dcm
 dcm rebuild all
 
 # Changelog
+# 1.2.6
+	* Improve install process and change doku
+	* Use command hostname --fqd for HOSTNAME constante in config-default
+	* Change to xterm linux in env_and_volumes and set all to a+x
+	* add correct install of certbot for apache2 and debian 8
 # 1.2.5
 	* Add xslt Extension php-xsl
 # 1.2.4

@@ -1,6 +1,9 @@
 #!/bin/bash
 KVWMAP_IMAGE=pkorduan/kvwmap-server
-KVWMAP_IMAGE_VERSION="1.2.4"
+KVWMAP_IMAGE_VERSION="1.2.6"
+TERM=linux
+COLUMNS=80
+LINES=120
 
 read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
 
@@ -17,6 +20,9 @@ if [ -f $USER_DIR/etc/apache2/domain ]; then
   DOMAIN_EXTERN=$(head -n 1 $USER_DIR/etc/apache2/domain)
 fi
 
+web_hosts="--add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
+           --add-host=$SERVER_NAME:${IP_EXTERN}"
+
 web_env_vars="-e OS_USER=$OS_USER \
               -e IP_EXTERN=$IP_EXTERN \
               -e DOMAIN_EXTERN=$DOMAIN_EXTERN \
@@ -24,7 +30,9 @@ web_env_vars="-e OS_USER=$OS_USER \
               -e PGSQL_ROOT_PASSWORD=$PGSQL_ROOT_PASSWORD \
               -e http_proxy=$HTTP_PROXY_WEB \
               -e no_proxy=localhost,${IP_EXTERN} \
-              -e \"TERM=xterm\""
+              -e \"TERM=${TERM}\" \
+              -e \"COLUMNS=${COLUMNS}\" \
+              -e \"LINES=${LINES}\""
 
 web_volumes=" -v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/postgresql/.pgpass:/root/.pgpass \
@@ -37,4 +45,5 @@ web_volumes=" -v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
               -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
               -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
-              -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"
+              -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb \
+              -v /var/run/docker.sock:/var/run/docker.sock"

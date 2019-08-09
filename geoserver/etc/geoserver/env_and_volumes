@@ -1,10 +1,10 @@
 #!/bin/bash
 geoserver_enabled=true
 GEOSERVER_CONTAINER_NAME="geoserver"
-GEOSERVER_DATA_DIR=/home/gisadmin/docker/www/data/geoserver_data
+GEOSERVER_DATA_DIR=${DOCKER_ROOT}/www/data/geoserver_data
 GEOSERVER_IMAGE=pkorduan/geoserver_inspire
 GEOSERVER_IMAGE_VERSION=2.13.2
 
-geoserver_env_vars="-e \"TERM=xterm\""
+geoserver_env_vars="-e \"TERM=linux\""
 geoserver_volumes="-v $GEOSERVER_DATA_DIR:/opt/geoserver/data_dir"
 geoserver_ports="-p 8080:8080"
