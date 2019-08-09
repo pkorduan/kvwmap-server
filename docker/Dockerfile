@@ -1,6 +1,6 @@
 FROM debian:jessie
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="1.2.6"
+LABEL version="1.2.7"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -18,7 +18,10 @@ RUN sed -i \
     dpkg-reconfigure -f noninteractive tzdata && \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
+RUN echo "deb [check-valid-until=no] http://archive.debian.org/debian jessie-backports main" > /etc/apt/sources.list.d/jessie-backports.list
+RUN sed -i '/deb http:\/\/deb.debian.org\/debian jessie-updates main/d' /etc/apt/sources.list
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Check-Valid-Until=false update && apt-get install -y \
     apt-utils \
     apache2 \
     cgi-mapserver \
@@ -72,14 +75,12 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod proxy_html && \
     a2enmod xml2enc
 
-RUN wget -o /usr/local/certbot-auto https://dl.eff.org/certbot-auto && \
+RUN wget -O /usr/local/certbot-auto https://dl.eff.org/certbot-auto && \
     chmod a+x /usr/local/certbot-auto
-
-#RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list && \
-#		apt-get update && apt-get install -y \
-#		python-certbot-apache -t jessie-backports
-#RUN	certbot --apache
-#RUN	make-ssl-cert /usr/local/bin/ssl-cert-localhost.cnf /etc/ssl/private/ssl-cert-localhost.crt
+# /usr/local/certbot-auto must be run manually in the container to install the cert
+# Diese Einträge und keine backport funktioniert für certbot-auto in jessie
+#deb http://security.debian.org stable/updates main contrib non-free
+#deb http://ftp2.de.debian.org/debian unstable main contrib non-free
 
 WORKDIR /usr/local/bin
 
@@ -109,7 +110,7 @@ RUN mkdir -p $USER_DIR/.ssh && \
 RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /etc/ImageMagick-6/delegates.xml
 
 RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list.d/backports.list
-RUN apt-get update && apt-get install docker.io -y && \
+RUN apt-get install docker.io -y && \
     groupmod -g 999 docker && \
     usermod -a -G docker www-data
 
