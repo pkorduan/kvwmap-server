@@ -61,8 +61,9 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod proxy_html && \
     a2enmod xml2enc
 
-RUN wget -O /usr/local/certbot-auto https://dl.eff.org/certbot-auto && \
-    chmod a+x /usr/local/certbot-auto
+RUN wget -O /usr/local/bin/certbot-auto https://dl.eff.org/certbot-auto && \
+    chmod 0755 /usr/local/bin/certbot-auto
+RUN echo "0 0,12 * * * root python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/local/bin/certbot-auto renew" | sudo tee -a /etc/crontab > /dev/null
 
 RUN groupadd -g 1700 ${OS_USER} && \
   useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
