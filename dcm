@@ -44,6 +44,7 @@ usage() {
   echo "pgsql stop     Stoppt den PostgreSQL Container und zeigt alle vorhandenen an."
   echo "pgsql remove   Löscht den PostgreSQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
   echo "pgsql run      Erzeugt und startet den PostgreSQL Container mit dem Namen pgsql-server."
+  echo "pgsql allowip <IP> Führt das Script allowip im postgres data Verzeichnis aus, welches die IP in die pg_hba.conf einträgt für einen externen Zugriff."
   echo "rebuild        Stoppt und löscht Container, löscht images, die neu gebildet werden sollen, bildet diese neu und erzeugt und startet danach Container neu."
   echo "rebuild all    Stoppt, löscht und restartet zum rebuild des Web Containers alle Container."
   echo "rebuild gdal   Stoppt und löscht den gdal Container, löscht und rebuild das image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} neu und run gdal Container neu."
@@ -911,6 +912,9 @@ case "$1" in
       ;;
       run)
         run_pgsql_container
+      ;;
+      allowip)
+        docker exec pgsql-server /var/lib/postgresql/data/allowip $3
       ;;
       *)
         echo "Gib nach pgsql einen der folgenden Parameter ein: client, start, status, stop, remove oder run."
