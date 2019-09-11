@@ -3,7 +3,7 @@
 #settings
 DEBUG=false
 OS_USER="gisadmin"
-OS_USER_EXISTS=false
+OS_USER_EXISTS=true
 getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
 USER_DIR=/home/$OS_USER
 SCRIPT=$(readlink -f "$0")

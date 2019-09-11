@@ -11,7 +11,7 @@ HTTP_PROXY_WEB=
 NO_PROXY_WEB=localhost,pgsql
 
 if [ "$(id -u)" == '0' ]; then
-  IP_EXTERN=$(ip addr show eth0 | grep 'global eth0' | cut -d ' ' -f 6 | cut -d '/' -f 1)
+  IP_EXTERN=$(ip addr show eth0 | grep 'global.*eth0' | cut -d ' ' -f 6 | cut -d '/' -f 1)
 else
   IP_EXTERN="server_ip"
 fi
@@ -20,7 +20,7 @@ if [ -f $USER_DIR/etc/apache2/domain ]; then
   DOMAIN_EXTERN=$(head -n 1 $USER_DIR/etc/apache2/domain)
 fi
 
-web_hosts="--add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
+web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
            --add-host=$SERVER_NAME:${IP_EXTERN}"
 
 web_env_vars="-e OS_USER=$OS_USER \

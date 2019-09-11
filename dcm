@@ -367,6 +367,8 @@ install_kvwmap_images() {
   echo "    Browser öffnen mit der Adresse: https://${IP_EXTERN}/kvwmap/install.php"
   echo ""
   echo "Die Installation ist erfolgreich abgeschlossen."
+  echo "Achtung Der Zugang als root ist jetzt von außen gesperrt!"
+  echo "Sie können sich nur noch als gisadmin per ssh mit diesem Server verbinden."
 }
 
 is_stopped() {
