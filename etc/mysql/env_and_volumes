@@ -2,7 +2,7 @@
 read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
 MYSQL_IMAGE=mysql
 MYSQL_IMAGE_VERSION=5.5
-
+mysql_ports="-p 3306:3306"
 mysql_env_vars="-e \"TERM=linux\" \
                 -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD"
 

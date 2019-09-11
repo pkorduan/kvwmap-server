@@ -3,7 +3,7 @@ ip=$1
 if [ -z $ip ] ; then
   echo "Bitte IP im ersten Parameter mit angeben"
 else
-  sed -i "/# externe IP gesetzt mit allowip/c\host	all		gisadmin	${ip}/32		md5 # externe IP gesetzt mit allowip" /var/lib/postgresql/data/pg_hba.conf
+  sed -i "/# externe IP gesetzt mit allowip/c\host	all		kvwmap  	${ip}/32		md5 # externe IP gesetzt mit allowip" /var/lib/postgresql/data/pg_hba.conf
   runuser -l postgres -c '/usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/data reload'
   cat /var/lib/postgresql/data/pg_hba.conf
 fi

@@ -513,6 +513,7 @@ run_mysql_container() {
     -h ${SERVER_NAME}-mysql-container \
     $mysql_env_vars \
     $mysql_volumes \
+    $mysql_ports \
     --restart=always \
     -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}
 }
