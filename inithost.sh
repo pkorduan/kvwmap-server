@@ -37,5 +37,6 @@ sed -i -e "s|read -s |#read -s|g" etc/postgresql/env_and_volumes
 dcm run all
 sed -i -e "s|read -s |#read -s|g" etc/mysql/env_and_volumes
 sed -i -e "s|read -s |#read -s|g" etc/web/env_and_volumes
-read -p "Enter IP to allow external access with pgAdmin Client: " PGADMIN_IP
-dcm pgsql allowip $PGADMIN_IP
+read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
+echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> db/postgresql/pg_hba.conf
+docker exec pgsql-server runuser -l postgres -c '/usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/data reload'
