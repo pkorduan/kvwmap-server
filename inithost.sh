@@ -21,6 +21,8 @@ git clone https://github.com/pkorduan/kvwmap-server.git
 
 kvwmap-server/dcm install kvwmap
 
+source ~/.bash_rc
+
 sed -i \
     -e "s|#PermitRootLogin prohibit-password|PermitRootLogin no|g" /etc/ssh/sshd_config
 
