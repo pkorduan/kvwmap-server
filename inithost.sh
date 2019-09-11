@@ -23,9 +23,19 @@ kvwmap-server/dcm install kvwmap
 
 source ~/.bash_rc
 
-sed -i \
-    -e "s|#PermitRootLogin prohibit-password|PermitRootLogin no|g" /etc/ssh/sshd_config
+sed -i -e "s|#PermitRootLogin prohibit-password|PermitRootLogin no|g" /etc/ssh/sshd_config
 
 /etc/init.d/ssh reload
 
+dcm run pgsql
+dcm rm pgsql
+cp kvwmap-server/db/pg_hba.conf db/postgresql/data/
+chown 999.docker db/postgresql/pg_hba.conf
+cp kvwmap-server/db/allowip db/postgresql/data/
+chmod a+x db/postgresql/allowip
+sed -i -e "s|read -s |#read -s|g" etc/postgresql/env_and_volumes
 dcm run all
+sed -i -e "s|read -s |#read -s|g" etc/mysql/env_and_volumes
+sed -i -e "s|read -s |#read -s|g" etc/web/env_and_volumes
+read -p "Enter IP to allow external access with pgAdmin Client: " PGADMIN_IP
+dcm pgsql allowip $PGADMIN_IP
