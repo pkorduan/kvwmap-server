@@ -749,7 +749,7 @@ uninstall_kvwmap() {
 
       if [ ! -z "$USER_DIR" ] ; then
         echo "Lösche $DOCKER_ROOT, $DB_ROOT, $USER_DIR/etc, $USER_DIR/kvwmap-server, ${WWW_ROOT} und die links db und www in $USER_DIR"
-        rm -RI $DOCKER_ROOT $DB_ROOT $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT $USER_DIR/db $USER_DIR/www
+        rm -RI $DOCKER_ROOT $DB_ROOT $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT $USER_DIR/db $USER_DIR/www $USER_DIR/inithost.sh
       fi
       echo "So jetzt ist alles weg."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
