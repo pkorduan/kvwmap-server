@@ -42,7 +42,7 @@ git clone https://github.com/pkorduan/kvwmap-server.git
 
 kvwmap-server/dcm install kvwmap
 
-source ~/.bash_rc
+source ~/.bashrc
 
 read -p "Enter port for ssh login: " SSH_PORT
 sed -i \
