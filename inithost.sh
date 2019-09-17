@@ -56,7 +56,7 @@ dcm rm pgsql
 cp kvwmap-server/db/pg_hba.conf db/postgresql/data/
 chown 999.docker db/postgresql/data/pg_hba.conf
 cp kvwmap-server/db/allowip db/postgresql/data/
-chmod a+x db/postgresql/allowip
+chmod a+x db/postgresql/data/allowip
 sed -i -e "s|read -s |#read -s|g" etc/postgresql/env_and_volumes
 dcm run all
 sed -i -e "s|read -s |#read -s|g" etc/mysql/env_and_volumes
