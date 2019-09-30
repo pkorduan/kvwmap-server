@@ -68,4 +68,12 @@ echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5
 docker exec pgsql-server runuser -l postgres -c '/usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/data reload'
 
 cd ~
-rm -- "$0"ls
+read -p "Initscript löschen? (j/n) " answer
+case ${answer:0:1} in
+  j|J|y|Y )
+    rm -- "$0"
+  ;;
+  * )
+    echo "OK, nix passiert!"
+  ;;
+esac
