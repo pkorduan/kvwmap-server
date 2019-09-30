@@ -1,6 +1,2 @@
 #!/bin/bash
-if [ -r "$(find $1 -mmin +115200)" ]
-  then
-    # HTTPS Certificate from Letsencrypt older than 80 days, renew it
-    certbot renew
-fi
+/usr/local/certbot-auto renew --quiet
