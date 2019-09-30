@@ -51,6 +51,8 @@ sed -i \
     /etc/ssh/sshd_config
 /etc/init.d/ssh reload
 
+source ~/.bashrc
+
 dcm run pgsql
 dcm rm pgsql
 cp kvwmap-server/db/pg_hba.conf db/postgresql/data/
@@ -65,4 +67,5 @@ read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
 echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> db/postgresql/pg_hba.conf
 docker exec pgsql-server runuser -l postgres -c '/usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/data reload'
 
-rm -- "$0"
+cd ~
+rm -- "$0"ls
