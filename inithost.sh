@@ -56,9 +56,21 @@ source ~/.bashrc
 dcm run pgsql
 dcm rm pgsql
 cp kvwmap-server/db/pg_hba.conf db/postgresql/data/
-chown 999.docker db/postgresql/data/pg_hba.conf
+chown 999.docker ${USER_DIR}/docker/db/postgresql/data/pg_hba.conf
 cp kvwmap-server/db/allowip db/postgresql/data/
 chmod a+x db/postgresql/data/allowip
+sed -i -e "s|#log_destination = 'stderr'|log_destination = 'csvlog'|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+sed -i -e "s|#logging_collector = off|#logging_collector = on|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+sed -i -e "s|#log_directory = 'pg_log'|log_directory = '/var/www/logs/pgsql'|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+sed -i -e "s|#log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'|log_filename = 'pgsql-%Y-%m-%d.log'|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+sed -i -e "s|#log_file_mode = 0600|log_file_mode = 0640|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+sed -i -e "s|#log_truncate_on_rotation = off|log_truncate_on_rotation = on|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+sed -i -e "s|#log_rotation_age = 1d|log_rotation_age = 1d|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+sed -i -e "s|#log_rotation_size = 10MB|log_rotation_size = 0|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+sed -i -e "s|#log_line_prefix = ''|log_line_prefix = '%t:%r:%u@%d:[%p]: '|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+sed -i -e "s|#log_statement = 'none'|log_statement = 'mod'|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+chown 999.docker ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+
 sed -i -e "s|read -s |#read -s|g" etc/postgresql/env_and_volumes
 dcm run all
 sed -i -e "s|read -s |#read -s|g" etc/mysql/env_and_volumes
