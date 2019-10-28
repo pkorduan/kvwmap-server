@@ -562,6 +562,12 @@ run_web_container() {
     web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
                --add-host=$SERVER_NAME:${IP_EXTERN}"
   fi
+
+  if [ -z "$web_ports}" ]; then
+    web_ports="-p 80:80 \
+               -p 443:443"
+  fi
+
   set_cargo_web_links
 
 	echo "run web container with command: docker run --name web \
@@ -573,8 +579,7 @@ run_web_container() {
     $web_env_vars \
     $web_volumes \
     $web_hosts \
-    -p 80:80 \
-    -p 443:443 \
+    $web_ports \
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}"
 
