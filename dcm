@@ -168,11 +168,11 @@ call_cargo_cases() {
 # Bricht ab, wenn nutzer nicht root ist und nicht in docker gruppe
 fail_unless_root() {
   dcm_user=$(id -nu)
-  dcm_user_group=$(id -nG | awk -F ' ' '{print $2}')
+  dcm_user_group=$(id -nG)
   # Wenn ausführender Nutzer nicht root ist
   if [ "${dcm_user}" != "root" ]; then
     # Prüfe ob ausführende Nutzer in Gruppe docker ist
-    if [[ "${dcm_user_group}" == *"docker"* ]] ; then
+    if [[ "$dcm_user_group" != *"docker"* ]] ; then
       echo "Nutzer ${dcm_user} ist nicht berechtigt das Script dcm auszuführen."
       echo "Führen Sie das Script als root aus oder fügen Sie den Nutzer ${dcm_user} mit dem Befehhl"
       echo "usermod -a -G docker ${dcm_user}"
