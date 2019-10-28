@@ -19,6 +19,9 @@ fi
 web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
            --add-host=$SERVER_NAME:${IP_EXTERN}"
 
+web_ports="-p 80:80 \
+           -p 443:443"
+
 web_env_vars="-e OS_USER=$OS_USER \
               -e IP_EXTERN=$IP_EXTERN \
               -e DOMAIN_EXTERN=$DOMAIN_EXTERN \
