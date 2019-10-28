@@ -522,36 +522,40 @@ run_mysql_container() {
 }
 
 run_pgsql_container() {
-  echo "Erzeuge und Starte container pgsql"
+  if [ -z "${START_WITH_DCM}" ] ; then
+    echo "Erzeuge und Starte container pgsql"
 
-  source $USER_DIR/etc/postgresql/env_and_volumes
-  if [ -z "$pgsql_ports" ] ; then
-    pgsql_ports="-p 5432:5432"
+    source $USER_DIR/etc/postgresql/env_and_volumes
+    if [ -z "$pgsql_ports" ] ; then
+      pgsql_ports="-p 5432:5432"
+    fi
+
+    if [ -z "${PGSQL_CONTAINER_NAME}" ] ; then
+      PGSQL_CONTAINER_NAME="pgsql-server"
+    fi
+
+    set_cargo_pgsql_links
+
+    echo "run pgsql container with command: docker run --name ${PGSQL_CONTAINER_NAME} \
+      -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
+      $CARGO_PGSQL_LINKS \
+      $pgsql_env_vars \
+      $pgsql_volumes \
+      $pgsql_ports \
+      --restart=always \
+      -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}"
+
+    docker run --name ${PGSQL_CONTAINER_NAME} \
+      -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
+      $CARGO_PGSQL_LINKS \
+      $pgsql_env_vars \
+      $pgsql_volumes \
+      $pgsql_ports \
+      --restart=always \
+      -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}
+  else
+    echo "Starten von pgsql container wird ausgelassen weil START_WITH_DCM auf false steht."
   fi
-
-  if [ -z "${PGSQL_CONTAINER_NAME}" ] ; then
-    PGSQL_CONTAINER_NAME="pgsql-server"
-  fi
-
-  set_cargo_pgsql_links
-
-  echo "run pgsql container with command: docker run --name ${PGSQL_CONTAINER_NAME} \
-    -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
-    $CARGO_PGSQL_LINKS \
-    $pgsql_env_vars \
-    $pgsql_volumes \
-    $pgsql_ports \
-    --restart=always \
-    -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}"
-
-  docker run --name ${PGSQL_CONTAINER_NAME} \
-    -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
-    $CARGO_PGSQL_LINKS \
-    $pgsql_env_vars \
-    $pgsql_volumes \
-    $pgsql_ports \
-    --restart=always \
-    -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}
 }
 
 run_web_container() {
@@ -592,8 +596,7 @@ run_web_container() {
     $web_env_vars \
     $web_volumes \
     $web_hosts \
-    -p 80:80 \
-    -p 443:443 \
+    $web_ports \
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}
 }
