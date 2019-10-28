@@ -60,7 +60,7 @@ chown 999.docker ${USER_DIR}/docker/db/postgresql/data/pg_hba.conf
 cp kvwmap-server/db/allowip db/postgresql/data/
 chmod a+x db/postgresql/data/allowip
 sed -i -e "s|#log_destination = 'stderr'|log_destination = 'csvlog'|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
-sed -i -e "s|#logging_collector = off|#logging_collector = on|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
+sed -i -e "s|#logging_collector = off|logging_collector = on|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
 sed -i -e "s|#log_directory = 'pg_log'|log_directory = '/var/www/logs/pgsql'|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
 sed -i -e "s|#log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'|log_filename = 'pgsql-%Y-%m-%d.log'|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
 sed -i -e "s|#log_file_mode = 0600|log_file_mode = 0640|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
