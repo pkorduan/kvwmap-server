@@ -567,7 +567,7 @@ run_web_container() {
                --add-host=$SERVER_NAME:${IP_EXTERN}"
   fi
 
-  if [ -z "$web_ports}" ]; then
+  if [ -z "${web_ports}" ]; then
     web_ports="-p 80:80 \
                -p 443:443"
   fi
