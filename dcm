@@ -5,6 +5,7 @@ CONFIG_FILE=$( dirname "${BASH_SOURCE[0]}" )
 if [ -f $CONFIG_FILE/config/config ] ; then
   CONFIG_FILE=$CONFIG_FILE/config/config
 else
+  cp $CONFIG_FILE/config/config-default $CONFIG_FILE/config/config
   CONFIG_FILE=$CONFIG_FILE/config/config-default
 fi
 

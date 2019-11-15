@@ -53,6 +53,8 @@ sed -i \
 
 source ~/.bashrc
 
+PATH=$PATH:/home/gisadmin/kvwmap-server
+
 dcm run pgsql
 dcm rm pgsql
 cp kvwmap-server/db/pg_hba.conf db/postgresql/data/
@@ -71,10 +73,10 @@ sed -i -e "s|#log_line_prefix = ''|log_line_prefix = '%t:%r:%u@%d:[%p]: '|g" ${U
 sed -i -e "s|#log_statement = 'none'|log_statement = 'mod'|g" ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
 chown 999.docker ${USER_DIR}/docker/db/postgresql/data/postgresql.conf
 
-sed -i -e "s|read -s |#read -s|g" etc/postgresql/env_and_volumes
+sed -i -e "s|read -s |#read -s |g" etc/postgresql/env_and_volumes
 dcm run all
-sed -i -e "s|read -s |#read -s|g" etc/mysql/env_and_volumes
-sed -i -e "s|read -s |#read -s|g" etc/web/env_and_volumes
+sed -i -e "s|read -s |#read -s |g" etc/mysql/env_and_volumes
+sed -i -e "s|read -s |#read -s |g" etc/web/env_and_volumes
 read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
 echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> db/postgresql/pg_hba.conf
 docker exec pgsql-server runuser -l postgres -c '/usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/data reload'
