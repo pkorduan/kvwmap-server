@@ -70,15 +70,16 @@ remove_osm2po_image() {
 
 run_osm2po_container() {
   source $USER_DIR/etc/osm2po/env_and_volumes
-  echo "Erzeuge und starte den osm2po Container"
-  echo "mit volumes: ${osm2po_volumes}"
-  echo "docker run --name osm2po -h ${SERVER_NAME}-osm2po-container $osm2po_volumes --restart=always -d ${osm2po_IMAGE}:${osm2po_IMAGE_VERSION}"
-  docker run --name osm2po \
+  echo "Erzeuge und starte den osm2po Container:"
+  cmd="docker run --name osm2po \
     -h ${SERVER_NAME}-osm2po-container \
     $osm2po_env_vars \
     $osm2po_volumes \
     --restart=always \
-    -d "${osm2po_IMAGE}:${osm2po_IMAGE_VERSION}"
+    -d ${osm2po_IMAGE}:${osm2po_IMAGE_VERSION} \
+  "
+  echo $cmd
+  $cmd
 }
 
 set_osm2po_web_link() {
