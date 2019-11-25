@@ -1,4 +1,5 @@
 osm2po_IMAGE="pkorduan/osm2po-server"
+osm2po_IMAGE_VERSION"5.1.0"
 osm2po_VERSION="5.1.0"
 
 osm2po_env_vars="-e \"OSM2PO_VERSION=${osm2po_VERSION}\""

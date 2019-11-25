@@ -49,7 +49,7 @@ Kopiere Konfigurationsdatei für env_and_volumes"
   chown $OS_USER.$OS_USER $USER_DIR/etc/osm2po/env_and_volumes
   chmod g+w $USER_DIR/etc/osm2po/env_and_volumes
 
-  docker pull ${osm2po_IMAGE}:${osm2po_VERSION}
+  docker pull ${osm2po_IMAGE}:${osm2po_IMAGE_VERSION}
 }
 
 remove_osm2po_container() {
