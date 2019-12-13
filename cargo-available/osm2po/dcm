@@ -2,8 +2,6 @@
 #echo "Load variables in dcm osm2po"
 CARGOS+=("osm2po")
 osm2po_enabled=true
-osm2po_IMAGE="pkorduan/osm2po-server"
-osm2po_VERSION="5.1.0"
 osm2po_CONTAINER_NAME="osm2po"
 
 usage_osm2po() {
@@ -47,11 +45,11 @@ Kopiere Konfigurationsdatei für env_and_volumes"
   chown $OS_USER.$OS_USER $USER_DIR/etc/osm2po
   chmod g+w $USER_DIR/etc/osm2po
   cp $USER_DIR/kvwmap-server/osm2po/etc/osm2po/env_and_volumes $USER_DIR/etc/osm2po/env_and_volumes
+  cp -R $USER_DIR/kvwmap-server/osm2po/etc/osm2po/config $USER_DIR/etc/osm2po/
   chown $OS_USER.$OS_USER $USER_DIR/etc/osm2po/env_and_volumes
   chmod g+w $USER_DIR/etc/osm2po/env_and_volumes
 
-  docker pull ${osm2po_IMAGE}:${osm2po_VERSION}
-
+  docker pull ${osm2po_IMAGE}:${osm2po_IMAGE_VERSION}
 }
 
 remove_osm2po_container() {
@@ -72,15 +70,16 @@ remove_osm2po_image() {
 
 run_osm2po_container() {
   source $USER_DIR/etc/osm2po/env_and_volumes
-  echo "Erzeuge und starte den osm2po Container"
-  echo "mit volumes: ${osm2po_volumes}"
-  echo "docker run --name osm2po -h ${SERVER_NAME}-osm2po-container $osm2po_volumes --restart=always -d ${osm2po_IMAGE}:${osm2po_VERSION}"
-  docker run --name osm2po \
+  echo "Erzeuge und starte den osm2po Container:"
+  cmd="docker run --name osm2po \
     -h ${SERVER_NAME}-osm2po-container \
     $osm2po_env_vars \
     $osm2po_volumes \
     --restart=always \
-    -d "${osm2po_IMAGE}:${osm2po_VERSION}"
+    -d ${osm2po_IMAGE}:${osm2po_IMAGE_VERSION} \
+  "
+  echo $cmd
+  $cmd
 }
 
 set_osm2po_web_link() {

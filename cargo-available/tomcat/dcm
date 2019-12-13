@@ -9,6 +9,7 @@ tomcat_DATA_DIR=$WWW_ROOT/data/tomcat
 usage_tomcat() {
   echo "install tomcat  Installiert ein tomcat Image."
   echo "rerun tomcat    Stoppt, löscht, erzeugt und startet nur den Container tomcat."
+  echo "rm tomcat       Stoppt und löscht den Container tomcat."
   echo "run tomcat      Erzeugt und startet nur den Container tomcat."
   echo "start tomcat    Startet nur den Container tomcat."
   echo "status tomcat   Zeigt den aktuellen Status des Container tomcat an."
@@ -207,7 +208,7 @@ cases_tomcat() {
       esac
     ;;
 
-    remove)
+    rm)
       debug "Case remove in tomcat"
       case $2 in
         tomcat)

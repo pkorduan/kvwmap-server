@@ -1,6 +1,6 @@
 #!/bin/bash
 KVWMAP_IMAGE=pkorduan/kvwmap-server
-KVWMAP_IMAGE_VERSION="1.2.6"
+KVWMAP_IMAGE_VERSION="1.2.7"
 TERM=linux
 COLUMNS=80
 LINES=120
@@ -10,18 +10,17 @@ read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
 HTTP_PROXY_WEB=
 NO_PROXY_WEB=localhost,pgsql
 
-if [ "$(id -u)" == '0' ]; then
-  IP_EXTERN=$(ip addr show eth0 | grep 'global eth0' | cut -d ' ' -f 6 | cut -d '/' -f 1)
-else
-  IP_EXTERN="server_ip"
-fi
+IP_EXTERN=$(ip addr show eth0 | grep 'global.*eth0' | cut -d ' ' -f 6 | cut -d '/' -f 1)
 
 if [ -f $USER_DIR/etc/apache2/domain ]; then
   DOMAIN_EXTERN=$(head -n 1 $USER_DIR/etc/apache2/domain)
 fi
 
-web_hosts="--add-host=$SERVER_NAME.$DOMAIN_NAME:${IP_EXTERN} \
+web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
            --add-host=$SERVER_NAME:${IP_EXTERN}"
+
+web_ports="-p 80:80 \
+           -p 443:443"
 
 web_env_vars="-e OS_USER=$OS_USER \
               -e IP_EXTERN=$IP_EXTERN \
@@ -41,6 +40,7 @@ web_volumes=" -v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \
               -v $USER_DIR/etc/apache2/letsencrypt:/etc/letsencrypt \
               -v $USER_DIR/etc/web/kvwmap_hourly:/etc/cron.hourly/load_gisadmin_cron_file \
+              -v $USER_DIR/etc/web/kvwmap_monthly:/etc/cron.monthly/renew-certbot-auto \
               -v $USER_DIR/etc/php5/apache2/php.ini:/etc/php5/apache2/php.ini \
               -v $USER_DIR/etc/php5/cli/php.ini:/etc/php5/cli/php.ini \
               -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \

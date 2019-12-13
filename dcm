@@ -5,6 +5,7 @@ CONFIG_FILE=$( dirname "${BASH_SOURCE[0]}" )
 if [ -f $CONFIG_FILE/config/config ] ; then
   CONFIG_FILE=$CONFIG_FILE/config/config
 else
+  cp $CONFIG_FILE/config/config-default $CONFIG_FILE/config/config
   CONFIG_FILE=$CONFIG_FILE/config/config-default
 fi
 
@@ -44,6 +45,7 @@ usage() {
   echo "pgsql stop     Stoppt den PostgreSQL Container und zeigt alle vorhandenen an."
   echo "pgsql remove   Löscht den PostgreSQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
   echo "pgsql run      Erzeugt und startet den PostgreSQL Container mit dem Namen pgsql-server."
+  echo "pgsql allowip <IP> Führt das Script allowip im postgres data Verzeichnis aus, welches die IP in die pg_hba.conf einträgt für einen externen Zugriff."
   echo "rebuild        Stoppt und löscht Container, löscht images, die neu gebildet werden sollen, bildet diese neu und erzeugt und startet danach Container neu."
   echo "rebuild all    Stoppt, löscht und restartet zum rebuild des Web Containers alle Container."
   echo "rebuild gdal   Stoppt und löscht den gdal Container, löscht und rebuild das image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} neu und run gdal Container neu."
@@ -167,11 +169,11 @@ call_cargo_cases() {
 # Bricht ab, wenn nutzer nicht root ist und nicht in docker gruppe
 fail_unless_root() {
   dcm_user=$(id -nu)
-  dcm_user_group=$(id -nG | awk -F ' ' '{print $2}')
+  dcm_user_group=$(id -nG)
   # Wenn ausführender Nutzer nicht root ist
   if [ "${dcm_user}" != "root" ]; then
     # Prüfe ob ausführende Nutzer in Gruppe docker ist
-    if [ "${dcm_user_group}" != "docker" ] ; then
+    if [[ "$dcm_user_group" != *"docker"* ]] ; then
       echo "Nutzer ${dcm_user} ist nicht berechtigt das Script dcm auszuführen."
       echo "Führen Sie das Script als root aus oder fügen Sie den Nutzer ${dcm_user} mit dem Befehhl"
       echo "usermod -a -G docker ${dcm_user}"
@@ -338,11 +340,12 @@ install_kvwmap_images() {
 
   echo "
   Erzeuge kvwmap custom Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
-  mkdir -p $WWW_ROOT/apps/kvwmap/fonts/custom \
-           $WWW_ROOT/apps/kvwmap/graphics/custom \
-           $WWW_ROOT/apps/kvwmap/layouts/custom \
-           $WWW_ROOT/apps/kvwmap/layouts/snippets/custom \
-           $WWW_ROOT/apps/kvwmap/symbols/custom
+  mkdir -p $WWW_ROOT/apps/kvwmap/custom/fonts \
+           $WWW_ROOT/apps/kvwmap/custom/graphics \
+           $WWW_ROOT/apps/kvwmap/custom/wappen \
+           $WWW_ROOT/apps/kvwmap/custom/layouts \
+           $WWW_ROOT/apps/kvwmap/custom/layouts/snippets \
+           $WWW_ROOT/apps/kvwmap/custom/symbols
 
   cd $WWW_ROOT/apps
 
@@ -366,6 +369,8 @@ install_kvwmap_images() {
   echo "    Browser öffnen mit der Adresse: https://${IP_EXTERN}/kvwmap/install.php"
   echo ""
   echo "Die Installation ist erfolgreich abgeschlossen."
+  echo "Achtung Der Zugang als root ist jetzt von außen gesperrt!"
+  echo "Sie können sich nur noch als gisadmin per ssh mit diesem Server verbinden."
 }
 
 is_stopped() {
@@ -512,41 +517,46 @@ run_mysql_container() {
     -h ${SERVER_NAME}-mysql-container \
     $mysql_env_vars \
     $mysql_volumes \
+    $mysql_ports \
     --restart=always \
     -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}
 }
 
 run_pgsql_container() {
-  echo "Erzeuge und Starte container pgsql"
+  if [ -z "${START_WITH_DCM}" ] ; then
+    echo "Erzeuge und Starte container pgsql"
 
-  source $USER_DIR/etc/postgresql/env_and_volumes
-  if [ -z "$pgsql_ports" ] ; then
-    pgsql_ports="-p 5432:5432"
+    source $USER_DIR/etc/postgresql/env_and_volumes
+    if [ -z "$pgsql_ports" ] ; then
+      pgsql_ports="-p 5432:5432"
+    fi
+
+    if [ -z "${PGSQL_CONTAINER_NAME}" ] ; then
+      PGSQL_CONTAINER_NAME="pgsql-server"
+    fi
+
+    set_cargo_pgsql_links
+
+    echo "run pgsql container with command: docker run --name ${PGSQL_CONTAINER_NAME} \
+      -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
+      $CARGO_PGSQL_LINKS \
+      $pgsql_env_vars \
+      $pgsql_volumes \
+      $pgsql_ports \
+      --restart=always \
+      -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}"
+
+    docker run --name ${PGSQL_CONTAINER_NAME} \
+      -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
+      $CARGO_PGSQL_LINKS \
+      $pgsql_env_vars \
+      $pgsql_volumes \
+      $pgsql_ports \
+      --restart=always \
+      -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}
+  else
+    echo "Starten von pgsql container wird ausgelassen weil START_WITH_DCM auf false steht."
   fi
-
-  if [ -z "${PGSQL_CONTAINER_NAME}" ] ; then
-    PGSQL_CONTAINER_NAME="pgsql-server"
-  fi
-
-  set_cargo_pgsql_links
-
-  echo "run pgsql container with command: docker run --name ${PGSQL_CONTAINER_NAME} \
-    -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
-    $CARGO_PGSQL_LINKS \
-    $pgsql_env_vars \
-    $pgsql_volumes \
-    $pgsql_ports \
-    --restart=always \
-    -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}"
-
-  docker run --name ${PGSQL_CONTAINER_NAME} \
-    -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
-    $CARGO_PGSQL_LINKS \
-    $pgsql_env_vars \
-    $pgsql_volumes \
-    $pgsql_ports \
-    --restart=always \
-    -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION}
 }
 
 run_web_container() {
@@ -557,6 +567,12 @@ run_web_container() {
     web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
                --add-host=$SERVER_NAME:${IP_EXTERN}"
   fi
+
+  if [ -z "${web_ports}" ]; then
+    web_ports="-p 80:80 \
+               -p 443:443"
+  fi
+
   set_cargo_web_links
 
 	echo "run web container with command: docker run --name web \
@@ -568,8 +584,7 @@ run_web_container() {
     $web_env_vars \
     $web_volumes \
     $web_hosts \
-    -p 80:80 \
-    -p 443:443 \
+    $web_ports \
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}"
 
@@ -582,8 +597,7 @@ run_web_container() {
     $web_env_vars \
     $web_volumes \
     $web_hosts \
-    -p 80:80 \
-    -p 443:443 \
+    $web_ports \
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}
 }
@@ -744,8 +758,8 @@ uninstall_kvwmap() {
       rm -RI $WWW_ROOT/*
 
       if [ ! -z "$USER_DIR" ] ; then
-        echo "Lösche $DB_ROOT, $USER_DIR/etc, $USER_DIR/kvwmap-server, ${WWW_ROOT} und die links db und www in $USER_DIR"
-        rm -RI $DB_ROOT $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT $USER_DIR/db $USER_DIR/www
+        echo "Lösche $DOCKER_ROOT, $DB_ROOT, $USER_DIR/etc, $USER_DIR/kvwmap-server, ${WWW_ROOT} und die links db und www in $USER_DIR"
+        rm -RI $DOCKER_ROOT $DB_ROOT $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT $USER_DIR/db $USER_DIR/www $USER_DIR/inithost.sh
       fi
       echo "So jetzt ist alles weg."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
@@ -911,6 +925,9 @@ case "$1" in
       ;;
       run)
         run_pgsql_container
+      ;;
+      allowip)
+        docker exec pgsql-server /var/lib/postgresql/data/allowip $3
       ;;
       *)
         echo "Gib nach pgsql einen der folgenden Parameter ein: client, start, status, stop, remove oder run."

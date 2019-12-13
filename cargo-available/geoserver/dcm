@@ -209,7 +209,7 @@ cases_geoserver() {
       esac
     ;;
 
-    rm
+    rm)
       debug "Case remove in geoserver"
       case $2 in
         geoserver)

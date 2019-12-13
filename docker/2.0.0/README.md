@@ -1,11 +1,16 @@
+
 # currently in development
 
 # Supported tags and respective Dockerfile
-	* 2.0.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.0/Dockerfile)
-	* 1.2.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.0/Dockerfile)
-	* 1.2.1 [docker/1.2.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.1/Dockerfile)
-	* 1.2.2 [docker/1.2.2/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.2/Dockerfile)
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+	* 2.0.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.0/Dockerfile)
+	* 1.2.7 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.7/Dockerfile)
+	* 1.2.6 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.6/Dockerfile)
+	* 1.2.5 [docker/1.2.5/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.5/Dockerfile)
+	* 1.2.3 [docker/1.2.3/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.3/Dockerfile)
+	* 1.2.2 [docker/1.2.2/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.2/Dockerfile)
+	* 1.2.1 [docker/1.2.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.1/Dockerfile)
+	* 1.2.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.0/Dockerfile)
 
 # kvwmap-server
 
@@ -17,9 +22,16 @@ as well as a [MySQL](http://www.mysql.com/) database for user and map context an
 for geodata. For loading and exporting geodata with ogr2ogr the image [geodata/gdal](https://hub.docker.com/r/geodata/gdal/) will be used.
 
 ## Installation
-The preferred way to install the `pkorduan/kvwmap-server` image and run the container onto
-your system is to clone the kvwmap-server repository from github first and than install
+The preferred way to install the `pkorduan/kvwmap-server` image on a blank root server is the command
+```
+wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost && \
+chmod a+x inithost.sh && \
+./inithost.sh
+```
+The script will clone the kvwmap-server repository from github first and than install
 all required components with the included administration script `dcm` (docker container manager).
+
+Read more if you want to install on a running not blank server or to understands the steps to install WebGIS kvwmap in more detail.
 
 ### Clone kvwmap-server repository
 
@@ -48,6 +60,7 @@ You may change the direktory where kvwmap-server has been cloned
 USER_DIR="your_user_dir"
 You may change the directory where the Volumes for the docker container will reside
 DOCKER_ROOT="your/directory"
+You may change the host and or domainname of this server.
 In the following $OS_USER means the user that you have defined in config or config-default file.
 
 ### Install ressources for docker container
@@ -62,7 +75,6 @@ Now you can logout and login again as $OS_USER. All Files in $USER_DIR will own 
 
 ### Configure containers
 Each container used by kvwmap have its own config file in $USER_DIR/etc
-wwwdata/volumes for container wwwdata
 mysql/env_and_volumes for container mysql-server
 postgresql/env_and_volumes for container pgsql-server
 gdal/env_and_volumes for container gdal
@@ -91,6 +103,7 @@ docker exec web service apache2 reload
 To init the kvwmap app open a browser and call the kvwmap install script with the url of your host.
 `http[s]://{yourserver}/kvmwmap/install.php`
 
+Set your database account credentials with MYSQL_HOST = mysql and POSTGRES_HOST = pgsql.
 Then click on the button "Installation starten".
 The result will be open in a new browser tab. Go to the end of the page and click on the link "Login" and login with:
 
@@ -220,11 +233,29 @@ docker run --rm --name ms -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/m
 	* change the package names to install php7
 	* install mapserver 7.4 with phpMapScript for php7
 	* use mariaDB insted of mySQL
+	* add inithost.sh script to install all at once
+# 1.2.7
+	* Switch to http://archive.debian.org/debian for apt since jessie is no longer on debian mirrors
+# 1.2.6
+	* Improve install process and change doku
+	* Use command hostname --fqd for HOSTNAME constante in config-default
+	* Change to xterm linux in env_and_volumes and set all to a+x
+	* add correct install of certbot for apache2 and debian 8
+# 1.2.5
+	* Add xslt Extension php-xsl
+# 1.2.4
+	* Add apache module expires finally, because it was not added in 1.2.2.
+	* Add pgpass to web container config
+	* Set image and version in env_and_volumes config of owncloud container.
+	* Change owncloud install function
+# 1.2.3
+	* Add docker to be able to call commands in other containers
+	* Add user www-data to docker group
 # 1.2.2
-	* do things in kvwmap-firstrun only if not allready done
-	* enable apache mod expires
+	* Do things in kvwmap-firstrun only if not allready done
+	* Enable apache mod expires
 # 1.2.1
-	* ssUse debian with tag, here jessie to ensure that dockerhub uses the same resources for installation as when build localy
+	* Use debian with tag, here jessie to ensure that dockerhub uses the same resources for installation as when build localy
 	* Use ARG to set variable in Dockerfile
 	* Change README to docker folder and update Tags and Changelog Section for each change in latest and in version folder
 # 1.2.0
