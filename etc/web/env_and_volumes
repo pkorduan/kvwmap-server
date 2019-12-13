@@ -40,6 +40,7 @@ web_volumes=" -v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
               -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \
               -v $USER_DIR/etc/apache2/letsencrypt:/etc/letsencrypt \
+              -v $USER_DIR/etc/web/kvwmap_hourly:/etc/cron.hourly/load_gisadmin_cron_file \
               -v $USER_DIR/etc/php5/apache2/php.ini:/etc/php5/apache2/php.ini \
               -v $USER_DIR/etc/php5/cli/php.ini:/etc/php5/cli/php.ini \
               -v $USER_DIR/etc/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php \
