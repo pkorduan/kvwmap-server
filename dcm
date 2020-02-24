@@ -266,7 +266,13 @@ install_kvwmap_images() {
     -e "s|#alias ll=|alias ll=|g" \
     -e "s|alias rm=|#alias rm=|g" \
     $USER_DIR/.bashrc
+  echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
+  echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
+  echo "set nocompatible" >> $USER_DIR/.vimrc
+
   cp $USER_DIR/.bashrc ~/.bashrc
+  cp $USER_DIR/.vimrc ~/.vimrc
+
   source ~/.bashrc
 
   echo "Erzeuge www_root Verzeichnis."
@@ -361,6 +367,7 @@ install_kvwmap_images() {
 
   echo "
   Setze Rechte 600 auf .pgpass ..."
+  chown root.root $USER_DIR/etc/postgresql/.pgpass
   chmod 600 $USER_DIR/etc/postgresql/.pgpass
 
   echo "
@@ -431,11 +438,11 @@ remove_pgsql_container() {
 remove_web_container() {
   stop_web_container
 
-  if [ "$(docker ps -a -q -f name=web -f status=exited)" ] ; then
+  if [ "$(docker ps -a -q -f name=${container} -f status=exited)" ] ; then
     echo "Lösche Container ..."
-    docker rm web
+    docker rm $container
   else
-    echo "Container web kann nicht gelöscht werden, weil er nicht existiert."
+    echo "Container ${container} kann nicht gelöscht werden, weil er nicht existiert."
   fi
 }
 
@@ -560,9 +567,12 @@ run_pgsql_container() {
 }
 
 run_web_container() {
-  echo "Erzeuge und Starte container web"
- 
-  source $USER_DIR/etc/web/env_and_volumes
+  if [ -n "${container_version}" ] ; then
+    source $USER_DIR/etc/web/env_and_volumes_${container_version}
+  else
+    source $USER_DIR/etc/web/env_and_volumes
+  fi
+
   if [ -z "${web_hosts}" ]; then
     web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
                --add-host=$SERVER_NAME:${IP_EXTERN}"
@@ -575,7 +585,7 @@ run_web_container() {
 
   set_cargo_web_links
 
-	echo "run web container with command: docker run --name web \
+	echo "run web container with command: docker run --name web${container_version} \
     -h ${SERVER_NAME}-web-container \
     --link mysql-server:mysql \
     --link pgsql-server:pgsql \
@@ -588,7 +598,7 @@ run_web_container() {
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}"
 
-  docker run --name web \
+  docker run --name web${container_version} \
     -h ${SERVER_NAME}-web-container \
     --link mysql-server:mysql \
     --link pgsql-server:pgsql \
@@ -692,7 +702,11 @@ stop_all_container() {
 }
 
 stop_container() {
-  container=$1
+  if [ -n $container_version ] ; then
+    container=$1${container_version}
+  else
+    container=$1
+  fi
   if [ ! -z $container ] ; then
     RUNNING=$(is_running $container)
     if [ "$RUNNING" == "true" ]; then
@@ -781,6 +795,8 @@ load_cargo
 
 core_case_found=true
 
+container_version=$3
+
 case "$1" in
   build)
     case $2 in
@@ -823,8 +839,13 @@ case "$1" in
 
       web)
         echo "Öffne ein Terminal im Container in dem der Web-Server läuft..."
-        docker exec -it web /bin/bash
+        if [ -n "${container_version}" ] ; then
+          docker exec -it web$container_version /bin/bash
+        else
+          docker exec -it web /bin/bash
+        fi
       ;;
+
       *)
         core_sub_cases="gdal, mysql, pgsql, web"
         call_cargo_cases $1 $2

@@ -14,6 +14,8 @@ RUN sed -i \
         -e "s|# alias ll=|alias ll=|g" \
         -e "s|# alias rm=|alias rm=|g" \
         ~/.bashrc && \
+    echo "alias l='ls -al --color=yes'" >> ~/.bashrc && \
+    echo "set nocompatible" >> ~/.vimrc && \
     echo $TZ > /etc/timezone && \
     dpkg-reconfigure -f noninteractive tzdata && \
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
