@@ -14,7 +14,7 @@ source $CONFIG_FILE
 
 usage() {
   echo ""
-  echo "Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden.";
+  echo "Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden wenn der Nutzer nicht zur Gruppe docker gehört.";
   echo "Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos."
   echo "Kontakt: peter.korduan@gdi-service.de"
   echo ""
@@ -480,6 +480,9 @@ run_all_container() {
   fi
   if type -t run_bucardo_container | grep -q "^function$" ; then
     run_bucardo_container
+  fi
+  if type -t run_ftpserver_container | grep -q "^function$" ; then
+    run_ftpserver_container
   fi
   run_web_container
 }
