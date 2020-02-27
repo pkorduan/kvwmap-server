@@ -3,7 +3,6 @@ PGSQL_DB=postgres
 PGSQL_USER=postgres
 read -s -p "Enter initial password for user postgres: " PGSQL_INIT_PASSWORD
 # PGSQL_PASSFILE must have permission 600
-PGSQL_PASSFILE=/root/.pgpass
 PGSQL_MAJOR_VERSION=9.6
 POSTGIS_VERSION=2.5
 PGSQL_IMAGE=pkorduan/postgis
@@ -21,14 +20,15 @@ pgsql_env_vars="-e POSTGRES_USER=$PGSQL_USER \
                 -e POSTGRES_PASSWORD=$PGSQL_INIT_PASSWORD
                 -e POSTGRES_DB=$PGSQL_DB \
                 -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
-                -e PGPASSFILE=$PGSQL_PASSFILE \
+                -e PGPASSFILE=/root/.pgpass \
                 -e \"TERM=${TERM}\" \
                 -e \"COLUMNS=${COLUMNS}\" \
                 -e \"LINES=${LINES}\""
 
 pgsql_volumes="-v $WWW_ROOT:/var/www\
                -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
-               -v $USER_DIR/etc/postgresql/.pgpass:$PGSQL_PASSFILE \
+               -v $USER_DIR/etc/postgresql/.pgpass:/root/.pgpass \
+               -v $USER_DIR/etc/postgresql/.pgpass:/home/gisadmin/.pgpass \
                -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
                -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
                -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"

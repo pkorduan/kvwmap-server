@@ -1,5 +1,9 @@
+
+# currently in development
+
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+	* 2.0.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.0/Dockerfile)
 	* 1.2.7 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.7/Dockerfile)
 	* 1.2.6 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.6/Dockerfile)
 	* 1.2.5 [docker/1.2.5/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.5/Dockerfile)
@@ -18,9 +22,16 @@ as well as a [MySQL](http://www.mysql.com/) database for user and map context an
 for geodata. For loading and exporting geodata with ogr2ogr the image [geodata/gdal](https://hub.docker.com/r/geodata/gdal/) will be used.
 
 ## Installation
-The preferred way to install the `pkorduan/kvwmap-server` image and run the container onto
-your system is to clone the kvwmap-server repository from github first and than install
+The preferred way to install the `pkorduan/kvwmap-server` image on a blank root server is the command
+```
+wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost && \
+chmod a+x inithost.sh && \
+./inithost.sh
+```
+The script will clone the kvwmap-server repository from github first and than install
 all required components with the included administration script `dcm` (docker container manager).
+
+Read more if you want to install on a running not blank server or to understands the steps to install WebGIS kvwmap in more detail.
 
 ### Clone kvwmap-server repository
 
@@ -210,7 +221,19 @@ sed -i -e "s|POSTGRESQL_IMAGE_VERSION=9.4|POSTGRESQL_IMAGE_VERSION=<new_version_
 $USER_DIR/kvwmap-server/dcm
 dcm rebuild all
 
+### Building Image ###
+docker build -t pkorduan/kvwmap-server:2.0.0 .
+
+### Run at Container ###
+docker run --rm --name ms -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/mapserver.conf:/etc/apache2/conf-enabled/mapserver.conf -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/test.php:/var/www/html/test.php -p 8080:80 -d pkorduan/kvwmap-server:2.0.0
+
 # Changelog
+# 2.0.0
+	* switch to debian 10.0 (buster)
+	* change the package names to install php7
+	* install mapserver 7.4 with phpMapScript for php7
+	* use mariaDB insted of mySQL
+	* add inithost.sh script to install all at once
 # 1.2.7
 	* Switch to http://archive.debian.org/debian for apt since jessie is no longer on debian mirrors
 # 1.2.6

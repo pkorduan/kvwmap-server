@@ -12,8 +12,10 @@ RUN sed -i \
         -e "s|# export LS_OPTIONS=|export LS_OPTIONS=|g" \
         -e "s|# alias ls=|alias ls=|g" \
         -e "s|# alias ll=|alias ll=|g" \
+        -e "s|# alias l='ls -CF'|alias l='ls -alh --color=yes'|g" \
         -e "s|# alias rm=|alias rm=|g" \
         ~/.bashrc
+RUN echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> ~/.bashrc
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&\
   echo $TZ > /etc/timezone
@@ -48,7 +50,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     wget \
     zip
 
-#ADD sources /usr/local/bin
+ADD sources /usr/local/bin
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod authz_groupfile && \
