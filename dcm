@@ -142,14 +142,14 @@ build_gdal_image() {
 }
 
 call_cargo_cases() {
-  debug "Call cargo cases with Arguments '$1' and '$2'"
-  echo "Call cargo cases with Arguments '$1' and '$2'"
+  debug "Call cargo cases with Arguments '$1' and '$2' and '$3'"
+  echo "Call cargo cases with Arguments '$1' and '$2' and '$3'"
   any_case_found=false
   for cargo in "${CARGOS[@]}"
   do :
     debug "Search for case $1 $2 in cargo $cargo"
     echo "   Search for case $1 $2 in cargo $cargo cases_$cargo"
-    cases_$cargo $1 $2
+    cases_$cargo $1 $2 $3
     if $case_found ; then
       #echo "Found case in cargo $cargo $1 $2"
       any_case_found=true
@@ -783,7 +783,6 @@ fail_unless_root
 load_cargo
 
 core_case_found=true
-
 case "$1" in
   build)
     case $2 in
@@ -830,7 +829,7 @@ case "$1" in
       ;;
       *)
         core_sub_cases="gdal, mysql, pgsql, web"
-        call_cargo_cases $1 $2
+        call_cargo_cases $1 $2 $3
       ;;
     esac
   ;;
@@ -849,7 +848,7 @@ case "$1" in
       ;;
       *)
         core_sub_cases="all, gdal, kvwmap"
-        call_cargo_cases $1 $2
+        call_cargo_cases $1 $2 $3
       ;;
     esac
   ;;
@@ -1011,7 +1010,7 @@ case "$1" in
       ;;
       * )
         core_sub_cases="all, gdal, mysql, pgsql, web"
-        call_cargo_cases $1 $2
+        call_cargo_cases $1 $2 $3
       ;;
     esac
     docker ps -a
@@ -1035,7 +1034,7 @@ case "$1" in
       ;;
       * )
         core_sub_cases="all, gdal, web"
-        call_cargo_cases $1 $2
+        call_cargo_cases $1 $2 $3
       ;;
     esac
     docker ps
@@ -1053,7 +1052,7 @@ case "$1" in
       ;;
       *)
         core_sub_cases="all, web"
-        call_cargo_cases $1 $2
+        call_cargo_cases $1 $2 $3
       ;;
     esac
     docker ps
@@ -1084,7 +1083,7 @@ case "$1" in
       ;;
       * )
         core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web"
-        call_cargo_cases $1 $2
+        call_cargo_cases $1 $2 $3
       ;;
     esac
     docker ps
@@ -1109,7 +1108,7 @@ case "$1" in
       ;;
       * )
         core_sub_cases="all, gdal, mysql, pgsql, web"
-        call_cargo_cases $1 $2
+        call_cargo_cases $1 $2 $3
       ;;
     esac
   ;;
@@ -1130,7 +1129,7 @@ case "$1" in
       ;;
       * )
         core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web"
-        call_cargo_cases $1 $2
+        call_cargo_cases $1 $2 $3
       ;;
     esac
     docker ps -a
@@ -1161,7 +1160,7 @@ case "$1" in
       ;;
       *)
         core_sub_cases="all, gdal, mysql, pgsql, web"
-        call_cargo_cases $1 $2
+        call_cargo_cases $1 $2 $3
       ;;
     esac
   ;;
@@ -1190,7 +1189,7 @@ case "$1" in
       ;;
       *)
       core_sub_cases="all, gdal, mysql, kvwmap, pgsql, web"
-      call_cargo_cases $1 $2
+      call_cargo_cases $1 $2 $3
       ;;
     esac
     docker ps -a
@@ -1211,7 +1210,7 @@ case "$1" in
       ;;
       *)
         core_sub_cases="all, gdal, kvwmap"
-        call_cargo_cases $1 $2
+        call_cargo_cases $1 $2 $3
       ;;
     esac
   ;;
