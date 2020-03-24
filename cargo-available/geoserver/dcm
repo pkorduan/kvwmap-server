@@ -89,8 +89,16 @@ run_geoserver_container() {
   source $USER_DIR/etc/geoserver/env_and_volumes
   echo "Erzeuge und starte den geoserver Container"
   echo "mit volumes: ${geoserver_volumes}"
+  echo "docker run --name ${GEOSERVER_CONTAINER_NAME} \
+    -h ${GEOSERVER_CONTAINER_NAME}-container \
+    --link pgsql-server:pgsql \
+    $geoserver_volumes \
+    $geoserver_env_vars \
+    $geoserver_ports \
+    --restart=always \
+    -d ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}"
   docker run --name ${GEOSERVER_CONTAINER_NAME} \
-    -h ${SERVER_NAME}-${GEOSERVER_CONTAINER_NAME}-container \
+    -h ${GEOSERVER_CONTAINER_NAME}-container \
     --link pgsql-server:pgsql \
     $geoserver_volumes \
     $geoserver_env_vars \
@@ -106,7 +114,7 @@ set_geoserver_web_link() {
     ${GEOSERVER_WEB_LINKS}=" --link geoserver:geoserver"
   fi
 
-  CARGO_WEB_LINKS=${CARGO_WEB_LINKS} ${GEOSERVER_WEB_LINKS}
+  CARGO_WEB_LINKS="${CARGO_WEB_LINKS} ${GEOSERVER_WEB_LINKS}"
 }
 
 show_status() {
@@ -235,7 +243,7 @@ cases_geoserver() {
       case $2 in
         geoserver)
           remove_geoserver_container
-          run_geoserver_container
+          run_geoserver_container $3
         ;;
         *)
           debug "No subcase $2 in geoserver"
@@ -248,7 +256,7 @@ cases_geoserver() {
       debug "Case run in geoserver"
       case $2 in
         geoserver)
-          run_geoserver_container
+          run_geoserver_container $3
         ;;
         *)
           debug "No subcase $2 in geoserver"
