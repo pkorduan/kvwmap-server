@@ -4,3 +4,9 @@ if [ -s $CRONTAB_FILE ] ; then
   crontab -u gisadmin $CRONTAB_FILE
   echo "`date` Update gisadmins crontab." >> /var/www/logs/cron/cron.log
 fi
+
+CRONTAB_FILE="/var/www/cron/crontab_root"
+if [ -s $CRONTAB_FILE ] ; then
+  crontab -u root $CRONTAB_FILE
+  echo "`date` Update roots crontab." >> /var/www/logs/cron/cron.log
+fi
