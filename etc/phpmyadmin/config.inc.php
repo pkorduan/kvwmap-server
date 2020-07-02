@@ -156,6 +156,13 @@ $cfg['SaveDir'] = '';
  */
 //$cfg['SendErrorReports'] = 'ask';
 
+/**
+ * The number of items (tables, columns, indexes) that can be displayed
+ * on each page of the navigation tree.
+ * default = 50
+ */
+$cfg['MaxNavigationItems'] = 75;
+
 /*
  * You can find more configuration options in the documentation
  * in the doc/ folder or at <http://docs.phpmyadmin.net/>.
