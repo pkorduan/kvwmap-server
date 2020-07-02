@@ -767,9 +767,10 @@ uninstall_gdal() {
 
 uninstall_kvwmap() {
   echo "Deinstalliere das kvwmap und dazugehörige images."
-  read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (j/n)? " answer
+  fail_unless_root
+  read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (y/n)? " answer
   case ${answer:0:1} in
-    j|J )
+    y|Y )
       stop_all_container
       remove_all_container
       #remove_all_images
