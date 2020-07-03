@@ -22,7 +22,7 @@ if [ $(getent passwd ${OS_USER}) ] ; then
   echo 'User ${OS_USER} already exists.'
 else
   echo 'Create user ${OS_USER} with id:17000 and add to group ${OS_USER} gid:1700.'
-  read -p "Enter password for OS user ${OS_USER}: " GISADMIN_PASSWORD
+  read -s -p "Enter password for OS user ${OS_USER}: " GISADMIN_PASSWORD
   useradd -u 17000 -g 1700 -d ${USER_DIR} -m -s /bin/bash -p $(echo ${GISADMIN_PASSWORD} | openssl passwd -1 -stdin) ${OS_USER}
 fi
 cd ${USER_DIR}

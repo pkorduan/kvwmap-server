@@ -243,6 +243,9 @@ install_docker() {
     -e "s|GRUB_CMDLINE_LINUX=\"\"|GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"|g" \
     /etc/default/grub
   update-grub
+
+  git config --global user.email "peter.korduan@gdi-service.de"
+  git config --global user.name "Peter Korduan"
 }
 
 install_kvwmap_images() {
@@ -764,12 +767,13 @@ uninstall_gdal() {
 
 uninstall_kvwmap() {
   echo "Deinstalliere das kvwmap und dazugehörige images."
-  read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (j/n)? " answer
+  fail_unless_root
+  read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (y/n)? " answer
   case ${answer:0:1} in
-    j|J )
+    y|Y )
       stop_all_container
       remove_all_container
-      remove_all_images
+      #remove_all_images
       echo "Lösche alles in ${WWW_ROOT} "
       ls -l $WWW_ROOT
       rm -RI $WWW_ROOT/*
@@ -778,7 +782,7 @@ uninstall_kvwmap() {
         echo "Lösche $DOCKER_ROOT, $DB_ROOT, $USER_DIR/etc, $USER_DIR/kvwmap-server, ${WWW_ROOT} und die links db und www in $USER_DIR"
         rm -RI $DOCKER_ROOT $DB_ROOT $USER_DIR/etc $USER_DIR/kvwmap-server $WWW_ROOT $USER_DIR/db $USER_DIR/www $USER_DIR/inithost.sh
       fi
-      echo "So jetzt ist alles weg."
+      echo "So jetzt ist alles weg außer de Images. Zum Löschen der Images docker rmi $(docker images | awk \"{print $3}\") ausführen."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
       echo " git clone https://github.com/pkorduan/kvwmap-server.git"
       echo " kvwmap-server/dcm install kvwmap"
