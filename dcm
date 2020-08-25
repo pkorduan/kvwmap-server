@@ -317,6 +317,7 @@ install_kvwmap_images() {
   cp -R $USER_DIR/kvwmap-server/etc/mysql $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/postgresql $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/php5 $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/php $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/phpmyadmin $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/web $USER_DIR/etc/
@@ -474,6 +475,9 @@ run_all_container() {
   fi
   if type -t run_owncloud_container | grep -q "^function$" ; then
     run_owncloud_container
+  fi
+  if type -t run_owncloud_10.0.10_container | grep -q "^function$" ; then
+    run_owncloud_10.0.10_container
   fi
   if type -t run_deegree_container | grep -q "^function$" ; then
     run_deegree_container
