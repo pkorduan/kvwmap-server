@@ -67,9 +67,11 @@ RUN wget -O /usr/local/bin/certbot-auto https://dl.eff.org/certbot-auto && \
     chmod 0755 /usr/local/bin/certbot-auto
 RUN echo "0 0,12 * * * root python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/local/bin/certbot-auto renew" | sudo tee -a /etc/crontab > /dev/null
 
-RUN unzip -q phpmyadmin.zip && \
-    mv phpmyadmin-STABLE phpmyadmin && \
-    rm /usr/local/bin/phpmyadmin.zip && \
+WORKDIR /usr/local/bin
+
+RUN tar xvfz phpMyAdmin-5.0.2-english.tar.gz && \
+    mv phpMyAdmin-5.0.2-english phpmyadmin && \
+    rm /usr/local/bin/phpMyAdmin-5.0.2-english.tar.gz && \
     mkdir -p /srv/www/ && \
     mv /usr/local/bin/phpmyadmin /srv/www
 

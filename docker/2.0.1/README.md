@@ -3,6 +3,7 @@
 
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+	* 2.0.1 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.1/Dockerfile)
 	* 2.0.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.0/Dockerfile)
 	* 1.2.7 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.7/Dockerfile)
 	* 1.2.6 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.6/Dockerfile)
@@ -24,7 +25,7 @@ for geodata. For loading and exporting geodata with ogr2ogr the image [geodata/g
 ## Installation
 The preferred way to install the `pkorduan/kvwmap-server` image on a blank root server is the command
 ```
-wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost && \
+wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost.sh && \
 chmod a+x inithost.sh && \
 ./inithost.sh
 ```
@@ -228,6 +229,8 @@ docker build -t pkorduan/kvwmap-server:2.0.0 .
 docker run --rm --name ms -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/mapserver.conf:/etc/apache2/conf-enabled/mapserver.conf -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/test.php:/var/www/html/test.php -p 8080:80 -d pkorduan/kvwmap-server:2.0.0
 
 # Changelog
+# 2.0.1
+	* add phpmyadmin to image
 # 2.0.0
 	* switch to debian 10.0 (buster)
 	* change the package names to install php7
