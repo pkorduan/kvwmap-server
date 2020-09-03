@@ -1,6 +1,6 @@
 FROM debian:buster
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="2.0.0"
+LABEL version="2.0.1"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -40,6 +40,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     php-curl \
     php-gd \
     php-mapscript \
+    php-mbstring \
     php-mysql \
     php-pgsql \
     php-xsl \
