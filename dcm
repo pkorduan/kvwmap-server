@@ -176,7 +176,7 @@ fail_unless_root() {
     if [[ "$dcm_user_group" != *"docker"* ]] ; then
       echo "Nutzer ${dcm_user} ist nicht berechtigt das Script dcm auszuführen."
       echo "Führen Sie das Script als root aus oder fügen Sie den Nutzer ${dcm_user} mit dem Befehhl"
-      echo "usermod -a -G docker ${dcm_user}"
+      echo "/usr/sbin/usermod -a -G docker ${dcm_user}"
       echo "zur Gruppe von docker hinzu."
       exit 1
     else
@@ -255,9 +255,9 @@ install_kvwmap_images() {
   Erzeuge user: ${OS_USER} ..."
   # create user for web gis anwendung if not exists
   $OS_USER_EXISTS || adduser $OS_USER
-  usermod -u 17000 $OS_USER
-  groupmod -g 1700 $OS_USER
-  usermod -a -G docker $OS_USER
+  /usr/sbin/usermod -u 17000 $OS_USER
+  /usr/sbin/groupmod -g 1700 $OS_USER
+  /usr/sbin/usermod -a -G docker $OS_USER
   
   echo "
   Setze bash Einstellungen für user: ${OS_USER} ..."
@@ -361,18 +361,18 @@ install_kvwmap_images() {
 
   echo "
   Setze Rechte auf kvwmap Datenverzeichnisse ..."
-  /sbin/chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
-  /sbin/chmod -R g+w $WWW_ROOT/sbin/
+  chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
+  chmod -R g+w $WWW_ROOT/sbin/
 
   echo "
   Setze Rechte auf logs Verzeichnisse ..."
-  /sbin/chown 999.gisadmin $WWW_ROOT/logs/pgsql
-  /sbin/chmod a+r $WWW_ROOT/logs/pgsql
+  chown 999.gisadmin $WWW_ROOT/logs/pgsql
+  chmod a+r $WWW_ROOT/logs/pgsql
 
   echo "
   Setze Rechte 600 auf .pgpass ..."
-  /sbin/chown root.root $USER_DIR/etc/postgresql/.pgpass
-  /sbin/chmod 600 $USER_DIR/etc/postgresql/.pgpass
+  chown root.root $USER_DIR/etc/postgresql/.pgpass
+  chmod 600 $USER_DIR/etc/postgresql/.pgpass
 
   echo "
   Nächste Schritte zum installieren von kvwmap:"
