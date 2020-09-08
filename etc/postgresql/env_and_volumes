@@ -1,7 +1,7 @@
 #!/bin/bash
 PGSQL_DB=postgres
 PGSQL_USER=postgres
-read -s -p "Enter initial password for user postgres: " PGSQL_INIT_PASSWORD
+read -s -p "Enter initial password for user postgres: " POSTGRES_ROOT_PASSWORD
 # PGSQL_PASSFILE must have permission 600
 PGSQL_MAJOR_VERSION=9.6
 POSTGIS_VERSION=2.5
@@ -17,7 +17,7 @@ LINES=200
 pgsql_ports="-p ${PGSQL_PORT}:${PGSQL_PORT_INTERN}"
 
 pgsql_env_vars="-e POSTGRES_USER=$PGSQL_USER \
-                -e POSTGRES_PASSWORD=$PGSQL_INIT_PASSWORD
+                -e POSTGRES_PASSWORD=$POSTGRES_ROOT_PASSWORD
                 -e POSTGRES_DB=$PGSQL_DB \
                 -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
                 -e PGPASSFILE=/root/.pgpass \
