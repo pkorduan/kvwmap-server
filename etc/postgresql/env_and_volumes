@@ -17,7 +17,7 @@ LINES=200
 pgsql_ports="-p ${PGSQL_PORT}:${PGSQL_PORT_INTERN}"
 
 pgsql_env_vars="-e POSTGRES_USER=$PGSQL_USER \
-                -e POSTGRES_PASSWORD=$POSTGRES_ROOT_PASSWORD
+                -e POSTGRES_PASSWORD=$POSTGRES_ROOT_PASSWORD \
                 -e POSTGRES_DB=$PGSQL_DB \
                 -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
                 -e PGPASSFILE=/root/.pgpass \
