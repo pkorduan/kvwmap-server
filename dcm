@@ -361,18 +361,18 @@ install_kvwmap_images() {
 
   echo "
   Setze Rechte auf kvwmap Datenverzeichnisse ..."
-  chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
-  chmod -R g+w $WWW_ROOT
+  /usr/sbin/chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
+  /usr/sbin/chmod -R g+w $WWW_ROOT
 
   echo "
   Setze Rechte auf logs Verzeichnisse ..."
-  chown 999.gisadmin $WWW_ROOT/logs/pgsql
-  chmod a+r $WWW_ROOT/logs/pgsql
+  /usr/sbin/chown 999.gisadmin $WWW_ROOT/logs/pgsql
+  /usr/sbin/chmod a+r $WWW_ROOT/logs/pgsql
 
   echo "
   Setze Rechte 600 auf .pgpass ..."
-  chown root.root $USER_DIR/etc/postgresql/.pgpass
-  chmod 600 $USER_DIR/etc/postgresql/.pgpass
+  /usr/sbin/chown root.root $USER_DIR/etc/postgresql/.pgpass
+  /usr/sbin/chmod 600 $USER_DIR/etc/postgresql/.pgpass
 
   echo "
   Nächste Schritte zum installieren von kvwmap:"
@@ -398,6 +398,17 @@ is_running() {
   else
     echo 'false';
   fi;
+}
+
+migrate_to_mariadb() {
+  echo "Migrate MySQL image to MariaDB..."
+  # backup mysql-Databases
+  stop_all_container
+  remove_all_container
+  # backup env_and_volume
+  # overwrite env_and_volume from kvwmap-server
+  run_all_container
+  # restore mysql-Databases
 }
 
 remove_all_container() {
@@ -923,6 +934,9 @@ case "$1" in
       remove)
         docker rm mysql-server
         docker ps -a
+      ;;
+      tomariadb)
+        migrate_to_mariadb
       ;;
       run)
         run_mysql_container

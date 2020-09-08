@@ -8,10 +8,6 @@
 	* 1.2.7 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.7/Dockerfile)
 	* 1.2.6 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.6/Dockerfile)
 	* 1.2.5 [docker/1.2.5/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.5/Dockerfile)
-	* 1.2.3 [docker/1.2.3/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.3/Dockerfile)
-	* 1.2.2 [docker/1.2.2/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.2/Dockerfile)
-	* 1.2.1 [docker/1.2.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.1/Dockerfile)
-	* 1.2.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.0/Dockerfile)
 
 # kvwmap-server
 
@@ -223,14 +219,17 @@ $USER_DIR/kvwmap-server/dcm
 dcm rebuild all
 
 ### Building Image ###
-docker build -t pkorduan/kvwmap-server:2.0.0 .
+docker build -t pkorduan/kvwmap-server:2.0.1 .
 
 ### Run at Container ###
-docker run --rm --name ms -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/mapserver.conf:/etc/apache2/conf-enabled/mapserver.conf -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/test.php:/var/www/html/test.php -p 8080:80 -d pkorduan/kvwmap-server:2.0.0
+docker run --rm --name ms -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/mapserver.conf:/etc/apache2/conf-enabled/mapserver.conf -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/test.php:/var/www/html/test.php -p 8080:80 -d pkorduan/kvwmap-server:2.0.1
 
 # Changelog
 # 2.0.1
-	* add phpmyadmin to image
+	* install phpMyAdmin 5.0.2
+	* install mapserver 7.6.1 with php-mapscript from git
+	* install imageMagick 7 from git
+	* remove all old versions below 1.2.5 from source docker directory
 # 2.0.0
 	* switch to debian 10.0 (buster)
 	* change the package names to install php7
