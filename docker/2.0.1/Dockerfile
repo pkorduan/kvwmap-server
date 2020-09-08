@@ -133,7 +133,7 @@ RUN mkdir -p $USER_DIR/.ssh && \
   ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
   chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
 
-ENV LD_LIBRARY_PATH=/usr/local/lib
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 USER $OS_USER
 

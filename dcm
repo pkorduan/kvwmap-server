@@ -362,7 +362,7 @@ install_kvwmap_images() {
   echo "
   Setze Rechte auf kvwmap Datenverzeichnisse ..."
   chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
-  chmod -R g+w $WWW_ROOT/sbin/
+  chmod -R g+w $WWW_ROOT
 
   echo "
   Setze Rechte auf logs Verzeichnisse ..."
