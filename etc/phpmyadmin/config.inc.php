@@ -15,9 +15,9 @@ declare(strict_types=1);
  * This is needed for cookie based authentication to encrypt password in
  * cookie. Needs to be 32 chars long.
  */
-$cfg['blowfish_secret'] = 'HK_kd-taX.8mV,8aDR!v'; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
+$cfg['blowfish_secret'] = 'HK_kd-taX.8dskjfdsfk_sdf,sfsad.asdffsadfs*sawwe134345tg45gergte_mV,8aDR!v'; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
 
-$cfg['PmaAbsoluteUri'] = 'https://' . getenv('IP_EXTERN') . '/userDbAdmin/';
+$cfg['PmaAbsoluteUri'] = 'http://' . getenv('IP_EXTERN') . '/userDbAdmin/';
 
 /**
  * Servers configuration

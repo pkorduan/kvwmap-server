@@ -50,6 +50,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     php-curl \
     php-dev \
     php-gd \
+    php-mbstring \
     php-mysql \
     php-pgsql \
     php-xsl \
