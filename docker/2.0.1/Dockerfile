@@ -143,6 +143,8 @@ USER $OS_USER
 RUN git config --global user.name "Peter Korduan" && \
     git config --global user.email "peter.korduan@gdi-service.de"
 
+RUN phpenmod zip
+
 USER root
 
 EXPOSE 80
