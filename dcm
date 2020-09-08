@@ -361,18 +361,18 @@ install_kvwmap_images() {
 
   echo "
   Setze Rechte auf kvwmap Datenverzeichnisse ..."
-  /usr/sbin/chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
-  /usr/sbin/chmod -R g+w $WWW_ROOT
+  /sbin/chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
+  /sbin/chmod -R g+w $WWW_ROOT/sbin/
 
   echo "
   Setze Rechte auf logs Verzeichnisse ..."
-  /usr/sbin/chown 999.gisadmin $WWW_ROOT/logs/pgsql
-  /usr/sbin/chmod a+r $WWW_ROOT/logs/pgsql
+  /sbin/chown 999.gisadmin $WWW_ROOT/logs/pgsql
+  /sbin/chmod a+r $WWW_ROOT/logs/pgsql
 
   echo "
   Setze Rechte 600 auf .pgpass ..."
-  /usr/sbin/chown root.root $USER_DIR/etc/postgresql/.pgpass
-  /usr/sbin/chmod 600 $USER_DIR/etc/postgresql/.pgpass
+  /sbin/chown root.root $USER_DIR/etc/postgresql/.pgpass
+  /sbin/chmod 600 $USER_DIR/etc/postgresql/.pgpass
 
   echo "
   Nächste Schritte zum installieren von kvwmap:"
