@@ -1,75 +1,76 @@
-FROM debian:jessie
+FROM debian:latest
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="1.2.7"
+LABEL version="2.0.1"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
-ARG TZ="Europe/Berlin"
+ARG TZ=Europe/Berlin
 
-ENV OS_USER=$OS_USER USER_DIR=$USER_DIR TZ=$TZ TERM=xterm
+ENV OS_USER=$OS_USER USER_DIR=$USER_DIR TZ=$TZ TERM=linux
 
 RUN sed -i \
         -e "s|# export LS_OPTIONS=|export LS_OPTIONS=|g" \
         -e "s|# alias ls=|alias ls=|g" \
         -e "s|# alias ll=|alias ll=|g" \
+        -e "s|# alias l='ls -CF'|alias l='ls -alh --color=yes'|g" \
         -e "s|# alias rm=|alias rm=|g" \
-        ~/.bashrc && \
-    echo "alias l='ls -al --color=yes'" >> ~/.bashrc && \
-    echo "set nocompatible" >> ~/.vimrc && \
-    echo $TZ > /etc/timezone && \
-    dpkg-reconfigure -f noninteractive tzdata && \
-    echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+        ~/.bashrc
+RUN echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> ~/.bashrc
 
-RUN echo "deb [check-valid-until=no] http://archive.debian.org/debian jessie-backports main" > /etc/apt/sources.list.d/jessie-backports.list
-RUN sed -i '/deb http:\/\/deb.debian.org\/debian jessie-updates main/d' /etc/apt/sources.list
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&\
+  echo $TZ > /etc/timezone
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Check-Valid-Until=false update && apt-get install -y \
+RUN echo "deb http://deb.debian.org/debian buster-backports main contrib non-free" > /etc/apt/sources.list.d/backports.list
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     apt-utils \
     apache2 \
-    cgi-mapserver \
-    chkconfig \
+    build-essential \
+    cmake \
     cron \
     curl \
     dialog \
     gdal-bin \
     git \
+    ghostscript \
     htop \
-    imagemagick \
-    libjson0 \
-    less \
-    mapserver-bin \
-    mysql-client \
+    libcairo-dev \
+    libfcgi-dev \
+    libfribidi-dev \
+    libgdal-dev \
+    libgeos-dev \
+    libharfbuzz-dev \
+    libjpeg-dev \
+    libproj-dev \
+    libpq-dev \
+    mariadb-client \
     ntp \
-    php5 \
-    php5-cli \
-    php5-curl \
-    php5-gd \
-    php5-mapscript \
-    php5-mcrypt \
-    php5-mysql \
-    php5-pgsql \
-    php5-xsl \
+    php \
+    php-cli \
+    php-curl \
+    php-dev \
+    php-gd \
+    php-mysql \
+    php-pgsql \
+    php-xsl \
+    php-zip \
     postgresql-client \
+    protobuf-compiler \
+    python-cairosvg \
+    python3-cairosvg \
     sudo \
+    swig \
     unzip \
     vim \
     wget \
     zip
 
-RUN chkconfig cron 1
-
-ADD sources /usr/local/bin
-
-RUN mv /usr/local/bin/liblwgeom-2.1.7.so /usr/lib/liblwgeom-2.1.7.so && \
-  chmod +x /usr/local/bin/kvwmap* /usr/local/bin/shp2pgsql /usr/local/bin/pgsql2shp && \
-  mv /usr/local/bin/shp2pgsql /usr/bin && \
-  mv /usr/local/bin/pgsql2shp /usr/bin
+RUN apt-get clean
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod authz_groupfile && \
     a2enmod cgi && \
     a2enmod headers && \
-    a2enmod expires && \
     a2enmod rewrite && \
     a2enmod ssl && \
     a2enmod proxy && \
@@ -77,51 +78,69 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod proxy_html && \
     a2enmod xml2enc
 
-RUN wget -O /usr/local/certbot-auto https://dl.eff.org/certbot-auto && \
-    chmod a+x /usr/local/certbot-auto
-# /usr/local/certbot-auto must be run manually in the container to install the cert
-# Diese Einträge und keine backport funktioniert für certbot-auto in jessie
-#deb http://security.debian.org stable/updates main contrib non-free
-#deb http://ftp2.de.debian.org/debian unstable main contrib non-free
+ADD sources /usr/local/bin
 
-WORKDIR /usr/local/bin
+# Install mapserver and php-mapscript
+WORKDIR /usr/local
+RUN wget https://download.osgeo.org/mapserver/mapserver-7.6.1.tar.gz && \
+    tar xvfz mapserver-7.6.1.tar.gz && \
+    rm mapserver-7.6.1.tar.gz && \
+    mkdir mapserver-7.6.1/build && \
+    cd mapserver-7.6.1/build && \
+    cmake .. -DWITH_PROTOBUFC=0 -DWITH_RSVG=0 -DWITH_CAIRO=1 -DWITH_SVGCAIRO=0 -DWITH_PHP=1 -DWITH_CLIENT_WMS=1 -DWITH_CLIENT_WFS=1 && \
+    make && \
+    cp mapscript/php/php_mapscript.so /usr/lib/php/20180731/ && \
+    cp mapserv /usr/lib/cgi-bin
 
-RUN unzip -q phpmyadmin.zip && \
-    mv phpmyadmin-STABLE phpmyadmin && \
-    rm /usr/local/bin/phpmyadmin.zip && \
+# Install ImageMagick
+WORKDIR /usr/local
+RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
+    cd ImageMagick && \
+    ./configure && \
+    make && \
+    make install && \
+    ln -s /usr/local/bin/convert /usr/bin/convert
+
+# force imagemagick to make sharp images
+RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /usr/local/etc/ImageMagick-7/delegates.xml && \
+    echo '<policy domain="coder" rights="read | write" pattern="PDF" />' >> /usr/local/etc/ImageMagick-7/q.xml
+
+# Install phpMyAdmin
+WORKDIR /usr/local
+RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.2/phpMyAdmin-5.0.2-english.tar.gz && \
+    tar xvfz phpMyAdmin-5.0.2-english.tar.gz && \
+    mv phpMyAdmin-5.0.2-english phpmyadmin && \
+    rm phpMyAdmin-5.0.2-english.tar.gz && \
     mkdir -p /srv/www/ && \
-    mv /usr/local/bin/phpmyadmin /srv/www
+    mv phpmyadmin /srv/www
+WORKDIR /srv/www/phpmyadmin
+RUN groupadd -g 1700 ${OS_USER} && \
+    useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
+    usermod -G ${OS_USER} www-data && \
+    chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin && \
+    chmod -R g+w /srv/www/phpmyadmin && \
+    echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
+
+# Install certbot-auto
+WORKDIR /usr/local/bin
+RUN wget -O /usr/local/bin/certbot-auto https://dl.eff.org/certbot-auto && \
+    chmod 0755 /usr/local/bin/certbot-auto
+#RUN echo "0 0,12 * * * root python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/local/bin/certbot-auto renew" | sudo tee -a /etc/crontab > /dev/null
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-WORKDIR /srv/www/phpmyadmin
-
-RUN groupadd -g 1700 ${OS_USER} && \
-  useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
-  usermod -G ${OS_USER} www-data && \
-  chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin && \
-  chmod -R g+w /srv/www/phpmyadmin && \
-  echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
-
 RUN mkdir -p $USER_DIR/.ssh && \
   ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
-  chown -R $OS_USER.$OS_USER $USER_DIR/.ssh && \
-  sed -i "s|#   IdentityFile ~/.ssh/id_rsa|    IdentityFile ~/.ssh/id_rsa|g" /etc/ssh/ssh_config
+  chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
 
-# force imagemagick to make sharp images
-RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /etc/ImageMagick-6/delegates.xml
-
-#RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >> /etc/apt/sources.list.d/backports.list
-#RUN apt-get install docker.io -y && \
-#    groupmod -g 999 docker && \
-#    usermod -a -G docker www-data
+ENV LD_LIBRARY_PATH=/usr/local/lib
 
 USER $OS_USER
 
-RUN composer update
+#RUN composer update
 
-RUN git config --global user.name "gisadmin" && \
-    git config --global user.email "gisadmin@`hostname`"
+RUN git config --global user.name "Peter Korduan" && \
+    git config --global user.email "peter.korduan@gdi-service.de"
 
 USER root
 
