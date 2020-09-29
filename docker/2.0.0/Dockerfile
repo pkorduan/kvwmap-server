@@ -77,7 +77,7 @@ RUN mkdir -p $USER_DIR/.ssh && \
   chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
 
 # force imagemagick to make sharp images
-RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /etc/ImageMagick-6/delegates.xml
+RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /usr/local/etc/ImageMagick-7/delegates.xml
 
 USER $OS_USER
 
