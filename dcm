@@ -232,6 +232,10 @@ install_docker() {
     *)
       echo 'Installiere docker ....'
       curl -sSL https://get.docker.com/ | sh
+      mkdir $USER_DIR/docker/lib
+      systemctl stop docker
+      mv /var/lib/docker $USER_DIR/docker/lib
+      ln -s $USER_DIR/docker/lib/docker /var/lib/docker
     ;;
   esac
   
