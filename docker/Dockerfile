@@ -1,6 +1,6 @@
 FROM debian:latest
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="2.0.1"
+LABEL version="2.1.0"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -50,8 +50,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     php-curl \
     php-dev \
     php-gd \
+    php-mbstring \
     php-mysql \
     php-pgsql \
+    php-soap \
     php-xsl \
     php-zip \
     postgresql-client \
@@ -76,7 +78,9 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod proxy && \
     a2enmod proxy_http && \
     a2enmod proxy_html && \
-    a2enmod xml2enc
+    a2enmod xml2enc 
+
+RUN phpenmod zip
 
 ADD sources /usr/local/bin
 
@@ -133,7 +137,7 @@ RUN mkdir -p $USER_DIR/.ssh && \
   ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
   chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
 
-ENV LD_LIBRARY_PATH=/usr/local/lib
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 USER $OS_USER
 

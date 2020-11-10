@@ -1,11 +1,9 @@
-
-# currently in development
-
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
-	* 2.0.1 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.1/Dockerfile)
-	* 2.0.0 [docker/1.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.0/Dockerfile)
-	* 1.2.7 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.7/Dockerfile)
+	* 2.1.0 [docker/2.1.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.1.0/Dockerfile)
+	* 2.0.1 [docker/2.0.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.1/Dockerfile)
+	* 2.0.0 [docker/2.0.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.0/Dockerfile)
+	* 1.2.7 [docker/1.2.7/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.7/Dockerfile)
 	* 1.2.6 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.6/Dockerfile)
 	* 1.2.5 [docker/1.2.5/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.5/Dockerfile)
 
@@ -225,6 +223,8 @@ docker build -t pkorduan/kvwmap-server:2.0.1 .
 docker run --rm --name ms -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/mapserver.conf:/etc/apache2/conf-enabled/mapserver.conf -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/test.php:/var/www/html/test.php -p 8080:80 -d pkorduan/kvwmap-server:2.0.1
 
 # Changelog
+# 2.1.0
+	* install php-soap Module 
 # 2.0.1
 	* install phpMyAdmin 5.0.2
 	* install mapserver 7.6.1 with php-mapscript from git
