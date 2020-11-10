@@ -21,9 +21,9 @@ for geodata. For loading and exporting geodata with ogr2ogr the image [geodata/g
 ## Installation
 The preferred way to install the `pkorduan/kvwmap-server` image on a blank root server is the command
 ```
-wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost && \
-chmod a+x inithost && \
-./inithost
+wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost.sh && \
+chmod a+x inithost.sh && \
+./inithost.sh
 ```
 The script will clone the kvwmap-server repository from github first and than install
 all required components with the included administration script `dcm` (docker container manager).

@@ -2,9 +2,10 @@
 # Initialize kvwmap-server
 OS_USER=gisadmin
 USER_DIR=/home/${OS_USER}
+CURRENT_DIR=pwd
 
 # run this scirpt:
-# wget -O inithost https://raw.githubusercontent.com/pkorduan/kvwmap-server/master/inithost && chmod a+x inithost && ./inithost
+# wget -O inithost.sh https://raw.githubusercontent.com/pkorduan/kvwmap-server/master/inithost.sh && chmod a+x inithost.sh && ./inithost.sh
 
 # Install utils and git
 apt-get update && apt-get install -y \
@@ -81,7 +82,7 @@ read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
 echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> db/postgresql/pg_hba.conf
 docker exec pgsql-server runuser -l postgres -c '/usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/data reload'
 
-cd ~
+cd $CURRENT_DIR
 read -p "Initscript löschen? (j/n) " answer
 case ${answer:0:1} in
   j|J|y|Y )
