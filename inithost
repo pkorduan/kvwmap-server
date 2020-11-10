@@ -5,7 +5,7 @@ USER_DIR=/home/${OS_USER}
 CURRENT_DIR=pwd
 
 # run this scirpt:
-# wget -O inithost.sh https://raw.githubusercontent.com/pkorduan/kvwmap-server/master/inithost.sh && chmod a+x inithost.sh && ./inithost.sh
+# wget -O inithost.sh https://raw.githubusercontent.com/pkorduan/kvwmap-server/master/inithost && chmod a+x inithost.sh && ./inithost.sh
 
 # Install utils and git
 apt-get update && apt-get install -y \
