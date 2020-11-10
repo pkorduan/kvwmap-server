@@ -64,11 +64,11 @@ Kopiere geoserver Konfigurationsdatien nach $USER_DIR/etc/geoserver/"
 }
 
 remove_geoserver_container() {
-  stop_geoserver_container
+  stop_geoserver_container $1
 
-  if [ "$(docker ps -a -q -f name=geoserver -f status=exited)" ] ; then
-    echo "Lösche Container ..."
-    docker rm geoserver
+  if [ "$(docker ps -a -q -f name=geoserver$1 -f status=exited)" ] ; then
+    echo "Lösche Container geoserver$1 ..."
+    docker rm geoserver$1
   else
     echo "Container geoserver kann nicht gelöscht werden, weil er nicht existiert."
   fi
@@ -123,13 +123,13 @@ show_status() {
 
 start_geoserver_container() {
   echo "Starte geoserver Container. Bitte warten ..."
-  docker start geoserver
+  docker start geoserver$3
 }
 
 stop_geoserver_container() {
-  if [ "$(docker ps -a -q -f name=geoserver -f status=running)" ] ; then
-    echo "Stoppe Container. Bitte warten ..."
-    docker stop geoserver
+  if [ "$(docker ps -a -q -f name=geoserver$1 -f status=running)" ] ; then
+    echo "Stoppe Container geoserver$1. Bitte warten ..."
+    docker stop geoserver$1
   else
     echo "Container geoserver kann nicht gestoppt werden, weil er nicht läuft."
   fi
@@ -174,8 +174,8 @@ cases_geoserver() {
     console)
       case $2 in
         geoserver)
-          echo "Öffne ein Terminal im Container in dem der geoserver läuft ..."
-          docker exec -it geoserver /bin/bash
+          echo "Öffne ein Terminal im Container geoserver$3 ..."
+          docker exec -it geoserver$3 /bin/bash
         ;;
         *)
           debug "No subcase $2 in geoserver"
@@ -226,10 +226,10 @@ cases_geoserver() {
       debug "Case remove in geoserver"
       case $2 in
         geoserver)
-          remove_geoserver_container
+          remove_geoserver_container $3
           # Derzeit muss auch das dazugehörige Image gelöscht werden, weil sich geoserver container
           # merkwürdigerweise nach dem ziehen eines Images immer nur einmal korrekt starten lassen.
-          remove_geoserver_image
+          #remove_geoserver_image
         ;;
         * )
           debug "No subcase $2 in geoserver"
@@ -242,7 +242,7 @@ cases_geoserver() {
       debug "Case rerun in geoserver"
       case $2 in
         geoserver)
-          remove_geoserver_container
+          remove_geoserver_container $3
           run_geoserver_container $3
         ;;
         *)
@@ -294,7 +294,7 @@ cases_geoserver() {
       debug "Case stop in geoserver"
       case $2 in
         geoserver)
-          stop_geoserver_container
+          stop_geoserver_container $3
         ;;
         *)
           debug "No subcase $2 in geoserver"
