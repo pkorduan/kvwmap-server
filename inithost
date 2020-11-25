@@ -86,7 +86,7 @@ cd $CURRENT_DIR
 read -p "Initscript löschen? (j/n) " answer
 case ${answer:0:1} in
   j|J|y|Y )
-    rm -- "$0"
+    rm inithost.sh
   ;;
   * )
     echo "OK, nix passiert!"
