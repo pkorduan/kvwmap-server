@@ -7,6 +7,7 @@ GDAL_IMAGE_VERSION=2.3.0
 gdal_ports="-P"
 
 gdal_env_vars="-e \"TERM=linux\" \
+               -e PATH=$PATH:/usr/local/gdal/bin \
                -e PGPASSFILE=/root/.pgpass"
 
 gdal_volumes="-v $WWW_ROOT:/var/www \
