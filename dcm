@@ -450,9 +450,15 @@ remove_mysql_container() {
 remove_pgsql_container() {
   stop_pgsql_container
 
+  if [ -n $container_version ] ; then
+    container=pgsql-server${container_version}
+  else
+    container=pgsql-server
+  fi
+
   if [ "$(docker ps -a -q -f name=pgsql-server -f status=exited)" ] ; then
     echo "Lösche Container ..."
-    docker rm pgsql-server
+    docker rm $container
   else
     echo "Container pgsql-server kann nicht gelöscht werden, weil er nicht existiert."
   fi
@@ -460,6 +466,12 @@ remove_pgsql_container() {
 
 remove_web_container() {
   stop_web_container
+
+  if [ -n $container_version ] ; then
+    container=web${container_version}
+  else
+    container=web
+  fi
 
   if [ "$(docker ps -a -q -f name=${container} -f status=exited)" ] ; then
     echo "Lösche Container ..."
@@ -559,10 +571,15 @@ run_mysql_container() {
 }
 
 run_pgsql_container() {
+  if [ -n "${container_version}" ] ; then
+    source $USER_DIR/etc/postgresql/env_and_volumes_${container_version}
+  else
+    source $USER_DIR/etc/postgresql/env_and_volumes
+  fi
+
   if [ -z "${START_WITH_DCM}" ] ; then
     echo "Erzeuge und Starte container pgsql"
 
-    source $USER_DIR/etc/postgresql/env_and_volumes
     if [ -z "$pgsql_ports" ] ; then
       pgsql_ports="-p 5432:5432"
     fi
@@ -598,8 +615,10 @@ run_pgsql_container() {
 run_web_container() {
   if [ -n "${container_version}" ] ; then
     source $USER_DIR/etc/web/env_and_volumes_${container_version}
+    pgsql_server_web_link="--link pgsql-server${container_version}:pgsql${container_version}"
   else
     source $USER_DIR/etc/web/env_and_volumes
+    pgsql_server_web_link="--link pgsql-server:pgsql"
   fi
 
   if [ -z "${web_hosts}" ]; then
@@ -617,7 +636,7 @@ run_web_container() {
 	echo "run web container with command: docker run --name web${container_version} \
     -h ${SERVER_NAME}-web-container \
     --link mysql-server:mysql \
-    --link pgsql-server:pgsql \
+    $pgsql_server_web_link \
     --link gdal:gdal \
     $CARGO_WEB_LINKS \
     $web_env_vars \
@@ -628,9 +647,9 @@ run_web_container() {
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}"
 
   docker run --name web${container_version} \
-    -h ${SERVER_NAME}-web-container \
+    -h ${SERVER_NAME}-web-container${container_version} \
     --link mysql-server:mysql \
-    --link pgsql-server:pgsql \
+    $pgsql_server_web_link \
     --link gdal:gdal \
     $CARGO_WEB_LINKS \
     $web_env_vars \
@@ -764,9 +783,16 @@ stop_mysql_container() {
 }
 
 stop_pgsql_container() {
+  if [ -n $container_version ] ; then
+    container=pgsql-server${container_version}
+  else
+    container=pgsql-server
+  fi
+
+
   if [ "$(docker ps -a -q -f name=pgsql-server -f status=running)" ] ; then
     echo "Stoppe Container. Bitte warten ..."
-    docker stop pgsql-server
+    docker stop $container
   else
     echo "Container pgsql-server kann nicht gestoppt werden, weil er nicht läuft."
   fi
@@ -863,15 +889,22 @@ case "$1" in
       ;;
       pgsql)
         echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft..."
-        docker exec -it pgsql-server /bin/bash
+        if [ -n "${container_version}" ] ; then
+          docker exec -it pgsql-server$container_version /bin/bash
+        else
+          docker exec -it pgsql-server /bin/bash
+        fi
+
         #docker exec -it -e TERM=$TERM -e COLUMNS=$COLUMNS -e LINES=$LINES pgsql-server /bin/bash # Option -e erst ab Versiom 1.25+ unterstützt
       ;;
 
       web)
         echo "Öffne ein Terminal im Container in dem der Web-Server läuft..."
         if [ -n "${container_version}" ] ; then
+          echo "mit Containerversion: ${container_version}"
           docker exec -it web$container_version /bin/bash
         else
+          echo "docker exec -it web /bin/bash"
           docker exec -it web /bin/bash
         fi
       ;;
@@ -1205,7 +1238,11 @@ case "$1" in
         show_container_status "mysql-server"
       ;;
       pgsql)
-        show_container_status "pgsql-server"
+        if [ -n "${container_version}" ] ; then
+          show_container_status "pgsql-server${container_version}" /bin/bash
+        else
+          show_container_status "pgsql-server"
+        fi
       ;;
       web)
         show_container_status "web"
