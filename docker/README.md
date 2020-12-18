@@ -1,5 +1,6 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+	* 2.2.0 [docker/2.1.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.0/Dockerfile)
 	* 2.1.0 [docker/2.1.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.1.0/Dockerfile)
 	* 2.0.1 [docker/2.0.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.1/Dockerfile)
 	* 2.0.0 [docker/2.0.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.0/Dockerfile)
@@ -219,12 +220,27 @@ dcm rebuild all
 ### Building Image ###
 docker build -t pkorduan/kvwmap-server:2.0.1 .
 
-### Run at Container ###
-docker run --rm --name ms -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/mapserver.conf:/etc/apache2/conf-enabled/mapserver.conf -v /home/gisadmin/kvwmap-server/docker/2.0.0/sources/test.php:/var/www/html/test.php -p 8080:80 -d pkorduan/kvwmap-server:2.0.1
+### Run a Container ###
+docker run --rm --name ms -v /home/gisadmin/kvwmap-server/docker/2.2.0/sources/mapserver.conf:/etc/apache2/conf-enabled/mapserver.conf -v /home/gisadmin/kvwmap-server/docker/2.2.0/sources/test.php:/var/www/html/test.php -p 8080:80 -d pkorduan/kvwmap-server:2.2.0
+
+### Get Certificate with certbot ###
+dcm rm web
+docker run -it --rm --name certbot \
+  -v "/home/gisadmin/etc/apache2/letsencrypt:/etc/letsencrypt" \
+  -v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
+  -p 80:80 -p 443:443 \
+  certbot/certbot certonly
+
+follow the instruction of certbot and choose option 1 for standalone self installed web Server
+
+dcm run web
 
 # Changelog
+# 2.2.0
+	* install certbot with apt
+	* install mapserver with svg symbol support 
 # 2.1.0
-	* install php-soap Module 
+	* install php-soap Module
 # 2.0.1
 	* install phpMyAdmin 5.0.2
 	* install mapserver 7.6.1 with php-mapscript from git

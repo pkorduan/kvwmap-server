@@ -1,6 +1,6 @@
 FROM debian:latest
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="2.1.0"
+LABEL version="2.2.0"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -26,10 +26,12 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     apt-utils \
     apache2 \
     build-essential \
+    certbot \
     cmake \
     cron \
     curl \
     dialog \
+    libfreetype6-dev \
     gdal-bin \
     git \
     ghostscript \
@@ -43,6 +45,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     libjpeg-dev \
     libproj-dev \
     libpq-dev \
+    librsvg2-dev \
     mariadb-client \
     ntp \
     php \
@@ -91,7 +94,14 @@ RUN wget https://download.osgeo.org/mapserver/mapserver-7.6.1.tar.gz && \
     rm mapserver-7.6.1.tar.gz && \
     mkdir mapserver-7.6.1/build && \
     cd mapserver-7.6.1/build && \
-    cmake .. -DWITH_PROTOBUFC=0 -DWITH_RSVG=0 -DWITH_CAIRO=1 -DWITH_SVGCAIRO=0 -DWITH_PHP=1 -DWITH_CLIENT_WMS=1 -DWITH_CLIENT_WFS=1 && \
+    cmake .. \
+    -DWITH_PROTOBUFC=0 \
+    -DWITH_RSVG=1 \
+    -DWITH_CAIRO=1 \
+    -DWITH_SVGCAIRO=0 \
+    -DWITH_PHP=1 \
+    -DWITH_CLIENT_WMS=1 \
+    -DWITH_CLIENT_WFS=1 && \
     make && \
     cp mapscript/php/php_mapscript.so /usr/lib/php/20180731/ && \
     cp mapserv /usr/lib/cgi-bin
@@ -127,8 +137,8 @@ RUN groupadd -g 1700 ${OS_USER} && \
 
 # Install certbot-auto
 WORKDIR /usr/local/bin
-RUN wget -O /usr/local/bin/certbot-auto https://dl.eff.org/certbot-auto && \
-    chmod 0755 /usr/local/bin/certbot-auto
+#RUN wget -O /usr/local/bin/certbot-auto https://dl.eff.org/certbot-auto && \
+#    chmod 0755 /usr/local/bin/certbot-auto
 #RUN echo "0 0,12 * * * root python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/local/bin/certbot-auto renew" | sudo tee -a /etc/crontab > /dev/null
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
