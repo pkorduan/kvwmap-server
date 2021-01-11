@@ -365,6 +365,14 @@ install_kvwmap_images() {
 
   wget -O $WWW_ROOT/apps/kvwmap/custom/wappen/Logo_GDI-Service_200x47.png https://gdi-service.de/public/kvwmap_resources/Logo_GDI-Service_200x47.png
 
+	echo "#geo_name_search_field {
+	  width: 100%;
+	}
+
+	#search_div {
+	  display: none;
+	}" >> $WWW_ROOT/apps/kvwmap/custom/layouts/custom.css
+
   cd $WWW_ROOT/apps
 
   echo "
