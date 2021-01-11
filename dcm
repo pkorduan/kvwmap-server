@@ -577,7 +577,7 @@ run_pgsql_container() {
     source $USER_DIR/etc/postgresql/env_and_volumes
   fi
 
-  if [ -z "${START_WITH_DCM}" ] ; then
+  if [ "${START_WITH_DCM}" = "true" ] ; then
     echo "Erzeuge und Starte container pgsql"
 
     if [ -z "$pgsql_ports" ] ; then
