@@ -1,14 +1,10 @@
 <?php
 function getMySQLVersion() {
-  return getVersionFromText(
-    shell_exec('mysql -V')
-  );
+  return shell_exec('mysql -V');
 }
 
 function getPostgreSQLVersion() { 
-  return getVersionFromText(
-    shell_exec('psql -h $MYSQL_PORT_3306_TCP_ADDR -V')
-  );
+  return shell_exec('psql -h pgsql -V');
 }
 
 function getMapServerVersion() {
@@ -50,8 +46,8 @@ function versionFormatter($version) {
 </head>
 <body>
   <h1>It works for kvwmap!</h1><br>
-  <b>MySQL-Version:</b> <?php echo versionFormatter(getMySQLVersion()); ?><br>
-  <b>PostgreSQL-Version:</b> <?php echo versionFormatter(getPostgreSQLVersion()); ?><br>
+  <b>MySQL-Version:</b> <?php echo getMySQLVersion(); ?><br>
+  <b>PostgreSQL-Version:</b> <?php echo getPostgreSQLVersion(); ?><br>
   <b>MapServer-Version:</b> <?php echo versionFormatter(getMapServerVersion()); ?><br>
   <b>PHP-Version:</b> <?php echo versionFormatter(getPHPVersion()); ?><br>
   <?php
