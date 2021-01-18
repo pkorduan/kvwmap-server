@@ -78,6 +78,15 @@ run_owncloud_container() {
   source $USER_DIR/etc/owncloud/env_and_volumes
   echo "Erzeuge und starte den owncloud Container"
   echo "mit volumes: ${owncloud_volumes}"
+  echo "docker run --name owncloud \
+    -h ${SERVER_NAME}-owncloud-container \
+    --link mysql-server:mysql \
+    $owncloud_volumes \
+    $owncloud_env_vars \
+    --restart=always \
+    -d \"${owncloud_IMAGE}:${owncloud_VERSION}\""
+#  -p 80:80 \
+#  -p 443:443 \
   docker run --name owncloud \
     -h ${SERVER_NAME}-owncloud-container \
     --link mysql-server:mysql \
@@ -85,8 +94,6 @@ run_owncloud_container() {
     $owncloud_env_vars \
     --restart=always \
     -d "${owncloud_IMAGE}:${owncloud_VERSION}"
-#  -p 80:80 \
-#  -p 443:443 \
 }
 
 set_owncloud_web_link() {
@@ -227,7 +234,6 @@ cases_owncloud() {
         owncloud)
           remove_owncloud_container
           run_owncloud_container
-          docker ps
         ;;
         *)
           debug "No subcase $2 in owncloud"
