@@ -1,6 +1,6 @@
 FROM debian:latest
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="2.2.0"
+LABEL version="2.2.1"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -27,6 +27,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     apache2 \
     build-essential \
     certbot \
+    python3-certbot-apache \
     cmake \
     cron \
     curl \
@@ -57,6 +58,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     php-mysql \
     php-pgsql \
     php-soap \
+    php-sqlite3 \
     php-xsl \
     php-zip \
     postgresql-client \
@@ -121,13 +123,14 @@ RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /usr/local/etc/ImageMagick
 
 # Install phpMyAdmin
 WORKDIR /usr/local
-RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.2/phpMyAdmin-5.0.2-english.tar.gz && \
-    tar xvfz phpMyAdmin-5.0.2-english.tar.gz && \
-    mv phpMyAdmin-5.0.2-english phpmyadmin && \
-    rm phpMyAdmin-5.0.2-english.tar.gz && \
+RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.2/phpMyAdmin-5.0.4-english.tar.gz && \
+    tar xvfz phpMyAdmin-5.0.4-english.tar.gz && \
+    mv phpMyAdmin-5.0.4-english phpmyadmin && \
+    rm phpMyAdmin-5.0.4-english.tar.gz && \
     mkdir -p /srv/www/ && \
     mv phpmyadmin /srv/www
 WORKDIR /srv/www/phpmyadmin
+
 RUN groupadd -g 1700 ${OS_USER} && \
     useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
     usermod -G ${OS_USER} www-data && \

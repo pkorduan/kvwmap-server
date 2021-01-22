@@ -1,5 +1,6 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+	* 2.2.1 [docker/2.1.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.1/Dockerfile)
 	* 2.2.0 [docker/2.1.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.0/Dockerfile)
 	* 2.1.0 [docker/2.1.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.1.0/Dockerfile)
 	* 2.0.1 [docker/2.0.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.0.1/Dockerfile)
@@ -236,6 +237,10 @@ follow the instruction of certbot and choose option 1 for standalone self instal
 dcm run web
 
 # Changelog
+# 2.2.1
+	* install php-sqlite support for dokuwikis that uses only sqlite
+	* install python3-certbot-apache
+	* update phpMyAdmin to 5.0.4
 # 2.2.0
 	* install certbot with apt
 	* install mapserver with svg symbol support 
