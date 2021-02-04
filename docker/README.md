@@ -241,6 +241,8 @@ dcm run web
 	* install php-sqlite support for dokuwikis that uses only sqlite
 	* install python3-certbot-apache
 	* update phpMyAdmin to 5.0.4
+	* install docker.io
+	* dont run gdal container in dcm script since ogr2ogr is called with docker run command not with docker exec
 # 2.2.0
 	* install certbot with apt
 	* install mapserver with svg symbol support 

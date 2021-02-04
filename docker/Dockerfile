@@ -27,11 +27,11 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     apache2 \
     build-essential \
     certbot \
-    python3-certbot-apache \
     cmake \
     cron \
     curl \
     dialog \
+    docker.io \
     libfreetype6-dev \
     gdal-bin \
     git \
@@ -65,6 +65,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
     protobuf-compiler \
     python-cairosvg \
     python3-cairosvg \
+    python3-certbot-apache \
     sudo \
     swig \
     unzip \
@@ -123,7 +124,8 @@ RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /usr/local/etc/ImageMagick
 
 # Install phpMyAdmin
 WORKDIR /usr/local
-RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.2/phpMyAdmin-5.0.4-english.tar.gz && \
+
+RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.4/phpMyAdmin-5.0.4-english.tar.gz && \
     tar xvfz phpMyAdmin-5.0.4-english.tar.gz && \
     mv phpMyAdmin-5.0.4-english phpmyadmin && \
     rm phpMyAdmin-5.0.4-english.tar.gz && \

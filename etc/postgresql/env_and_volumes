@@ -33,4 +33,6 @@ pgsql_volumes="-v $WWW_ROOT:/var/www\
                -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
                -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"
 
+pgsql_config=""
+
 START_WITH_DCM=true
