@@ -582,7 +582,7 @@ run_mysql_container() {
       --restart=always \
       -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}
   else
-    echo "Starten von mysql container wird ausgelassen weil START_WITH_MYSQL_DCM auf false steht."
+    echo "Starten von mysql container wird ausgelassen weil START_MYSQL_WITH_DCM auf false steht."
   fi
 }
 
