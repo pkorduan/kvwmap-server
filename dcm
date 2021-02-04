@@ -567,11 +567,11 @@ $gdal_ports \
 run_mysql_container() {
   source $USER_DIR/etc/mysql/env_and_volumes
 
-  if [ -z "${START_WITH_MYSQL_DCM}" ] ; then
-    START_WITH_MYSQL_DCM="true"
+  if [ -z "${START_MYSQL_WITH_DCM}" ] ; then
+    START_MYSQL_WITH_DCM="true"
   fi
 
-  if [ "${START_WITH_MYSQL_DCM}" = "true" ] ; then
+  if [ "${START_MYSQL_WITH_DCM}" = "true" ] ; then
     echo "Erzeuge und Starte container mysql"
 
     docker run --name mysql-server \
