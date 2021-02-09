@@ -1,6 +1,6 @@
 #!/bin/bash
 KVWMAP_IMAGE=pkorduan/kvwmap-server
-KVWMAP_IMAGE_VERSION="2.2.0"
+KVWMAP_IMAGE_VERSION="2.2.1"
 TERM=linux
 COLUMNS=80
 LINES=120
