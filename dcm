@@ -325,6 +325,7 @@ install_kvwmap_images() {
   cp -R $USER_DIR/kvwmap-server/etc/phpmyadmin $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
   cp -R $USER_DIR/kvwmap-server/etc/web $USER_DIR/etc/
+  cp -R $USER_DIR/kvwmap-server/etc/sicherung $USER_DIR/etc
 
   echo "
   Erzeuge Unterverzeichnisse im Apache Konfigurationsverzeichnis..."
