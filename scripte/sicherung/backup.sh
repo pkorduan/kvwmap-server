@@ -20,6 +20,8 @@
 #   #2020_01_29         1. shellcheck-Empfehlungen angewendet
 #                       2. Monitoring noch fehlerhaft
 #   #2020_02_01         1. Monitoring funktioniert nun
+#   #2021_03_01		1. Schritt 4. nur ausführen wenn $KEEP_FOR_N_DAYS > 0
+#   #2021_03_03		1. Variable PROD_APP in dump_mysql() verwenden statt des auslesens der Prod-App aus der Datei
 #########################################################
 
 #########################################################
@@ -69,7 +71,7 @@ dbg() {
 sichere_dir_als_targz() {
     dbg "entering sichere_dir_als_targz $1"
     local source=$(echo "$1" | cut -d ";" -f 1)
-    local target=${BACKUP_DIR}/$(echo "$1" | cut -d ";" -f 2).tar.gz
+    local target=${BACKUP_DIR}/$(echo "$1" | cut -d ";" -f 2)
     local parameter=$(echo "$1" | cut -d ";" -f 3)
     echo "    Sichere Verzeichnis $source nach $target" >> "$LOGFILE"
     tar "$parameter" -cf $target $source > /dev/null 2>> "$LOGFILE"
@@ -87,7 +89,8 @@ sichere_dir_als_targz() {
 dump_pg() {
     dbg "entering dump_pg $1"
     local database=$(echo "$1" | cut -d ";" -f 1)
-    local target_name=$(echo "$1" | cut -d ";" -f 2).dump
+    local target_name=$(echo "$1" | cut -d ";" -f 2)
+    local pgdump_options=$(echo "$1" | cut -d ";" -f 3)
 
     docker exec pgsql-server bash -c "pg_dump -Fc -U kvwmap -f /var/lib/postgresql/data/$target_name $database" 2>> "$LOGFILE"
 
@@ -105,14 +108,13 @@ dump_pg() {
 dump_mysql() {
     dbg "entering dump_mysql $1"
     local MYSQLDB=$(echo "$1" | cut -d ";" -f 1)
-    local target_name=$(echo "$1" | cut -d ";" -f 2).dump
-    local APPNAME=$(echo "$1" | cut -d ";" -f 3)
+    local target_name=$(echo "$1" | cut -d ";" -f 2)
 
-    if [ -f "$APPS_DIR"/"$APPNAME"/credentials.php ]; then
+    if [ -f "$APPS_DIR"/"$PROD_APP"/credentials.php ]; then
 
         local MYSQLHOST=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql-server)
-        local MYSQLUSER=$(grep MYSQL_USER "$APPS_DIR"/"$APPNAME"/credentials.php | cut -d "'" -f 4)
-        local MYSQLPW=$(grep MYSQL_PASSWORD "$APPS_DIR"/"$APPNAME"/credentials.php | cut -d "'" -f 4)
+        local MYSQLUSER=$(grep MYSQL_USER "$APPS_DIR"/"$PROD_APP"/credentials.php | cut -d "'" -f 4)
+        local MYSQLPW=$(grep MYSQL_PASSWORD "$APPS_DIR"/"$PROD_APP"/credentials.php | cut -d "'" -f 4)
 
         docker exec mysql-server bash -c "mysqldump -h $MYSQLHOST --single-transaction --user=$MYSQLUSER --databases $MYSQLDB --password=""$MYSQLPW"" > /var/lib/mysql/$target_name" 2>> "$LOGFILE"
 
@@ -212,8 +214,12 @@ fi
 #########################################################
 ## #4 alte löschen                                      #
 #########################################################
-echo "4/6   Backups älter als $KEEP_FOR_N_DAYS Tage werden gelöscht" >> "$LOGFILE"
-find "$BACKUP_PATH"/* -type d -mtime "$KEEP_FOR_N_DAYS" -exec rm -fdr {} \;
+if [ $KEEP_FOR_N_DAYS -gt 0 ]; then
+	echo "4/6   Backups älter als $KEEP_FOR_N_DAYS Tage werden gelöscht" >> "$LOGFILE"
+	find "$BACKUP_PATH"/* -type d -mtime "$KEEP_FOR_N_DAYS" -exec rm -fdr {} \;
+else
+	echo "4/6   alte Backups werden nicht gelöscht, Parameter KEEP_FOR_N_DAYS=0"
+fi
 
 #########################################################
 ## #5 Symlink setzen                                    #
