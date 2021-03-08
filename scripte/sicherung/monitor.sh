@@ -1,6 +1,6 @@
 #!/bin/bash
 
-config_dir="/home/gisadmin/etc/sicherung"
+config_dir="/home/gisadmin/www/sicherungen"
 debug=false
 
 dbg(){
