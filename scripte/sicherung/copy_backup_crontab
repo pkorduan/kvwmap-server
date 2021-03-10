@@ -1,0 +1,11 @@
+#!/bin/bash
+######################################################################################################################
+# script has to be called by root user to add backup-specific cronjobs                                               #
+#####################################################################################################################
+# path where backup-configs are written by php
+RPC_SICHERUNGEN_CONFIG=/var/docker/www/sicherungen
+
+if [ -f ${RPC_SICHERUNGEN_CONFIG}/kvwmap_backup_crontab ]; then
+	mv -f ${RPC_SICHERUNGEN_CONFIG}/kvwmap_backup_crontab /etc/cron.d/
+	chown root.root /etc/cron.d/kvwmap_backup_crontab
+fi
