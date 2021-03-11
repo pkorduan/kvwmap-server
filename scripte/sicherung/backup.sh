@@ -20,8 +20,9 @@
 #   #2020_01_29         1. shellcheck-Empfehlungen angewendet
 #                       2. Monitoring noch fehlerhaft
 #   #2020_02_01         1. Monitoring funktioniert nun
-#   #2021_03_01		1. Schritt 4. nur ausführen wenn $KEEP_FOR_N_DAYS > 0
-#   #2021_03_03		1. Variable PROD_APP in dump_mysql() verwenden statt des auslesens der Prod-App aus der Datei
+#   #2021_03_01		1.	Schritt 4. nur ausführen wenn $KEEP_FOR_N_DAYS > 0
+#   #2021_03_03		1.	Variable PROD_APP in dump_mysql() verwenden statt des auslesens der Prod-App aus der Datei
+#   #2021_03_10		1.	PROD_APP aus backup.conf auslesen
 #########################################################
 
 #########################################################
@@ -36,11 +37,11 @@ source "$CONFIG_DIR"/backup.conf
 export BACKUP_PATH
 export BACKUP_FOLDER
 export KEEP_FOR_N_DAYS
+export PROD_APP
 
 # globale Konfiguration laden
 source /home/gisadmin/kvwmap-server/config/config
 export SERVER_NAME
-export PROD_APP
 
 # Fehlerflags
 step_tar_error=FALSE
