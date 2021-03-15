@@ -128,7 +128,7 @@ check_backup_setup(){
 		error=true
 	fi
 
-	testfile=/etc/cron.d/kvwmap_backup_crontab
+	testfile=/etc/cron.d/kvwmap_backup_crontab*
 	if [ ! -f $testfile ]; then
 		message=$message"Cronjob für Sicherungen fehlt ($testfile)"
 		error=true
