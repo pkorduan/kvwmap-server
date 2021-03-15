@@ -5,12 +5,9 @@
 # path where backup-configs are written by php
 RPC_SICHERUNGEN_CONFIG=/home/gisadmin/www/sicherungen
 
-if [ -f "$RPC_SICHERUNGEN_CONFIG/kvwmap_backup_crontab"* ]; then
-	rm -f /etc/cron.d/kvwmap_backup_crontab*
-	while read file
-	do
-		chown root.root "$file"
-		mv -f "$file" /etc/cron.d/
-	done < <(find "$RPC_SICHERUNGEN_CONFIG"/kvwmap_backup_crontab_* -type f)
-fi
+while read file
+do
+	chown root.root "$file"
+	mv -f "$file" /etc/cron.d/
+done < <(find "$RPC_SICHERUNGEN_CONFIG"/kvwmap_backup_crontab_* -type f)
 exit 0
