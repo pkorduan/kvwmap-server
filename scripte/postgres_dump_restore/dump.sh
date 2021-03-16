@@ -9,7 +9,7 @@ DUMP_DIR=/var/www/pg_dump
 function dump_database(){
 	option_f="${DUMP_DIR}/schema_data.${0}.dump"
 	echo "Dump DB "${0}" nach ${option_f}"
-	docker exec pgsql-server bash -c "pg_dump -U postgres --format=custom --exclude-table='shp_export_*' -f ${option_f}  \"$0\" "
+	docker exec pgsql-server bash -c "pg_dump -U postgres --create --exclude-table='shp_export_*' -f ${option_f}  \"$0\" "
 }
 export -f dump_database
 export DUMP_DIR

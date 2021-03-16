@@ -70,11 +70,13 @@ load_sicherung_context(){
 	execution_error_mysql=$(echo "$monitorlog" | cut -d ";" -f 5)
 	execution_error_pgsql=$(echo "$monitorlog" | cut -d ";" -f 6)
 	execution_error_rsync=$(echo "$monitorlog" | cut -d ";" -f 7)
-	if [[  "$execution_error_tar" || "$execution_error_mysql" || \
-		"$execution_pgsql" || "$execution_error_rsync" ]]; then
-		execution_error=true
+
+	echo "$execution_error_tar" "$execution_error_mysql" "$execution_error_pgsql" "$execution_error_rsync"
+
+	if [[  "$execution_error_tar" = TRUE || "$execution_error_mysql" = TRUE || "$execution_pgsql" = TRUE || "$execution_error_rsync" = TRUE ]]; then
+		execution_error=TRUE
 	else
-		execution_error=false
+		execution_error=FALSE
 	fi
 }
 
