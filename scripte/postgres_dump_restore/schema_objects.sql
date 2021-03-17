@@ -41,5 +41,5 @@ SELECT	s.owner
 --		,t.objekt_eigenschaft
 FROM	db_schemas	s
 LEFT JOIN	schema_objects	t	ON s.schema=t.schemaname
-WHERE s.schema NOT IN ('pg_catalog')
+WHERE s.schema NOT IN ('pg_catalog', 'information_schema')
 ORDER BY s.schema, t.objekt_typ, t.objekt_name;
