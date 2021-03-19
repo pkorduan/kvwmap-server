@@ -18,6 +18,16 @@ WITH schema_objects AS(
 			,p.pronamespace::regnamespace::TEXT
 			,''
 	FROM	pg_proc		p
+	JOIN	pg_language	l	ON	p.prolang = l.oid
+	--no procedures from extensions
+	WHERE NOT EXISTS (	SELECT	1
+						FROM	pg_catalog.pg_depend	d
+						WHERE	d.objid = p.oid
+						AND		d.classid::regclass::Text = 'pg_proc'
+						AND		d.deptype IN ('e','i')
+						)
+	--nothing from builtin language
+	AND	l.lanispl = true
 	UNION
 	SELECT	'MAT_VIEW'
 			,m.matviewname
@@ -41,5 +51,5 @@ SELECT	s.owner
 --		,t.objekt_eigenschaft
 FROM	db_schemas	s
 LEFT JOIN	schema_objects	t	ON s.schema=t.schemaname
-WHERE s.schema NOT IN ('pg_catalog')
+WHERE s.schema NOT IN ('pg_catalog', 'information_schema')
 ORDER BY s.schema, t.objekt_typ, t.objekt_name;
