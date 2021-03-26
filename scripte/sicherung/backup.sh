@@ -24,6 +24,7 @@
 #   #2021_03_03		1.	Variable PROD_APP in dump_mysql() verwenden statt des auslesens der Prod-App aus der Datei
 #   #2021_03_10		1.	PROD_APP aus backup.conf auslesen
 #   #2021_03_24		1.	escaping double-quotes when passing MYSQL_PASSWORD to docker exec
+#   #2021_03_26		1.	correction for deleting of old files, number of days has to be prefixed with "+"
 #########################################################
 
 #########################################################
@@ -218,7 +219,7 @@ fi
 #########################################################
 if [ $KEEP_FOR_N_DAYS -gt 0 ]; then
 	echo "4/6   Backups älter als $KEEP_FOR_N_DAYS Tage werden gelöscht" >> "$LOGFILE"
-	find "$BACKUP_PATH"/* -type d -mtime "$KEEP_FOR_N_DAYS" -exec rm -fdr {} \;
+	find "$BACKUP_PATH"/* -type d -mtime "+$KEEP_FOR_N_DAYS" -exec rm -fdr {} \;
 else
 	echo "4/6   alte Backups werden nicht gelöscht, Parameter KEEP_FOR_N_DAYS=0"
 fi
