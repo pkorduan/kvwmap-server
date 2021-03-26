@@ -77,7 +77,7 @@ sichere_dir_als_targz() {
     local target=${BACKUP_DIR}/$(echo "$1" | cut -d ";" -f 2)
     local parameter=$(echo "$1" | cut -d ";" -f 3)
     echo "    Sichere Verzeichnis $source nach $target" >> "$LOGFILE"
-    tar "$parameter" -chf $target $source > /dev/null 2>> "$LOGFILE"
+    tar "$parameter" -cf $target $source > /dev/null 2>> "$LOGFILE"
 
     if [[ $? -eq 0 ]]; then
         echo "    Vrzeichnis $source gesichert" >> "$LOGFILE"
