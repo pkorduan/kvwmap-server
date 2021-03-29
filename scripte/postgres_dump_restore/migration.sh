@@ -41,19 +41,21 @@ function dump_old_db_copy_dump(){
 	source dump.sh
 	dump_database
 
-	
 	cp -r "$DUMP_DIR_HOST_OLD" "$DUMP_DIR_HOST_NEW"
 }
 
-$CONTAINER_VERSION=$2
-$OLD_DIR_WWW=/home/gisadmin/www
-$OLD_DIR_DATA=/home/gisadmin/db/postgresl/data
-$NEW_DIR_WWW=/home/gisadmin/docker/var/www_${CONTAINER_VERSION}
-$NEW_DIR_DATA=/home/gisadmin/db/postgres/data_${CONTAINER_VERSION}
+CONTAINER_VERSION=$2
+OLD_DIR_WWW=/home/gisadmin/www
+OLD_DIR_DATA=/home/gisadmin/db/postgresl/data
+NEW_DIR_WWW=/home/gisadmin/docker/var/www_${CONTAINER_VERSION}
+NEW_DIR_DATA=/home/gisadmin/db/postgres/data_${CONTAINER_VERSION}
 
 case $1 in
 	prepare_host)
 		prepare_host
+	;;
+	dump_db)
+		dump_old_db_copy_dump
 	;;
 	start_new_container)
 		start_new_container
@@ -61,6 +63,7 @@ case $1 in
 	*)
 		echo	"verfügbare Aufrufe:"
 		echo	"prepare_host [container_version]"
+		echo	"dump_old_db_copy_dump [container_version]"
 		echo	"start_new_container [container_version]"
 	;;
 esac
