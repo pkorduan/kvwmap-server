@@ -544,22 +544,33 @@ run_gdal_container() {
   echo "Erzeuge und Starte container gdal"
 
   source $USER_DIR/etc/gdal/env_and_volumes
-  echo  ${SERVER_NAME}-gdal-container 
+  echo  ${SERVER_NAME}-gdal-container
+
+	if [ ! -z "${NETWORK}" ]; then
+		create_docker_network ${NETWORK}
+		$network="--network=${NETWORK}"
+	fi
+	if [ ! -z "${NETWORK_ALIAS}" ]; then
+		$network_alias="--net-alias=${NETWORK_ALIAS}"
+	fi
+
   echo "docker run --name gdal \
 -h ${SERVER_NAME}-gdal-container \
---link pgsql-server:pgsql \
 $gdal_env_vars \
 $gdal_volumes \
 $gdal_ports \
+$network \
+$network_alias \
 --restart=always \
 -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}"
 
   docker run --name gdal \
     -h ${SERVER_NAME}-gdal-container \
-    --link pgsql-server:pgsql \
     $gdal_env_vars \
     $gdal_volumes \
     $gdal_ports \
+	$network \
+	$network_alias \
     --restart=always \
     -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}
 }
@@ -571,6 +582,14 @@ run_mysql_container() {
     START_WITH_MYSQL_DCM="true"
   fi
 
+	if [ ! -z "${NETWORK}" ]; then
+		create_docker_network ${NETWORK}
+		$network="--network=${NETWORK}"
+	fi
+	if [ ! -z "${NETWORK_ALIAS}" ]; then
+		$network_alias="--net-alias=${NETWORK_ALIAS}"
+	fi
+
   if [ "${START_WITH_MYSQL_DCM}" = "true" ] ; then
     echo "Erzeuge und Starte container mysql"
 
@@ -580,6 +599,8 @@ run_mysql_container() {
       $mysql_volumes \
       $mysql_ports \
       --restart=always \
+      $network \
+      $network_alias \
       -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}
   else
     echo "Starten von mysql container wird ausgelassen weil START_WITH_MYSQL_DCM auf false steht."
@@ -608,6 +629,14 @@ run_pgsql_container() {
       pgsql_config=""
     fi
 
+	if [ ! -z "${NETWORK}" ]; then
+		create_docker_network ${NETWORK}
+		$network="--network=${NETWORK}"
+	fi
+	if [ ! -z "${NETWORK_ALIAS}" ]; then
+		$network_alias="--net-alias=${NETWORK_ALIAS}"
+	fi
+
     set_cargo_pgsql_links
 
     echo "run pgsql container with command: docker run --name ${PGSQL_CONTAINER_NAME} \
@@ -616,6 +645,8 @@ run_pgsql_container() {
       $pgsql_env_vars \
       $pgsql_volumes \
       $pgsql_ports \
+      $network \
+      $network_alias \
       --restart=always \
       -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION} \
       $pgsql_config"
@@ -626,6 +657,8 @@ run_pgsql_container() {
       $pgsql_env_vars \
       $pgsql_volumes \
       $pgsql_ports \
+      $network \
+      $network_alias \
       --restart=always \
       -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION} \
       $pgsql_config
@@ -638,10 +671,8 @@ run_pgsql_container() {
 run_web_container() {
   if [ -n "${container_version}" ] ; then
     source $USER_DIR/etc/web/env_and_volumes_${container_version}
-    pgsql_server_web_link="--link pgsql-server${container_version}:pgsql${container_version}"
   else
     source $USER_DIR/etc/web/env_and_volumes
-    pgsql_server_web_link="--link pgsql-server:pgsql"
   fi
 
   if [ -z "${web_hosts}" ]; then
@@ -654,31 +685,37 @@ run_web_container() {
                -p 443:443"
   fi
 
+	if [ ! -z "${NETWORK}" ]; then
+		create_docker_network ${NETWORK}
+		$network="--network=${NETWORK}"
+	fi
+	if [ ! -z "${NETWORK_ALIAS}" ]; then
+		$network_alias="--net-alias=${NETWORK_ALIAS}"
+	fi
+
   set_cargo_web_links
 
 	echo "run web container with command: docker run --name web${container_version} \
     -h ${SERVER_NAME}-web-container \
-    --link mysql-server:mysql \
-    $pgsql_server_web_link \
-    --link gdal:gdal \
     $CARGO_WEB_LINKS \
     $web_env_vars \
     $web_volumes \
     $web_hosts \
     $web_ports \
+	$network \
+	$network_alias \
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}"
 
   docker run --name web${container_version} \
     -h ${SERVER_NAME}-web-container${container_version} \
-    --link mysql-server:mysql \
-    $pgsql_server_web_link \
-    --link gdal:gdal \
     $CARGO_WEB_LINKS \
     $web_env_vars \
     $web_volumes \
     $web_hosts \
     $web_ports \
+	$network \
+	$network_alias \
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}
 }
@@ -867,6 +904,31 @@ uninstall_kvwmap() {
     ;;
   esac
 }
+
+# does the docker network $1 exist?
+# returns "true" or "false"
+exists_network(){
+	FOUND=false
+	while read DOCKER_NETWORK_NAME
+	do
+		if [ ${DOCKER_NETWORK_NAME} = $1 ]; then
+			FOUND=true
+		fi
+	done < <(docker network ls --format "{{.Name}}" -f driver=bridge)
+	echo $FOUND
+}
+
+# creates docker network if not existing
+# $1 name of network
+create_docker_network(){
+	if [ $(exists_network $1) = false ]; then
+		docker network create --driver bridge $1
+		echo "Docker-Netwerk $1 erstellt."
+	fi
+}
+
+
+new_network
 
 fail_unless_root
 
