@@ -546,12 +546,12 @@ run_gdal_container() {
   source $USER_DIR/etc/gdal/env_and_volumes
   echo  ${SERVER_NAME}-gdal-container
 
-	if [ ! -z "${NETWORK}" ]; then
+	if [ -v NETWORK ]; then
 		create_docker_network ${NETWORK}
-		$network="--network=${NETWORK}"
+		network="--network=${NETWORK}"
 	fi
-	if [ ! -z "${NETWORK_ALIAS}" ]; then
-		$network_alias="--net-alias=${NETWORK_ALIAS}"
+	if [ -v NETWORK_ALIAS ]; then
+		network_alias="--net-alias=${NETWORK_ALIAS}"
 	fi
 
   echo "docker run --name gdal \
@@ -582,16 +582,25 @@ run_mysql_container() {
     START_WITH_MYSQL_DCM="true"
   fi
 
-	if [ ! -z "${NETWORK}" ]; then
+	if [ -v NETWORK ]; then
 		create_docker_network ${NETWORK}
-		$network="--network=${NETWORK}"
+		network="--network=${NETWORK}"
 	fi
-	if [ ! -z "${NETWORK_ALIAS}" ]; then
-		$network_alias="--net-alias=${NETWORK_ALIAS}"
+	if [ -v NETWORK_ALIAS ]; then
+		network_alias="--net-alias=${NETWORK_ALIAS}"
 	fi
 
   if [ "${START_WITH_MYSQL_DCM}" = "true" ] ; then
     echo "Erzeuge und Starte container mysql"
+	echo    "docker run --name mysql-server \
+			-h ${SERVER_NAME}-mysql-container \
+			$mysql_env_vars \
+			$mysql_volumes \
+			$mysql_ports \
+			--restart=always \
+			$network \
+			$network_alias \
+			-d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}"
 
     docker run --name mysql-server \
       -h ${SERVER_NAME}-mysql-container \
@@ -629,12 +638,12 @@ run_pgsql_container() {
       pgsql_config=""
     fi
 
-	if [ ! -z "${NETWORK}" ]; then
+	if [ -v NETWORK ]; then
 		create_docker_network ${NETWORK}
-		$network="--network=${NETWORK}"
+		network="--network=${NETWORK}"
 	fi
-	if [ ! -z "${NETWORK_ALIAS}" ]; then
-		$network_alias="--net-alias=${NETWORK_ALIAS}"
+	if [ -v NETWORK_ALIAS ]; then
+		network_alias="--net-alias=${NETWORK_ALIAS}"
 	fi
 
     set_cargo_pgsql_links
@@ -685,12 +694,12 @@ run_web_container() {
                -p 443:443"
   fi
 
-	if [ ! -z "${NETWORK}" ]; then
+	if [ -v NETWORK ]; then
 		create_docker_network ${NETWORK}
-		$network="--network=${NETWORK}"
+		network="--network=${NETWORK}"
 	fi
-	if [ ! -z "${NETWORK_ALIAS}" ]; then
-		$network_alias="--net-alias=${NETWORK_ALIAS}"
+	if [ -v NETWORK_ALIAS ]; then
+		network_alias="--net-alias=${NETWORK_ALIAS}"
 	fi
 
   set_cargo_web_links
@@ -926,9 +935,6 @@ create_docker_network(){
 		echo "Docker-Netwerk $1 erstellt."
 	fi
 }
-
-
-new_network
 
 fail_unless_root
 
