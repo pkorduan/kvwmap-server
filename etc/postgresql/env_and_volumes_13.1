@@ -1,0 +1,41 @@
+#!/bin/bash
+PGSQL_DB=postgres
+PGSQL_USER=postgres
+read -s -p "Enter initial password for user postgres: " POSTGRES_ROOT_PASSWORD
+# PGSQL_PASSFILE must have permission 600
+PGSQL_MAJOR_VERSION=13.1
+POSTGIS_VERSION=3.1
+PGSQL_IMAGE=pkorduan/postgis
+PGSQL_IMAGE_VERSION="${PGSQL_MAJOR_VERSION}-${POSTGIS_VERSION}"
+PGSQL_PORT=5433
+PGSQL_PORT_INTERN=5432
+PGSQL_CONTAINER_NAME="pgsql-server-$PGSQL_MAJOR_VERSION"
+TERM=linux
+COLUMNS=180
+LINES=200
+NETWORK_ALIAS=pgsql-server
+NETWORK=KVWMAP_INTEGRATION
+
+pgsql_ports="-p ${PGSQL_PORT}:${PGSQL_PORT_INTERN}"
+
+pgsql_env_vars="-e POSTGRES_USER=$PGSQL_USER \
+                -e POSTGRES_PASSWORD=$POSTGRES_ROOT_PASSWORD \
+                -e POSTGRES_DB=$PGSQL_DB \
+                -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
+                -e PGPASSFILE=/root/.pgpass \
+                -e \"TERM=${TERM}\" \
+                -e \"COLUMNS=${COLUMNS}\" \
+                -e \"LINES=${LINES}\""
+
+pgsql_volumes="-v ${WWW_ROOT}_${PGSQL_MAJOR_VERSION}:/var/www \
+               -v $DB_ROOT/postgresql_$PGSQL_MAJOR_VERSION/data:/var/lib/postgresql/data \
+               -v $USER_DIR/etc/postgresql/.pgpass:/root/.pgpass \
+               -v $USER_DIR/etc/postgresql/.pgpass:/home/gisadmin/.pgpass \
+               -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \
+               -v $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb \
+               -v $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"
+
+pgsql_config=""
+#pgsql_config="-c 'config_file=/etc/postgresql/postgresql.conf'"
+
+START_WITH_DCM=true
