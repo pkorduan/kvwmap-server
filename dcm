@@ -238,7 +238,7 @@ install_docker() {
       ln -s $USER_DIR/docker/lib/docker /var/lib/docker
     ;;
   esac
-  
+
   # enable memory and swap accounting. This prevent from
   # WARNING: Your kernel does not support cgroup swap limit. and
   # WARNING: Your kernel does not support swap limit capabilities. Limitation discarded.
@@ -254,7 +254,7 @@ install_docker() {
 
 install_kvwmap_images() {
   echo "Installiere Voraussetzungen für den Betrieb von kvwmap ..."
-  
+
   echo "
   Erzeuge user: ${OS_USER} ..."
   # create user for web gis anwendung if not exists
@@ -262,7 +262,7 @@ install_kvwmap_images() {
   /usr/sbin/usermod -u 17000 $OS_USER
   /usr/sbin/groupmod -g 1700 $OS_USER
   /usr/sbin/usermod -a -G docker $OS_USER
-  
+
   echo "
   Setze bash Einstellungen für user: ${OS_USER} ..."
   # set bash settings for web gis user
@@ -553,8 +553,8 @@ run_gdal_container() {
   echo  ${SERVER_NAME}-gdal-container
   echo "docker run --name gdal \
 	-h ${SERVER_NAME}-gdal-container \
-	--network ${NETWORK}
-	--net-alias gdal
+	--network ${NETWORK} \
+	--net-alias gdal \
 	$gdal_env_vars \
 	$gdal_volumes \
 	$gdal_ports \
@@ -563,8 +563,8 @@ run_gdal_container() {
 
   docker run --name gdal \
 	-h ${SERVER_NAME}-gdal-container \
-	--network ${NETWORK}
-	--net-alias gdal
+	--network ${NETWORK} \
+	--net-alias gdal \
 	$gdal_env_vars \
 	$gdal_volumes \
 	$gdal_ports \
@@ -586,15 +586,28 @@ run_mysql_container() {
 
   if [ "${START_WITH_MYSQL_DCM}" = "true" ] ; then
     echo "Erzeuge und Starte container mysql"
+	echo    "docker run --name mysql-server \
+			-h ${SERVER_NAME}-mysql-container \
+			--network $NETWORK \
+			--net-alias mysql \
+			$mysql_env_vars \
+			$mysql_volumes \
+			$mysql_ports \
+			--restart=always \
+			$network \
+			$network_alias \
+			-d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}"
 
     docker run --name mysql-server \
       -h ${SERVER_NAME}-mysql-container \
-	--network $NETWORK
-	--net-alias mysql
+	--network $NETWORK \
+	--net-alias mysql \
       $mysql_env_vars \
       $mysql_volumes \
       $mysql_ports \
       --restart=always \
+      $network \
+      $network_alias \
       -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}
   else
     echo "Starten von mysql container wird ausgelassen weil START_WITH_MYSQL_DCM auf false steht."
@@ -633,23 +646,27 @@ run_pgsql_container() {
 	create_bridge_network $NETWORK
 
     echo "run pgsql container with command: docker run --name ${PGSQL_CONTAINER_NAME} \
-	--network ${NETWORK}
-	--net-alias ${NETWORK_ALIAS}
+	--network ${NETWORK} \
+	--net-alias ${NETWORK_ALIAS} \
       -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
       $pgsql_env_vars \
       $pgsql_volumes \
       $pgsql_ports \
+      $network \
+      $network_alias \
       --restart=always \
       -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION} \
       $pgsql_config"
 
     docker run --name ${PGSQL_CONTAINER_NAME} \
-        --network ${NETWORK}
-        --net-alias ${NETWORK_ALIAS}
+        --network ${NETWORK} \
+        --net-alias ${NETWORK_ALIAS} \
       -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
       $pgsql_env_vars \
       $pgsql_volumes \
       $pgsql_ports \
+      $network \
+      $network_alias \
       --restart=always \
       -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION} \
       $pgsql_config
@@ -691,8 +708,8 @@ run_web_container() {
     $web_volumes \
     $web_hosts \
     $web_ports \
-	--network ${NETWORK}
-	--net-alias ${NETWORK_ALIAS}
+	--network ${NETWORK} \
+	--net-alias ${NETWORK_ALIAS} \
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}"
 
@@ -702,8 +719,8 @@ run_web_container() {
     $web_volumes \
     $web_hosts \
     $web_ports \
-	--network ${NETWORK}
-	--net-alias ${NETWORK_ALIAS}
+	--network ${NETWORK} \
+	--net-alias ${NETWORK_ALIAS} \
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}
 }
@@ -720,12 +737,12 @@ show_container_status() {
   CONTAINER=$1
   echo "Status des Containers $CONTAINER:"
   RUNNING=$(docker inspect --format="{{ .State.Running }}" $CONTAINER 2> /dev/null)
- 
+
   if [ $? -eq 1 ]; then
     echo "UNKNOWN - Container $CONTAINER does not exist."
     return 3
   fi
- 
+
   if [ "$RUNNING" == "false" ]; then
     echo "CRITICAL - $CONTAINER is not running."
     return 2
@@ -733,7 +750,7 @@ show_container_status() {
 
   STARTED=$(docker inspect --format="{{ .State.StartedAt }}" $CONTAINER)
   NETWORK=$(docker inspect --format="{{ .NetworkSettings.IPAddress }}" $CONTAINER)
- 
+
   echo "OK - $CONTAINER is running. IP: $NETWORK, StartedAt: $STARTED"
 }
 
@@ -741,7 +758,7 @@ start_all_container() {
   echo "Startet alle existierenden Container."
   docker start mysql-server
   docker start pgsql-server
-  
+
   # start_cargo_container
 
   start_gdal_container
@@ -783,7 +800,7 @@ stop_all_container() {
 
 stop_container() {
   if [ -n $container_version ] ; then
-    container=$1${container_version}
+    container=$1-${container_version}
   else
     container=$1
   fi
@@ -816,7 +833,7 @@ stop_mysql_container() {
 
 stop_pgsql_container() {
   if [ -n $container_version ] ; then
-    container=pgsql-server${container_version}
+    container=pgsql-server-${container_version}
   else
     container=pgsql-server
   fi
@@ -923,7 +940,7 @@ case "$1" in
   clean)
     echo "Lösche alle nicht genutzten Container."
     docker rm $(docker ps -q -f status=exited)
-    
+
     echo "Lösche alle Images mit Namen <none>."
     docker rmi $(docker images -a | grep "^<none>" | awk '{print $3}')
   ;;
@@ -985,7 +1002,7 @@ case "$1" in
       ;;
     esac
   ;;
-  
+
   log)
     case $2 in
       pgsql)
@@ -1076,7 +1093,7 @@ case "$1" in
   ps)
     docker ps $2
   ;;
-  
+
   rebuild)
     case $2 in
       gdal)
@@ -1094,7 +1111,7 @@ case "$1" in
       *)
         stop_all_container
         remove_all_container
-        build_gdal_image 
+        build_gdal_image
         build_kvwmap_server $KVWMAP_IMAGE_VERSION
         run_all_container
       ;;
@@ -1193,7 +1210,7 @@ case "$1" in
     esac
     docker ps
   ;;
-  
+
   run)
     case $2 in
       all)
@@ -1248,7 +1265,7 @@ case "$1" in
       ;;
     esac
   ;;
-  
+
   start)
     case $2 in
       all)
@@ -1334,7 +1351,7 @@ case "$1" in
     esac
     docker ps -a
   ;;
-  
+
   uninstall)
     case $2 in
       all)
@@ -1359,7 +1376,7 @@ case "$1" in
     case $2 in
       cron)
         docker exec web /etc/cron.hourly/kvwmap
-        echo "Crontab für Nutzer gisadmin im Web-Container geschrieben." 
+        echo "Crontab für Nutzer gisadmin im Web-Container geschrieben."
       ;;
       *)
         usage

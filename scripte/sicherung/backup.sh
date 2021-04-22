@@ -23,6 +23,8 @@
 #   #2021_03_01		1.	Schritt 4. nur ausführen wenn $KEEP_FOR_N_DAYS > 0
 #   #2021_03_03		1.	Variable PROD_APP in dump_mysql() verwenden statt des auslesens der Prod-App aus der Datei
 #   #2021_03_10		1.	PROD_APP aus backup.conf auslesen
+#   #2021_03_24		1.	escaping double-quotes when passing MYSQL_PASSWORD to docker exec
+#   #2021_03_26		1.	correction for deleting of old files, number of days has to be prefixed with "+"
 #########################################################
 
 #########################################################
@@ -75,7 +77,7 @@ sichere_dir_als_targz() {
     local target=${BACKUP_DIR}/$(echo "$1" | cut -d ";" -f 2)
     local parameter=$(echo "$1" | cut -d ";" -f 3)
     echo "    Sichere Verzeichnis $source nach $target" >> "$LOGFILE"
-    tar "$parameter" -chf $target $source > /dev/null 2>> "$LOGFILE"
+    tar "$parameter" -cf $target $source > /dev/null 2>> "$LOGFILE"
 
     if [[ $? -eq 0 ]]; then
         echo "    Vrzeichnis $source gesichert" >> "$LOGFILE"
@@ -117,7 +119,7 @@ dump_mysql() {
         local MYSQLUSER=$(grep MYSQL_USER "$APPS_DIR"/"$PROD_APP"/credentials.php | cut -d "'" -f 4)
         local MYSQLPW=$(grep MYSQL_PASSWORD "$APPS_DIR"/"$PROD_APP"/credentials.php | cut -d "'" -f 4)
 
-        docker exec mysql-server bash -c "mysqldump -h $MYSQLHOST --single-transaction --user=$MYSQLUSER --databases $MYSQLDB --password=""$MYSQLPW"" > /var/lib/mysql/$target_name" 2>> "$LOGFILE"
+        docker exec mysql-server bash -c "mysqldump -h $MYSQLHOST --single-transaction --user=$MYSQLUSER --databases $MYSQLDB --password=\"$MYSQLPW\" > /var/lib/mysql/$target_name" 2>> "$LOGFILE"
 
         if [[ $? -eq 0 ]]; then
             echo "    mySQL-Dump von $MYSQLDB erfolgreich" >> "$LOGFILE"
@@ -217,7 +219,7 @@ fi
 #########################################################
 if [ $KEEP_FOR_N_DAYS -gt 0 ]; then
 	echo "4/6   Backups älter als $KEEP_FOR_N_DAYS Tage werden gelöscht" >> "$LOGFILE"
-	find "$BACKUP_PATH"/* -type d -mtime "$KEEP_FOR_N_DAYS" -exec rm -fdr {} \;
+	find "$BACKUP_PATH"/* -type d -mtime "+$KEEP_FOR_N_DAYS" -exec rm -fdr {} \;
 else
 	echo "4/6   alte Backups werden nicht gelöscht, Parameter KEEP_FOR_N_DAYS=0"
 fi

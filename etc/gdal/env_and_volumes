@@ -8,6 +8,8 @@ GDAL_IMAGE_VERSION=2.3.0
 TERM=linux
 COLUMNS=80
 LINES=120
+NETWORK_ALIAS=gdal
+NETWORK=kvwmap_prod
 
 # USER_DIR is defined in dcm
 
