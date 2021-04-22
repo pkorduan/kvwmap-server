@@ -544,24 +544,32 @@ run_gdal_container() {
   echo "Erzeuge und Starte container gdal"
 
   source $USER_DIR/etc/gdal/env_and_volumes
-  echo  ${SERVER_NAME}-gdal-container 
+
+	if [ -z "$NETWORK" ]; then
+		$NETWORK="kvwmap_prod"
+	fi
+	create_bridge_network $NETWORK
+
+  echo  ${SERVER_NAME}-gdal-container
   echo "docker run --name gdal \
--h ${SERVER_NAME}-gdal-container \
---link pgsql-server:pgsql \
-$gdal_env_vars \
-$gdal_volumes \
-$gdal_ports \
---restart=always \
--d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}"
+	-h ${SERVER_NAME}-gdal-container \
+	--network ${NETWORK}
+	--net-alias gdal
+	$gdal_env_vars \
+	$gdal_volumes \
+	$gdal_ports \
+	--restart=always \
+	-d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}"
 
   docker run --name gdal \
-    -h ${SERVER_NAME}-gdal-container \
-    --link pgsql-server:pgsql \
-    $gdal_env_vars \
-    $gdal_volumes \
-    $gdal_ports \
-    --restart=always \
-    -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}
+	-h ${SERVER_NAME}-gdal-container \
+	--network ${NETWORK}
+	--net-alias gdal
+	$gdal_env_vars \
+	$gdal_volumes \
+	$gdal_ports \
+	--restart=always \
+	-d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}
 }
 
 run_mysql_container() {
@@ -571,11 +579,18 @@ run_mysql_container() {
     START_WITH_MYSQL_DCM="true"
   fi
 
+	if [ -z "$NETWORK" ]; then
+		$NETWORK="kvwmap_prod"
+	fi
+	create_bridge_network $NETWORK
+
   if [ "${START_WITH_MYSQL_DCM}" = "true" ] ; then
     echo "Erzeuge und Starte container mysql"
 
     docker run --name mysql-server \
       -h ${SERVER_NAME}-mysql-container \
+	--network $NETWORK
+	--net-alias mysql
       $mysql_env_vars \
       $mysql_volumes \
       $mysql_ports \
@@ -608,11 +623,19 @@ run_pgsql_container() {
       pgsql_config=""
     fi
 
-    set_cargo_pgsql_links
+	if [ -z "$NETWORK_ALIAS" ]; then
+		$NETWORK_ALIAS="$PGSQL_CONTAINER_NAME"
+	fi
+
+	if [ -z "$NETWORK" ]; then
+		$NETWORK="kvwmap_prod"
+	fi
+	create_bridge_network $NETWORK
 
     echo "run pgsql container with command: docker run --name ${PGSQL_CONTAINER_NAME} \
+	--network ${NETWORK}
+	--net-alias ${NETWORK_ALIAS}
       -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
-      $CARGO_PGSQL_LINKS \
       $pgsql_env_vars \
       $pgsql_volumes \
       $pgsql_ports \
@@ -621,8 +644,9 @@ run_pgsql_container() {
       $pgsql_config"
 
     docker run --name ${PGSQL_CONTAINER_NAME} \
+        --network ${NETWORK}
+        --net-alias ${NETWORK_ALIAS}
       -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
-      $CARGO_PGSQL_LINKS \
       $pgsql_env_vars \
       $pgsql_volumes \
       $pgsql_ports \
@@ -638,10 +662,8 @@ run_pgsql_container() {
 run_web_container() {
   if [ -n "${container_version}" ] ; then
     source $USER_DIR/etc/web/env_and_volumes_${container_version}
-    pgsql_server_web_link="--link pgsql-server${container_version}:pgsql${container_version}"
   else
     source $USER_DIR/etc/web/env_and_volumes
-    pgsql_server_web_link="--link pgsql-server:pgsql"
   fi
 
   if [ -z "${web_hosts}" ]; then
@@ -654,49 +676,36 @@ run_web_container() {
                -p 443:443"
   fi
 
-  set_cargo_web_links
+	if [ -z "$NETWORK_ALIAS" ]; then
+		$NETWORK_ALIAS="$PGSQL_CONTAINER_NAME"
+	fi
+
+	if [ -z "$NETWORK" ]; then
+		$NETWORK="kvwmap_prod"
+	fi
+	create_bridge_network $NETWORK
 
 	echo "run web container with command: docker run --name web${container_version} \
     -h ${SERVER_NAME}-web-container \
-    --link mysql-server:mysql \
-    $pgsql_server_web_link \
-    --link gdal:gdal \
-    $CARGO_WEB_LINKS \
     $web_env_vars \
     $web_volumes \
     $web_hosts \
     $web_ports \
+	--network ${NETWORK}
+	--net-alias ${NETWORK_ALIAS}
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}"
 
   docker run --name web${container_version} \
     -h ${SERVER_NAME}-web-container${container_version} \
-    --link mysql-server:mysql \
-    $pgsql_server_web_link \
-    --link gdal:gdal \
-    $CARGO_WEB_LINKS \
     $web_env_vars \
     $web_volumes \
     $web_hosts \
     $web_ports \
+	--network ${NETWORK}
+	--net-alias ${NETWORK_ALIAS}
     --restart=always \
     -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}
-}
-
-set_cargo_web_links() {
-  for cargo in "${CARGOS[@]}"
-  do :
-    set_${cargo}_web_link
-  done
-}
-
-set_cargo_pgsql_links() {
-  for cargo in "${CARGOS[@]}"
-  do :
-    if type -t set_${cargo}_pgsql_link | grep -q "^function$" ; then
-      set_${cargo}_pgsql_link
-    fi
-  done
 }
 
 show_all_container_ips() {
@@ -866,6 +875,25 @@ uninstall_kvwmap() {
       echo "OK, nix passiert!"
     ;;
   esac
+}
+
+function exists_network(){
+	network_name=$1
+	while read nw
+	do
+		if [ "$nw" = "$1" ]; then
+			echo 1
+			exit
+		fi
+	done < <(docker network ls --format {{.Name}})
+	echo 0
+}
+
+function create_bridge_network(){
+	network_name=$1
+	if [ $(exists_network $network_name) -eq 0 ]; then
+		docker network create $network_name
+	fi
 }
 
 fail_unless_root
