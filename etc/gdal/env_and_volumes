@@ -1,16 +1,21 @@
 #!/bin/bash
 GDAL_IMAGE=pkorduan/gdal-sshd
 GDAL_IMAGE_VERSION=2.3.0
+
+#GDAL_IMAGE=pkorduan/gdal-http
+#GDAL_IMAGE_VERSION=0.0.1
+
 TERM=linux
 COLUMNS=80
 LINES=120
+NETWORK_ALIAS=gdal
+NETWORK=kvwmap_prod
 
 # USER_DIR is defined in dcm
 
 gdal_ports="-P"
 
-gdal_env_vars="-e \"TERM=linux\" \
-               -e PATH=$PATH:/usr/local/gdal/bin \
+gdal_env_vars="-e PATH=$PATH:/usr/local/gdal/bin \
                -e PGPASSFILE=/root/.pgpass \
                -e \"TERM=${TERM}\" \
                -e \"COLUMNS=${COLUMNS}\" \

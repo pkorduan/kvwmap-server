@@ -1,0 +1,18 @@
+#!/bin/bash
+if [ -d /home/gisadmin/www ]; then
+	TAEGLICH_DIR="/home/gisadmin/www/sicherungen/taeglich_default"
+	mkdir -p "$TAEGLICH_DIR"
+	cd "$TAEGLICH_DIR"
+	echo "BACKUP_PATH=/home/gisadmin/Sicherungen/taeglich"		>> backup.conf
+	echo "BACKUP_FOLDER=\$(date +%Y)/\$(date +%m)/\$(date +%d)"	>> backup.conf
+	echo "KEEP_FOR_N_DAYS=7"					>> backup.conf
+	echo "PROD_APP=kvwmap"						>> backup.conf
+	echo "/home/gisadmin/www/apps;apps.tar.gz;"			>> dirs.conf
+	echo "/home/gisadmin/www/data;data.tar.gz;"			>> dirs.conf
+	echo "/etc;root_etc.tar.gz;"					>> dirs.conf
+	echo "kvwmapdb;kvwmapdb.dump"					>> mysql_dbs.conf
+	docker exec pgsql-server bash -c "psql -U kvwmap -d kvwmapsp -t -c \"select distinct datname from pg_catalog.pg_database where datname not like 'template%';\"" | xargs -I {} echo "{};{}.dump" >> pg_dbs.conf
+	echo "Standard-Konfiguration für tägliches Backup nach $TAEGLICH_DIR geschrieben."
+else
+	echo "/home/gisadmin/www nicht gefunden"
+fi

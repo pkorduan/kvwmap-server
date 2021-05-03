@@ -7,14 +7,14 @@ PGSQL_MAJOR_VERSION=13.1
 POSTGIS_VERSION=3.1
 PGSQL_IMAGE=pkorduan/postgis
 PGSQL_IMAGE_VERSION="${PGSQL_MAJOR_VERSION}-${POSTGIS_VERSION}"
-PGSQL_PORT=5432
+PGSQL_PORT=5433
 PGSQL_PORT_INTERN=5432
-PGSQL_CONTAINER_NAME="pgsql-server"
+PGSQL_CONTAINER_NAME="pgsql-server-13"
 TERM=linux
 COLUMNS=180
 LINES=200
-NETWORK_ALIAS=pgsql
-NETWORK=KVWMAP_PROD
+NETWORK_ALIAS=pgsql-server
+NETWORK=KVWMAP_INTEGRATION
 
 pgsql_ports="-p ${PGSQL_PORT}:${PGSQL_PORT_INTERN}"
 
@@ -28,7 +28,7 @@ pgsql_env_vars="-e POSTGRES_USER=$PGSQL_USER \
                 -e \"LINES=${LINES}\""
 
 pgsql_volumes="-v $WWW_ROOT:/var/www\
-               -v $DB_ROOT/postgresql/data:/var/lib/postgresql/data \
+               -v $DB_ROOT/postgresql_13/data:/var/lib/postgresql/data \
                -v $USER_DIR/etc/postgresql/.pgpass:/root/.pgpass \
                -v $USER_DIR/etc/postgresql/.pgpass:/home/gisadmin/.pgpass \
                -v $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg \

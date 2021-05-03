@@ -9,6 +9,9 @@ dbg(){
 	fi
 }
 
+###############################################
+# print out csv-list with names of all backups
+###############################################
 get_sicherungen_csv(){
 	echo_csv=""
 	linenumber=0
@@ -26,26 +29,30 @@ get_sicherungen_csv(){
 	echo "$echo_csv"
 }
 
+
+###############################################
+# reads config of one backup into variables
+###############################################
 load_sicherung_context(){
 	sicherung_id=$1
 	logrow=$2
 
 	#read config files
-	source "${config_dir}/sicherung_${sicherung_id}/backup.conf"
+	source "${config_dir}/${sicherung_id}/backup.conf"
 	config_with_dirs=false
 	config_with_mysql=false
 	config_with_pgsql=false
 	config_with_rsync=false
-	if [ -f "${config_dir}/sicherung_${sicherung_id}/dirs.conf" ]; then
+	if [ -f "${config_dir}/${sicherung_id}/dirs.conf" ]; then
 		config_with_dirs=true
 	fi
-	if [ -f "${config_dir}/sicherung_${sicherung_id}/mysql_dbs.conf" ]; then
+	if [ -f "${config_dir}/${sicherung_id}/mysql_dbs.conf" ]; then
 		config_with_mysql=true
 	fi
-	if [ -f "${config_dir}/sicherung_${sicherung_id}/pg_dbs.conf" ]; then
+	if [ -f "${config_dir}/${sicherung_id}/pg_dbs.conf" ]; then
 		config_with_pgsql=true
 	fi
-	if [ -f "${config_dir}/sicherung_${sicherung_id}/rsync.conf" ]; then
+	if [ -f "${config_dir}/${sicherung_id}/rsync.conf" ]; then
 		config_with_rsync=true
 	fi
 
@@ -63,14 +70,17 @@ load_sicherung_context(){
 	execution_error_mysql=$(echo "$monitorlog" | cut -d ";" -f 5)
 	execution_error_pgsql=$(echo "$monitorlog" | cut -d ";" -f 6)
 	execution_error_rsync=$(echo "$monitorlog" | cut -d ";" -f 7)
-	if [[  "$execution_error_tar" || "$execution_error_mysql" || \
-		"$execution_pgsql" || "$execution_error_rsync" ]]; then
-		execution_error=true
+
+	if [[  "$execution_error_tar" = TRUE || "$execution_error_mysql" = TRUE || "$execution_pgsql" = TRUE || "$execution_error_rsync" = TRUE ]]; then
+		execution_error=TRUE
 	else
-		execution_error=false
+		execution_error=FALSE
 	fi
 }
 
+###############################################
+# set context-variables to null
+###############################################
 clear_sicherung_context(){
 	BACKUP_PATH=
 	BACKUP_FOLDER=
@@ -89,6 +99,10 @@ clear_sicherung_context(){
 	execution_path=
 }
 
+
+###############################################
+# echo specific parameter/variable from backup
+###############################################
 get_key_by_sicherung_id(){
 	dbg "Entering get_key_by_sicherung_id"
 	logrow="$1"
@@ -103,7 +117,9 @@ get_key_by_sicherung_id(){
 	dbg "Leaving get_key_by_sicherung_id"
 }
 
+###############################################
 # cheks if all prequisites are fulfilled
+###############################################
 check_backup_setup(){
 	testfile=/etc/cron.hourly/copy_backup_crontab
 	error=false
@@ -112,7 +128,7 @@ check_backup_setup(){
 		error=true
 	fi
 
-	testfile=/etc/cron.d/kvwmap_backup_crontab
+	testfile=/etc/cron.d/kvwmap_backup_crontab*
 	if [ ! -f $testfile ]; then
 		message=$message"Cronjob für Sicherungen fehlt ($testfile)"
 		error=true
@@ -126,10 +142,13 @@ check_backup_setup(){
 
 }
 
+###############################################
+#print out sicherung.log for sicherung_id
+###############################################
 get_latest_log(){
 	sicherung_id=$1
 
-	source "${config_dir}/sicherung_${sicherung_id}/backup.conf"
+	source "${config_dir}/${sicherung_id}/backup.conf"
 	#export BACKUP_PATH
 	cat $BACKUP_PATH/latest/sicherung.log
 

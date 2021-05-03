@@ -11,3 +11,5 @@ mysql_volumes="-v $USER_DIR/etc/mysql:/etc/mysql \
                -v $WWW_ROOT/logs/mysql:/var/logs/mysql"
 
 START_MYSQL_WITH_DCM=true
+NETWORK_ALIAS=mysql-server
+NETWORK=KVWMAP_PROD
