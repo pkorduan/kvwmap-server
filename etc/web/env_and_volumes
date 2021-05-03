@@ -12,7 +12,7 @@ NO_PROXY_WEB=localhost,pgsql
 NETWORK=KVWMAP_PROD
 NETWORK_ALIAS=web
 
-IP_EXTERN=$(ip addr | grep "inet " | grep -v 127.0.0.1 | grep -v docker | cut -d ' ' -f 6 | cut -d '/' -f 1)
+IP_EXTERN=$(hostname -I | cut -d ' ' -f 1)
 
 if [ -f $USER_DIR/etc/apache2/domain ]; then
   DOMAIN_EXTERN=$(head -n 1 $USER_DIR/etc/apache2/domain)
