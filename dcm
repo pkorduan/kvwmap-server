@@ -236,6 +236,7 @@ install_docker() {
       systemctl stop docker
       mv /var/lib/docker $USER_DIR/docker/lib
       ln -s $USER_DIR/docker/lib/docker /var/lib/docker
+	  systemctl start docker
     ;;
   esac
 
@@ -255,12 +256,6 @@ install_docker() {
 install_kvwmap_images() {
   echo "Installiere Voraussetzungen für den Betrieb von kvwmap ..."
 
-  echo "
-  Erzeuge user: ${OS_USER} ..."
-  # create user for web gis anwendung if not exists
-  $OS_USER_EXISTS || adduser $OS_USER
-  /usr/sbin/usermod -u 17000 $OS_USER
-  /usr/sbin/groupmod -g 1700 $OS_USER
   /usr/sbin/usermod -a -G docker $OS_USER
 
   echo "
@@ -985,6 +980,12 @@ case "$1" in
   ;;
 
   install)
+  	echo "
+  	Erzeuge user: ${OS_USER} ..."
+  	# create user for web gis anwendung if not exists
+  	$OS_USER_EXISTS || adduser $OS_USER
+  	/usr/sbin/usermod -u 17000 $OS_USER
+  	/usr/sbin/groupmod -g 1700 $OS_USER
     if [ ! -f /usr/bin/docker ]; then
       install_docker
     fi
