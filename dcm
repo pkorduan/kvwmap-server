@@ -579,7 +579,7 @@ run_mysql_container() {
   fi
   create_bridge_network $NETWORK
 
-  if [ "${START_WITH_MYSQL_DCM}" = "true" ] ; then
+  if [ "${START_MYSQL_WITH_DCM}" = "true" ] ; then
     echo "Erzeuge und Starte container mysql"
     echo "docker run --name mysql-server \
       -h ${SERVER_NAME}-mysql-container \

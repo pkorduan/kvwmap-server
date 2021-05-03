@@ -2,7 +2,7 @@
 # Initialize kvwmap-server
 OS_USER=gisadmin
 USER_DIR=/home/${OS_USER}
-CURRENT_DIR=pwd
+CURRENT_DIR=$(pwd)
 
 # run this scirpt:
 # wget -O inithost.sh https://raw.githubusercontent.com/pkorduan/kvwmap-server/master/inithost && chmod a+x inithost.sh && ./inithost.sh
