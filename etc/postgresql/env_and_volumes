@@ -3,6 +3,7 @@ PGSQL_DB=postgres
 PGSQL_USER=postgres
 read -s -p "Enter initial password for user postgres: " POSTGRES_ROOT_PASSWORD
 # PGSQL_PASSFILE must have permission 600
+PG_MAJOR=13
 PGSQL_MAJOR_VERSION=13.1
 POSTGIS_VERSION=3.1
 PGSQL_IMAGE=pkorduan/postgis
@@ -21,7 +22,7 @@ pgsql_ports="-p ${PGSQL_PORT}:${PGSQL_PORT_INTERN}"
 pgsql_env_vars="-e POSTGRES_USER=$PGSQL_USER \
                 -e POSTGRES_PASSWORD=$POSTGRES_ROOT_PASSWORD \
                 -e POSTGRES_DB=$PGSQL_DB \
-                -e PG_MAJOR=$PGSQL_MAJOR_VERSION \
+                -e PG_MAJOR=$PG_MAJOR \
                 -e PGPASSFILE=/root/.pgpass \
                 -e \"TERM=${TERM}\" \
                 -e \"COLUMNS=${COLUMNS}\" \

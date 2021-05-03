@@ -83,8 +83,8 @@ read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
 echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> db/postgresql/pg_hba.conf
 echo "host    kvwmapsp        kvwmap          81.169.183.177/32              md5 # GDI-Service Server" >> db/postgresql/pg_hba.conf
 echo "host    kvwmapsp        kvwmap          90.187.125.49/32               md5 # GDI-Service Buero" > db/postgresql/pg_hba.conf
-
-docker exec pgsql-server runuser -l postgres -c '/usr/lib/postgresql/9.6/bin/pg_ctl -D /var/lib/postgresql/data reload'
+source ${USER_DIR}/etc/postgresql/env_and_volumes
+docker exec pgsql-server runuser -l postgres -c '/usr/lib/postgresql/'${PG_MAJOR}'/bin/pg_ctl -D /var/lib/postgresql/data reload'
 
 cd $CURRENT_DIR
 read -p "Initscript löschen? (j/n) " answer
