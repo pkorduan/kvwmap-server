@@ -236,7 +236,7 @@ install_docker() {
       systemctl stop docker
       mv /var/lib/docker $USER_DIR/docker/lib
       ln -s $USER_DIR/docker/lib/docker /var/lib/docker
-	  systemctl start docker
+      systemctl start docker
     ;;
   esac
 
