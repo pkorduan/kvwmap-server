@@ -721,11 +721,11 @@ run_web_container() {
 }
 
 show_all_container_ips() {
-  docker inspect -f="Container {{.Name}} IP: {{.NetworkSettings.IPAddress}}" $(docker ps -aq)
+  docker inspect -f="Container {{.Name}} IP: {{ .NetworkSettings.Networks.KVWMAP_PROD.IPAddress }}" $(docker ps -aq)
 }
 
 show_container_ip() {
-  docker inspect -f="Container {{.Name}} IP: {{.NetworkSettings.IPAddress}}" $1
+  docker inspect -f="Container {{.Name}} IP: {{ .NetworkSettings.Networks.KVWMAP_PROD.IPAddress }}" $1
 }
 
 show_container_status() {

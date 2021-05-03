@@ -9,7 +9,7 @@ TERM=linux
 COLUMNS=80
 LINES=120
 NETWORK_ALIAS=gdal
-NETWORK=kvwmap_prod
+NETWORK=KVWMAP_PROD
 
 # USER_DIR is defined in dcm
 

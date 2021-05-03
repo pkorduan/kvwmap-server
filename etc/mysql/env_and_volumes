@@ -2,7 +2,13 @@
 read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
 MYSQL_IMAGE=mysql
 MYSQL_IMAGE_VERSION=5.5
+START_MYSQL_WITH_DCM=true
+NETWORK_ALIAS=mysql-server
+NETWORK=KVWMAP_PROD
+
 mysql_ports="-p 3306:3306"
+
+
 mysql_env_vars="-e \"TERM=linux\" \
                 -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD"
 
@@ -10,6 +16,3 @@ mysql_volumes="-v $USER_DIR/etc/mysql:/etc/mysql \
                -v $DB_ROOT/mysql:/var/lib/mysql \
                -v $WWW_ROOT/logs/mysql:/var/logs/mysql"
 
-START_MYSQL_WITH_DCM=true
-NETWORK_ALIAS=mysql-server
-NETWORK=KVWMAP_PROD

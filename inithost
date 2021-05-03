@@ -80,7 +80,7 @@ dcm run all
 sed -i -e "s|read -s |#read -s |g" etc/mysql/env_and_volumes
 sed -i -e "s|read -s |#read -s |g" etc/web/env_and_volumes
 read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
-echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> db/postgresql/pg_hba.conf
+echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> db/postgresql/data/pg_hba.conf
 echo "host    kvwmapsp        kvwmap          81.169.183.177/32              md5 # GDI-Service Server" >> db/postgresql/pg_hba.conf
 echo "host    kvwmapsp        kvwmap          90.187.125.49/32               md5 # GDI-Service Buero" > db/postgresql/pg_hba.conf
 source ${USER_DIR}/etc/postgresql/env_and_volumes
