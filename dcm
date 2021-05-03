@@ -828,7 +828,7 @@ stop_mysql_container() {
 
 stop_pgsql_container() {
   if [ -n $container_version ] ; then
-    container=pgsql-server-${container_version}
+    container=pgsql-server${container_version}
   else
     container=pgsql-server
   fi
