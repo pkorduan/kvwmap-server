@@ -15,8 +15,7 @@ NETWORK=kvwmap_prod
 
 gdal_ports="-P"
 
-gdal_env_vars="-e \"TERM=linux\" \
-               -e PATH=$PATH:/usr/local/gdal/bin \
+gdal_env_vars="-e PATH=$PATH:/usr/local/gdal/bin \
                -e PGPASSFILE=/root/.pgpass \
                -e \"TERM=${TERM}\" \
                -e \"COLUMNS=${COLUMNS}\" \
