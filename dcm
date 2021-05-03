@@ -460,10 +460,10 @@ remove_pgsql_container() {
   fi
 
   if [ "$(docker ps -a -q -f name=${container} -f status=exited)" ] ; then
-    echo "Lösche Container ..."
+    echo "Lösche Container ${container}..."
     docker rm $container
   else
-    echo "Container pgsql-server kann nicht gelöscht werden, weil er nicht existiert."
+    echo "Container ${container} kann nicht gelöscht werden, weil er nicht existiert."
   fi
 }
 
