@@ -13,7 +13,7 @@ GDAL_NETWORK=kvwmap_prod
 
 # USER_DIR is defined in dcm
 
-gdal_ports="-P"
+gdal_ports=""
 
 gdal_env_vars="-e PATH=$PATH:/usr/local/gdal/bin \
                -e PGPASSFILE=/root/.pgpass \

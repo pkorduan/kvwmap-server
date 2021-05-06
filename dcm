@@ -560,8 +560,8 @@ run_gdal_container() {
     docker run \
       -h ${SERVER_NAME}-gdal-container \
       --name gdal \
-      --network ${GDAL_NETWORK} \
-      --net-alias ${GDAL_NETWORK_ALIAS} \
+      --network=${GDAL_NETWORK} \
+      --net-alias=${GDAL_NETWORK_ALIAS} \
       --restart=always \
       $gdal_env_vars \
       $gdal_volumes \
@@ -572,8 +572,8 @@ run_gdal_container() {
   docker run \
     -h ${SERVER_NAME}-gdal-container \
     --name gdal \
-    --network ${GDAL_NETWORK} \
-    --net-alias ${GDAL_NETWORK_ALIAS} \
+    --network=${GDAL_NETWORK} \
+    --net-alias=${GDAL_NETWORK_ALIAS} \
     --restart=always \
     $gdal_env_vars \
     $gdal_volumes \
@@ -603,8 +603,8 @@ run_mysql_container() {
       docker run \
         -h ${SERVER_NAME}-mysql-container \
         --name mysql-server \
-        --network ${MYSQL_NETWORK} \
-        --net-alias ${MYSQL_NETWORK_ALIAS} \
+        --network=${MYSQL_NETWORK} \
+        --net-alias=${MYSQL_NETWORK_ALIAS} \
         $mysql_env_vars \
         $mysql_volumes \
         $mysql_ports \
@@ -615,8 +615,8 @@ run_mysql_container() {
     docker run \
       -h ${SERVER_NAME}-mysql-container \
       --name mysql-server \
-      --network ${MYSQL_NETWORK} \
-      --net-alias ${MYSQL_NETWORK_ALIAS} \
+      --network=${MYSQL_NETWORK} \
+      --net-alias=${MYSQL_NETWORK_ALIAS} \
       $mysql_env_vars \
       $mysql_volumes \
       $mysql_ports \
@@ -664,8 +664,8 @@ run_pgsql_container() {
       docker run \
         -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
         --name ${PGSQL_CONTAINER_NAME} \
-        --network ${PGSQL_NETWORK} \
-        --net-alias ${PGSQL_NETWORK_ALIAS} \
+        --network=${PGSQL_NETWORK} \
+        --net-alias=${PGSQL_NETWORK_ALIAS} \
         --restart=always \
         $pgsql_env_vars \
         $pgsql_volumes \
@@ -677,8 +677,8 @@ run_pgsql_container() {
     docker run \
       -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
       --name ${PGSQL_CONTAINER_NAME} \
-      --network ${PGSQL_NETWORK} \
-      --net-alias ${PGSQL_NETWORK_ALIAS} \
+      --network=${PGSQL_NETWORK} \
+      --net-alias=${PGSQL_NETWORK_ALIAS} \
       --restart=always \
       $pgsql_env_vars \
       $pgsql_volumes \
