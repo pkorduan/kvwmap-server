@@ -33,7 +33,8 @@ web_env_vars="-e OS_USER=$OS_USER \
               -e no_proxy=localhost,${IP_EXTERN} \
               -e \"TERM=${TERM}\" \
               -e \"COLUMNS=${COLUMNS}\" \
-              -e \"LINES=${LINES}\""
+              -e \"LINES=${LINES}\" \
+              -e MYSQL_HOSTS_ALLOWED=${MYSQL_HOSTS_ALLOWED}"
 
 web_volumes=" -v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/postgresql/.pgpass:/root/.pgpass \
