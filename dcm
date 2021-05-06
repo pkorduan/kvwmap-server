@@ -908,6 +908,11 @@ function exists_network(){
 function create_bridge_network(){
   network_name=$1
   if [ $(exists_network $network_name) -eq 0 ]; then
+    echo "Create network with command:
+      docker network create \
+        --ip-range $NETWORK_IP_RANGE \
+        $network_name
+    "
     docker network create --ip-range $NETWORK_IP_RANGE $network_name
   fi
 }
