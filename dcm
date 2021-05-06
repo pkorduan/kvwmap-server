@@ -795,7 +795,7 @@ stop_all_container() {
 
 stop_container() {
   if [ -n $container_version ] ; then
-    container=$1-${container_version}
+    container=$1${container_version}
   else
     container=$1
   fi
