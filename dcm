@@ -910,10 +910,15 @@ function create_bridge_network(){
   if [ $(exists_network $network_name) -eq 0 ]; then
     echo "Create network with command:
       docker network create \
-        --ip-range $NETWORK_IP_RANGE \
-        $network_name
+      --ip-range=$NETWORK_IP_RANGE \
+      --subnet=$NETWORK_SUBNET \
+      $network_name
     "
-    docker network create --ip-range $NETWORK_IP_RANGE $network_name
+    docker network create \
+    --drive=bridge \
+    --ip-range=$NETWORK_IP_RANGE \
+    --subnet=$NETWORK_SUBNET \
+    $network_name
   fi
 }
 
