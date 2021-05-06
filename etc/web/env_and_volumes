@@ -1,6 +1,6 @@
 #!/bin/bash
 KVWMAP_IMAGE=pkorduan/kvwmap-server
-KVWMAP_IMAGE_VERSION="2.2.1"
+KVWMAP_IMAGE_VERSION="2.2.2"
 TERM=linux
 COLUMNS=80
 LINES=120
@@ -9,8 +9,8 @@ read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
 
 HTTP_PROXY_WEB=
 NO_PROXY_WEB=localhost,pgsql
-NETWORK=KVWMAP_PROD
-NETWORK_ALIAS=web
+WEB_NETWORK=kvwmap_prod
+WEB_NETWORK_ALIAS=web
 
 IP_EXTERN=$(hostname -I | cut -d ' ' -f 1)
 
