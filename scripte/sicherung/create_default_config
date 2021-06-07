@@ -33,7 +33,7 @@ function write_json_config(){
   "beschreibung":"",
   "cron_interval":"",
   "backup_path": "/home/gisadmin/Sicherungen",
-  "backup_folder": "+%Y_%m_%d",
+  "backup_folder": "date +%Y_%m_%d",
   "delete_after_n_days": "7",
 ' >> $BACKUP_FILENAME
 

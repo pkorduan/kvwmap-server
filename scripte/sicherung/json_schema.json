@@ -51,6 +51,9 @@
               },
               "tar_compress": {
                 "type": "boolean"
+              },
+              "differential_duration": {
+                "type": "integer"
               }
             }
           }

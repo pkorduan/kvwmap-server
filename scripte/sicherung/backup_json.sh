@@ -27,6 +27,7 @@
 #   #2021_03_26		1.	correction for deleting of old files, number of days has to be prefixed with "+"
 #   #2021_06_01		1.	Fork vom alten Script, neues Script liest Config aus JSON
 #   #2021_06_02		1	Umstellung auf JSON
+#   #2021_06_04		1.	differenzielles Backup mit tar
 #########################################################
 
 #########################################################
@@ -50,7 +51,7 @@ step_rsync_error=FALSE
 step_pgdumpall_error=FALSE
 
 # DEBUG-Messages to stdout?
-debug=FALSE
+debug=TRUE
 
 # Verzeichnisse
 #BACKUP_DIR=$(cat $CONFIG_FILE | jq -r '(.backup_path + "/" + .backup_folder)')
@@ -58,8 +59,8 @@ BACKUP_FOLDER=$(cat $CONFIG_FILE | jq -r '(.backup_folder)')
 BACKUP_FOLDER=$($BACKUP_FOLDER) #variable expansion for dates etc.
 BACKUP_PATH=$(cat $CONFIG_FILE | jq -r '.backup_path')
 BACKUP_DIR=$BACKUP_PATH/$BACKUP_FOLDER
-LOGFILE=$BACKUP_DIR/sicherung.log
-MONITOR_LOG=$BACKUP_PATH/monitor.log
+LOGFILE=$BACKUP_DIR/sicherung.log #temporary
+JSON_LOG=$BACKUP_DIR/log.json
 
 
 #########################################################
@@ -76,9 +77,8 @@ dbg() {
 dbg "BACKUP_DIR=${BACKUP_DIR}"
 dbg "BACKUP_FOLDER=${BACKUP_FOLDER}"
 dbg "BACKUP_PATH=${BACKUP_PATH}"
-dbg "CONFIG_FILE ${CONFIG_FILE}"
+dbg "CONFIG_FILE=${CONFIG_FILE}"
 dbg "LOGFILE=${LOGFILE}"
-dbg "MONITOR_LOG=${MONITOR_LOG}"
 
 #Routine sichert ein Verzeichnis als *.tar.gz
 sichere_dir_als_targz() {
@@ -86,14 +86,43 @@ sichere_dir_als_targz() {
 
     local source=$(cat $CONFIG_FILE | jq -r ".tar[$1].source")
     local target=$BACKUP_DIR/$(cat $CONFIG_FILE | jq -r ".tar[$1].target_name")
-    echo "    Sichere Verzeichnis $source nach $target" >> "$LOGFILE"
-    tar -cf $target $source > /dev/null 2>> "$LOGFILE"
+    local diff_duration=$(cat $CONFIG_FILE | jq -r ".tar[0].differential_duration")
+
+    dbg "source=$source"
+    dbg "target=$target"
+    dbg "diff_duration=$diff_duration"
+
+    if ! [ -z "$diff_duration" ] && (( $diff_duration > 0 )); then
+#        local tarlog=$(basename $CONFIG_FILE).tarlog
+        local tarlog=tar.difflog
+
+        find "$source" -type f -name "$tarlog" -mtime "+$diff_duration" -exec rm {} \;
+
+        if [ -f "$source/$tarlog" ]; then
+            cp "$source/$tarlog" "$source/$tarlog"_tmp
+        fi
+
+        dbg "pfad tarlog=$source/$tarlog"
+
+        dbg "Diff"
+        echo "Differentielle Sicherung" >> "$LOGFILE"
+        tar -cf $target -g $source/$tarlog $source > /dev/null 2>> "$LOGFILE"
+
+        if [ -f "$source/$tarlog"_tmp ]; then
+            mv "$source/$tarlog"_tmp "$source/$tarlog"
+        fi
+
+    else
+        echo "Sichere Verzeichnis $source nach $target" >> "$LOGFILE"
+        tar -cf $target $source > /dev/null 2>> "$LOGFILE"
+    fi
+
 
     if [[ $? -eq 0 ]]; then
-        echo "    Verzeichnis $source nach $target gesichert" >> "$LOGFILE"
+        echo "Verzeichnis $source nach $target gesichert" >> "$LOGFILE"
     else
-        echo "    Verzeichnis $source konnte nicht gesichert werden" >> "$LOGFILE"
-        echo "    tar -cf $target $source" >> "$LOGFILE"
+        echo "Verzeichnis $source konnte nicht gesichert werden" >> "$LOGFILE"
+        echo "tar -cf $target $source" >> "$LOGFILE"
         return 1
     fi
     dbg "leaving sichere_dir_als_targz"
@@ -225,16 +254,16 @@ pg_dumpall_wrapper(){
 #########################################################
 mkdir -p "$BACKUP_DIR"
 echo "----------- Starte Backup $(date +"%d.%m.%Y %H:%M:%S") ----------" >> "$LOGFILE"
-echo "    verwendete Konfiguration: ${CONFIG_DIR}" >> "$LOGFILE"
-echo "    Sicherungsverzeichnis: ${BACKUP_DIR}" >> "$LOGFILE"
+echo "verwendete Konfiguration: ${CONFIG_DIR}" >> "$LOGFILE"
+echo "Sicherungsverzeichnis: ${BACKUP_DIR}" >> "$LOGFILE"
 timestamp_backup_start=$(date +"%s")
 
 #########################################################
 ## #1 Vereichnisse sichern                              #
 #########################################################
 TAR_COUNT=$(cat $CONFIG_FILE | jq '.tar | length')
-if [ $TAR_COUNT > 0 ]; then
-    echo "1/7   Verzeichnisse werden gesichert" >> "$LOGFILE"
+if (( $TAR_COUNT > 0 )); then
+    echo "1/7 Verzeichnisse werden gesichert" >> "$LOGFILE"
     for (( i=0; i < $TAR_COUNT; i++ )); do
         sichere_dir_als_targz $i
         if [[ ! $? -eq 0 ]]; then
@@ -243,15 +272,15 @@ if [ $TAR_COUNT > 0 ]; then
         fi
     done
 else
-    echo "1/7   keine zu sicherenden Verzeichnisse" >> "$LOGFILE"
+    echo "1/7 keine zu sicherenden Verzeichnisse" >> "$LOGFILE"
 fi
 
 #########################################################
 ## #2 PG-DBs sichern                                    #
 #########################################################
 PGDUMP_COUNT=$(cat $CONFIG_FILE | jq '.pg_dump | length')
-if [ $PGDUMP_COUNT > 0 ]; then
-    echo "2/7   postgreSQL-Datenbanken werden gesichert" >> "$LOGFILE"
+if (( $PGDUMP_COUNT > 0 )); then
+    echo "2/7 postgreSQL-Datenbanken werden gesichert" >> "$LOGFILE"
     for (( i=0; i < $PGDUMP_COUNT; i++ )); do
         dump_pg $i
         if [[ ! $? -eq 0 ]]; then
@@ -260,15 +289,15 @@ if [ $PGDUMP_COUNT > 0 ]; then
         fi
     done
 else
-    echo "2/7   keine zu sichernden PG-Datenbanken" >> "$LOGFILE"
+    echo "2/7 keine zu sichernden PG-Datenbanken" >> "$LOGFILE"
 fi
 
 #########################################################
 ## #3 mySQL-DBs sichern                                 #
 #########################################################
 MYSQLDUMP_COUNT=$(cat $CONFIG_FILE | jq '.mysql_dump | length')
-if [ $MYSQLDUMP_COUNT > 0 ]; then
-    echo "3/7   mySQL-Datenbanken werden gesichert" >> "$LOGFILE"
+if (( $MYSQLDUMP_COUNT > 0 )); then
+    echo "3/7 mySQL-Datenbanken werden gesichert" >> "$LOGFILE"
     for (( i=0; i < $MYSQLDUMP_COUNT; i++ )); do
         dump_mysql $i
         if [[ ! $? -eq 0 ]]; then
@@ -277,25 +306,25 @@ if [ $MYSQLDUMP_COUNT > 0 ]; then
         fi
     done
 else
-    echo "3/7   keine zu sicherenden mySQL-Datenbanken" >> "$LOGFILE"
+    echo "3/7 keine zu sicherenden mySQL-Datenbanken" >> "$LOGFILE"
 fi
 
 #########################################################
 ## #4 alte löschen                                      #
 #########################################################
 KEEP_FOR_N_DAYS=$(cat $CONFIG_FILE | jq -r '.delete_after_n_days')
-if [ $KEEP_FOR_N_DAYS > 0 ]; then
-	echo "4/7   Backups älter als $KEEP_FOR_N_DAYS Tage werden gelöscht" >> "$LOGFILE"
+if (( $KEEP_FOR_N_DAYS > 0 )); then
+	echo "4/7 Backups älter als $KEEP_FOR_N_DAYS Tage werden gelöscht" >> "$LOGFILE"
 	find "$BACKUP_PATH"/* -type d -mtime "+$KEEP_FOR_N_DAYS" -exec rm -fdr {} \;
 else
-	echo "4/7   alte Backups werden nicht gelöscht, Parameter KEEP_FOR_N_DAYS=0"
+	echo "4/7 alte Backups werden nicht gelöscht, Parameter KEEP_FOR_N_DAYS=0"
 fi
 
 
 #########################################################
 ## #5 Symlink setzen                                    #
 #########################################################
-echo "5/7   aktualisiere Sym-Link $BACKUP_PATH/latest auf aktuelles Sicherungsverzeichnis" >> "$LOGFILE"
+echo "5/7 aktualisiere Sym-Link $BACKUP_PATH/latest auf aktuelles Sicherungsverzeichnis" >> "$LOGFILE"
 rm "$BACKUP_PATH"/latest >> "$LOGFILE"
 ln -s "$BACKUP_DIR" "$BACKUP_PATH"/latest >> "$LOGFILE"
 
@@ -304,7 +333,7 @@ ln -s "$BACKUP_DIR" "$BACKUP_PATH"/latest >> "$LOGFILE"
 #########################################################
 RSYNC_COUNT=$(cat $CONFIG_FILE | jq -r '.rsync | length')
 if [ $RSYNC_COUNT > 0 ]; then
-    echo "6/7   Dateien/Ordner mit rsync übertragen" >> "$LOGFILE"
+    echo "6/7 Dateien/Ordner mit rsync übertragen" >> "$LOGFILE"
     for (( i=0; i<$RSYNC_COUNT; i++)); do
         rsync_wrapper "$i"
         if [[ ! $? -eq 0 ]]; then
@@ -313,7 +342,7 @@ if [ $RSYNC_COUNT > 0 ]; then
         fi
     done
 else
-    echo "6/7   keine rsync-Konfiguration vorhanden" >> "$LOGFILE"
+    echo "6/7 keine rsync-Konfiguration vorhanden" >> "$LOGFILE"
 fi
 
 
@@ -321,7 +350,7 @@ fi
 ## #7 pg_dumpall                                        #
 #########################################################
 PGDUMPALL_COUNT=$(cat $CONFIG_FILE | jq -r '.pg_dumpall | length')
-if [ $PGDUMPALL_COUNT > 0 ]; then
+if (( $PGDUMPALL_COUNT > 0 )); then
     echo "7/7 Postgres-Dumpall ausfuehren" >> "$LOGFILE"
     for (( i=0; i<$PGDUMPALL_COUNT; i++ )); do
         pg_dumpall_wrapper $i
@@ -332,7 +361,7 @@ if [ $PGDUMPALL_COUNT > 0 ]; then
 
     done
 else
-    echo "" >> "$LOGFILE"
+    echo "7/7 Postgres-Dumpall keine Konfiguration" >> "$LOGFILE"
 fi
 
 
@@ -341,8 +370,27 @@ fi
 #########################################################
 
 size_of_backup=$(du -s "$BACKUP_DIR" | cut -f 1 -d$'\t') #am Tabulator trennen
-echo "$CONFIG_DIR;$BACKUP_DIR;$timestamp_backup_start;$step_tar_error;$step_mysql_error;$step_pgsql_error;$step_rsync_error;$step_pgdumpall_error;$size_of_backup" >> "$MONITOR_LOG"
 
 echo "----------- Backup um $(date +"%d.%m.%Y %H:%M:%S") beendet ----------" >> "$LOGFILE"
+
+(
+cat << EOF
+{"CONFIG_FILE":"$CONFIG_FILE",
+"BACKUP_DIR":"$BACKUP_DIR",
+"BACKUP_START":"$timestamp_backup_start",
+"BACKUP_END":"$(date +"%s")",
+"TAR_ERROR":"$step_tar_error",
+"MYSQL_ERROR":"$step_mysql_error",
+"PGDUMP_ERROR":"$step_pgsql_error",
+"PGDUMPALL_ERROR":"$step_pgsql_error",
+"RSYNC_ERROR":"$step_rsync_error",
+"SIZE_OF_BACKUP":"$size_of_backup",
+"LOG":"
+EOF
+)                > "$JSON_LOG"
+cat "$LOGFILE"  >> "$JSON_LOG"
+echo "\"}"      >> "$JSON_LOG"
+
+rm "$LOGFILE"
 
 exit 0
