@@ -38,7 +38,7 @@ function write_json_config(){
 ' >> $BACKUP_FILENAME
 
 		#tar
-		echo '"tar": [' >> "$BACKUP_FILENAME"  >> $BACKUP_FILENAME
+		echo '"tar": ['  >> $BACKUP_FILENAME
 		echo '{"source":"/home/gisadmin/www/apps","target_name":"apps.tar"},' >> $BACKUP_FILENAME
 		echo '{"source":"/home/gisadmin/www/data","target_name":"data.tar"},' >> $BACKUP_FILENAME
 		echo '{"source":"/etc","target_name":"root_etc.tar"}' >> $BACKUP_FILENAME
@@ -80,10 +80,83 @@ function write_json_config(){
 
 }
 
+convert_to_json(){
+    BACKUP_FILENAME="taegliche_sicherung.json"
+    CONFIG_PATH=$1
+    source $CONFIG_PATH/backup.conf
+
+
+    echo '{
+  "name": "tägliche Sicherung",
+  "id":"",
+  "beschreibung":"",
+  "cron_interval":"",
+  "backup_path": "/home/gisadmin/Sicherungen",
+  "backup_folder": "date +%Y_%m_%d",
+  "delete_after_n_days": "7",
+' >> $BACKUP_FILENAME
+
+    #TAR
+    echo '"tar": [' >> $BACKUP_FILENAME
+    while read line
+    do
+        source=$(echo "$line" | cut -d ";" -f 1)
+        target=$(echo "$line" | cut -d ";" -f 2)
+        echo "{\"source\":\"$source\",\"target_name\":\"$target\",\"differential_duration\":\"7\"}," >> $BACKUP_FILENAME
+    done<$CONFIG_PATH/dirs.conf
+    echo '{}' >> $BACKUP_FILENAME
+    echo '],' >> $BACKUP_FILENAME
+
+    #mysql
+    echo '"mysql": [' >> $BACKUP_FILENAME
+    while read line
+    do
+        db_name=$(echo "$line" | cut -d ";" -f 1)
+        target=$(echo "$line" | cut -d ";" -f 2)
+        echo "{\"container_id\":\"mysql-server\",\"db_name\":\"$db_name\",\"target_name\":\"$target\"}," >> $BACKUP_FILENAME
+    done<$CONFIG_PATH/mysql_dbs.conf
+    echo '{}' >> $BACKUP_FILENAME
+    echo '],' >> $BACKUP_FILENAME
+
+    #pg_dump
+    echo '"pg_dump": [' >> $BACKUP_FILENAME
+    while read line
+    do
+        database=$(echo "$line" | cut -d ";" -f 1)
+        target_name=$(echo "$line" | cut -d ";" -f 2)
+        pgdump_options=$(echo "$line" | cut -d ";" -f 3)
+
+        echo "{\"container_id\":\"pgsql-server\",\"db_user\":\"kvwmapsp\",\"db_name\":\"$database\",\"target_name\":\"$target_name}\"}," >> $BACKUP_FILENAME
+    done<pg_dbs.conf
+    echo '{}' >> $BACKUP_FILENAME
+    echo '],' >> $BACKUP_FILENAME
+
+    #pg_dumpall
+    echo '"pg_dumpall":[' >> $BACKUP_FILENAME
+    echo '{"container_id":"pgsql-server",' >> $BACKUP_FILENAME
+    echo '"db_user":"kvwmap",' >> $BACKUP_FILENAME
+    echo '"db_name":"kvwmapsp",' >> $BACKUP_FILENAME
+    echo '"target_name":"schema_rollen.dump",' >> $BACKUP_FILENAME
+    echo '"pg_dumpall_parameter":"--globals-only"}' >> $BACKUP_FILENAME
+    echo '],' >> $BACKUP_FILENAME
+
+    #rsync
+    echo '"rsync": [' >> $BACKUP_FILENAME
+    #echo '{"source":"","destination":"","parameter":""}' >> $BACKUP_FILENAME
+    echo ']' >> $BACKUP_FILENAME
+
+    echo '}' >> $BACKUP_FILENAME
+
+
+}
+
 case $1 in
 	json)
 		write_json_config
 	;;
+        convert)
+               convert_to_json $2
+        ;;
 	*)
 		write_csv_config
 	;;
