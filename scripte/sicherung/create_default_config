@@ -39,9 +39,9 @@ function write_json_config(){
 
 		#tar
 		echo '"tar": ['  >> $BACKUP_FILENAME
-		echo '{"source":"/home/gisadmin/www/apps","target_name":"apps.tar"},' >> $BACKUP_FILENAME
-		echo '{"source":"/home/gisadmin/www/data","target_name":"data.tar"},' >> $BACKUP_FILENAME
-		echo '{"source":"/etc","target_name":"root_etc.tar"}' >> $BACKUP_FILENAME
+		echo '{"source":"/home/gisadmin/www/apps","target_name":"apps.tar","differential_duration":"7"},' >> $BACKUP_FILENAME
+		echo '{"source":"/home/gisadmin/www/data","target_name":"data.tar","differential_duration":"7"},' >> $BACKUP_FILENAME
+		echo '{"source":"/etc","target_name":"root_etc.tar","differential_duration":"7"}' >> $BACKUP_FILENAME
 		echo '],' >> $BACKUP_FILENAME
 
 		#mysql
@@ -91,7 +91,7 @@ convert_to_json(){
   "id":"",
   "beschreibung":"",
   "cron_interval":"",
-  "backup_path": "/home/gisadmin/Sicherungen",
+  "backup_path": "/home/gisadmin/Sicherungen/taeglich",
   "backup_folder": "date +%Y_%m_%d",
   "delete_after_n_days": "7",
 ' >> $BACKUP_FILENAME
@@ -126,7 +126,7 @@ convert_to_json(){
         target_name=$(echo "$line" | cut -d ";" -f 2)
         pgdump_options=$(echo "$line" | cut -d ";" -f 3)
 
-        echo "{\"container_id\":\"pgsql-server\",\"db_user\":\"kvwmapsp\",\"db_name\":\"$database\",\"target_name\":\"$target_name}\"}," >> $BACKUP_FILENAME
+        echo "{\"container_id\":\"pgsql-server\",\"db_user\":\"kvwmap\",\"db_name\":\"$database\",\"target_name\":\"$target_name}\"}," >> $BACKUP_FILENAME
     done<pg_dbs.conf
     echo '{}' >> $BACKUP_FILENAME
     echo '],' >> $BACKUP_FILENAME

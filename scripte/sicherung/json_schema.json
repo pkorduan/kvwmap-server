@@ -73,6 +73,9 @@
               "container_id": {
                 "type": "string"
               },
+              "docker_network": {
+                "type": "string"
+              },
               "db_name": {
                 "type": "string"
               },

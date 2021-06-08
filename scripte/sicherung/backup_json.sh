@@ -28,6 +28,7 @@
 #   #2021_06_01		1.	Fork vom alten Script, neues Script liest Config aus JSON
 #   #2021_06_02		1	Umstellung auf JSON
 #   #2021_06_04		1.	differenzielles Backup mit tar
+#   #2021_06_08		1.	mysql_dump ermittelt Host IP über Container-ID und Docker-Netzwerk
 #########################################################
 
 #########################################################
@@ -166,21 +167,28 @@ dump_mysql() {
     local target_name=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].target_name")
     local container_id=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].container_id")
 #    local mysql_dump_parameter=$(cat $CONFIG_FILE | jq ".mysql_dump[$1].mysql_dump_parameter")
+    local docker_network=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].docker_network")
 
     dbg "db_name=$db_name"
     dbg "target_name=$target_name"
     dbg "container_id=$container_id"
+
+    if [ -z $docker_network ]; then
+        mysql_host=$(docker inspect $container_id --format "{{json .}}" | jq -r ".NetworkSettings.Networks.$docker_network.IPAddress")
+    else
+        mysql_host=$(docker inspect $container_id --format "{{.NetworkSettings.IPAddress}}")
+    fi
 
     if [ -f "$APPS_DIR"/"$PROD_APP"/credentials.php ]; then
 
         local MYSQLUSER=$(grep MYSQL_USER "$APPS_DIR"/"$PROD_APP"/credentials.php | cut -d "'" -f 4)
         local MYSQLPW=$(grep MYSQL_PASSWORD "$APPS_DIR"/"$PROD_APP"/credentials.php | cut -d "'" -f 4)
 
-        dbg "MYSQLHOST=$MYSQHOST"
+        dbg "mysql_host=$mysql_host"
         dbg "MYSQLUSER=$MYSQLUSER"
         dbg "MYSQLPW=$MYSQLPW"
 
-        docker exec "$container_id" bash -c "mysqldump -h localhost --single-transaction --user=$MYSQLUSER --databases $db_name --password=\"$MYSQLPW\" > /var/lib/mysql/$target_name" 2>> "$LOGFILE"
+        docker exec "$container_id" bash -c "mysqldump -h $mysql_host --single-transaction --user=$MYSQLUSER --databases $db_name --password=\"$MYSQLPW\" > /var/lib/mysql/$target_name" 2>> "$LOGFILE"
 
         if [[ $? -eq 0 ]]; then
             echo "mySQL-Dump von $MYSQLDB erfolgreich" >> "$LOGFILE"
