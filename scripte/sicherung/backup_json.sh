@@ -52,7 +52,7 @@ step_rsync_error=FALSE
 step_pgdumpall_error=FALSE
 
 # DEBUG-Messages to stdout?
-debug=TRUE
+debug=FALSE
 
 # Verzeichnisse
 #BACKUP_DIR=$(cat $CONFIG_FILE | jq -r '(.backup_path + "/" + .backup_folder)')
