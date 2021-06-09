@@ -190,7 +190,7 @@
               "source": {
                 "type": "string"
               },
-              "target": {
+              "destination": {
                 "type": "string"
               },
               "parameter": {

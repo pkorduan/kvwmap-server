@@ -41,7 +41,8 @@ function write_json_config(){
 		echo '"tar": ['  >> $BACKUP_FILENAME
 		echo '{"source":"/home/gisadmin/www/apps","target_name":"apps.tar","differential_duration":"7"},' >> $BACKUP_FILENAME
 		echo '{"source":"/home/gisadmin/www/data","target_name":"data.tar","differential_duration":"7"},' >> $BACKUP_FILENAME
-		echo '{"source":"/etc","target_name":"root_etc.tar","differential_duration":"7"}' >> $BACKUP_FILENAME
+         	echo '{"source":"/etc","target_name":"root_etc.tar","differential_duration":"7"}' >> $BACKUP_FILENAME
+		echo '{"source":"/home/gisadmin/etc","target_name":"gisadmin_etc.tar","differential_duration":"7"}' >> $BACKUP_FILENAME
 		echo '],' >> $BACKUP_FILENAME
 
 		#mysql
@@ -53,7 +54,7 @@ function write_json_config(){
 		echo '"pg_dump": [' >> $BACKUP_FILENAME
 		while read PGDB
 		do
-			echo "{\"container_id\":\"pgsql-server\",\"db_user\":\"kvwmapsp\",\"db_name\":\"$PGDB\",\"target_name\":\"${PGDB}.dump\"}," >> $BACKUP_FILENAME
+			echo "{\"container_id\":\"pgsql-server\",\"db_user\":\"kvwmap\",\"db_name\":\"$PGDB\",\"target_name\":\"${PGDB}.dump\"}," >> $BACKUP_FILENAME
 		done < <(docker exec pgsql-server bash -c "psql -U kvwmap -d kvwmapsp -t -c \"select distinct datname from pg_catalog.pg_database where datname not like 'template%';\"")
 		echo '{}' >> $BACKUP_FILENAME #quickfix für letztes Komma
 		echo '],' >> $BACKUP_FILENAME
@@ -150,14 +151,59 @@ convert_to_json(){
 
 }
 
+function json_rsync(){
+(
+cat << eof
+{
+  "name": "woechentliche Sicherung",
+  "id":"",
+  "beschreibung":"",
+  "cron_interval":"",
+  "backup_path": "/home/gisadmin/Sicherungen/woechentlich",
+  "backup_folder": "date +%Y_%m_%d",
+  "delete_after_n_days": "30",
+
+"tar": [
+],
+"mysql_dump": [
+],
+"pg_dump": [
+],
+"pg_dumpall":[
+],
+"rsync": [
+{"source":"/home/gisadmin/Sicherungen/woechentlich/latest","destination":"","parameter":""}
+]
+}
+eof
+) >> rsync_sicherung.json 
+
+}
+
+function crond(){
+(
+cat << eof
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+#taeglich, jeden Tag um 1
+0 1 * * * root /home/gisadmin/Sicherungen/scripte/backup_json.sh /home/gisadmin/Sicherungen/scripte/tagessicherung.json
+#woechentlich, Freitag 0 Uhr
+0 0 * * 5 root /home/gisadmin/Sicherungen/scripte/backup_json.sh /home/gisadmin/Sicherungen/scripte/wochensicherung.json
+eof
+) >> gdi_backup
+}
+
 case $1 in
-	json)
-		write_json_config
-	;;
-        convert)
-               convert_to_json $2
-        ;;
-	*)
-		write_csv_config
-	;;
+    json)
+        write_json_config
+    ;;
+    rsync)
+        json_rsync
+    ;;
+    convert)
+        convert_to_json $2
+    ;;
+    cron)
+        crond
+    ;;
 esac
