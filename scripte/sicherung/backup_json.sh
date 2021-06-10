@@ -174,9 +174,9 @@ dump_mysql() {
     dbg "container_id=$container_id"
 
     if [ -z $docker_network ]; then
-        mysql_host=$(docker inspect $container_id --format "{{json .}}" | jq -r ".NetworkSettings.Networks.$docker_network.IPAddress")
+        mysql_host=$(docker inspect --format "{{json .}}" $container_id | jq -r ".NetworkSettings.Networks.$docker_network.IPAddress")
     else
-        mysql_host=$(docker inspect $container_id --format "{{.NetworkSettings.IPAddress}}")
+        mysql_host=$(docker inspect --format "{{.NetworkSettings.IPAddress}}" $container_id)
     fi
 
     if [ -f "$APPS_DIR"/"$PROD_APP"/credentials.php ]; then
