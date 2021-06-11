@@ -46,8 +46,20 @@ function write_json_config(){
 		echo '],' >> $BACKUP_FILENAME
 
 		#mysql
+                source /home/gisadmin/kvwmap-server/config/config
+                local MYSQLUSER=$(grep MYSQL_USER /home/gisadmin/www/apps/"$PROD_APP"/credentials.php | cut -d "'" -f 4)
+                local MYSQLPW=$(grep MYSQL_PASSWORD /home/gisadmin/www/apps/"$PROD_APP"/credentials.php | cut -d "'" -f 4)
+
+                echo "mysql_host=$mysql_host"
+                echo "MYSQLUSER=$MYSQLUSER"
+                echo "MYSQLPW=$MYSQLPW"
+
+
 		echo '"mysql_dump": [' >> $BACKUP_FILENAME
-		echo '{"container_id":"mysql-server","db_name":"kvwmapdb","target_name":"kvwmapdb.dump"}' >> $BACKUP_FILENAME
+                while read MYDB
+                do
+		    echo "{\"container_id\":\"mysql-server\",\"db_name\":\"$MYDB\",\"target_name\":\"$MYDB.dump\"}" >> $BACKUP_FILENAME
+                done < <(docker exec mysql-server bash -c "mysql -u $MYSQLUSER -p$MYSQLPW -Ns -e 'show databases;'")
 		echo '],' >> $BACKUP_FILENAME
 
 		#postgresql
