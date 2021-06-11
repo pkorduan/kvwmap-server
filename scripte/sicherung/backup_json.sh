@@ -51,8 +51,8 @@ step_pgsql_error=FALSE
 step_rsync_error=FALSE
 step_pgdumpall_error=FALSE
 
-# DEBUG-Messages to stdout?
-debug=FALSE
+# DEBUG-Messages to stdout
+debug=TRUE
 
 # Verzeichnisse
 #BACKUP_DIR=$(cat $CONFIG_FILE | jq -r '(.backup_path + "/" + .backup_folder)')
@@ -165,18 +165,21 @@ dump_mysql() {
     dbg "entering dump_mysql $1"
     local db_name=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].db_name")
     local target_name=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].target_name")
-    local container_id=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].container_id")
+    container_id=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].container_id")
 #    local mysql_dump_parameter=$(cat $CONFIG_FILE | jq ".mysql_dump[$1].mysql_dump_parameter")
-    local docker_network=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].docker_network")
+    docker_network=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].docker_network // empty")
 
     dbg "db_name=$db_name"
     dbg "target_name=$target_name"
     dbg "container_id=$container_id"
+    dbg "docker_network=$docker_network"
 
-    if [ -z $docker_network ]; then
-        mysql_host=$(docker inspect --format "{{json .}}" $container_id | jq -r ".NetworkSettings.Networks.$docker_network.IPAddress")
-    else
+    if [[ -z $docker_network ]]; then
+        dbg "ohne Docker-Netzwerk"
         mysql_host=$(docker inspect --format "{{.NetworkSettings.IPAddress}}" $container_id)
+    else
+        dbg "mit Docker-Netzwerk"
+        mysql_host=$(docker inspect --format "{{json .}}" $container_id | jq -r ".NetworkSettings.Networks.${docker_network}.IPAddress")
     fi
 
     if [ -f "$APPS_DIR"/"$PROD_APP"/credentials.php ]; then

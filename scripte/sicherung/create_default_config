@@ -180,6 +180,21 @@ eof
 
 }
 
+function crond(){
+
+(
+cat << eof
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+#taeglich um 1 Uhr
+0 1 * * * root /home/gisadmin/Sicherungen/scripte/backup_json.sh 
+#woechentlich, Freitags 2 Uhr
+0 2 * * 5 root /home/gisadmin/Sicherungen/scripte/backup_json.sh 
+eof
+) >> gdi_sicherung
+
+}
+
 case $1 in
 	json)
 		write_json_config
@@ -190,9 +205,13 @@ case $1 in
         convert)
                convert_to_json $2
         ;;
+        cron)
+            crond
+        ;;
 	*)
             echo "json"
             echo "rsync"
             echo "convert"
+            echo "cron"
 	;;
 esac
