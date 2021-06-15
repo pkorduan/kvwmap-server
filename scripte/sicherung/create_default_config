@@ -58,7 +58,7 @@ function write_json_config(){
 		echo '"mysql_dump": [' >> $BACKUP_FILENAME
                 while read MYDB
                 do
-		    echo "{\"container_id\":\"mysql-server\",\"db_name\":\"$MYDB\",\"target_name\":\"$MYDB.dump\"}" >> $BACKUP_FILENAME
+		    echo "{\"container_id\":\"mysql-server\",\"db_name\":\"$MYDB\",\"target_name\":\"$MYDB.dump\"}," >> $BACKUP_FILENAME
                 done < <(docker exec mysql-server bash -c "mysql -u $MYSQLUSER -p$MYSQLPW -Ns -e 'show databases;'")
 		echo '],' >> $BACKUP_FILENAME
 

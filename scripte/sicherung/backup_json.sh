@@ -81,7 +81,7 @@ dbg "BACKUP_PATH=${BACKUP_PATH}"
 dbg "CONFIG_FILE=${CONFIG_FILE}"
 dbg "LOGFILE=${LOGFILE}"
 
-#Routine sichert ein Verzeichnis als *.tar.gz
+#Routine sichert ein Verzeichnis mit tar
 sichere_dir_als_targz() {
     dbg "entering sichere_dir_als_targz $1"
 
@@ -97,10 +97,15 @@ sichere_dir_als_targz() {
 #        local tarlog=$(basename $CONFIG_FILE).tarlog
         local tarlog=tar.difflog
 
+        ls -alh "$source/$tarlog" >> "$LOGFILE"
         find "$source" -type f -name "$tarlog" -mtime "+$diff_duration" -exec rm {} \;
 
         if [ -f "$source/$tarlog" ]; then
+            mtime=$(stat -c "%y" "$source/$tarlog")
             cp "$source/$tarlog" "$source/$tarlog"_tmp
+        else
+            mtime=
+            echo "kein tar.difflog gefunden, mache Vollsicherung" >> "$LOGFILE"
         fi
 
         dbg "pfad tarlog=$source/$tarlog"
@@ -111,6 +116,7 @@ sichere_dir_als_targz() {
 
         if [ -f "$source/$tarlog"_tmp ]; then
             mv "$source/$tarlog"_tmp "$source/$tarlog"
+            touch -d $mtime "$source/$tarlog"
         fi
 
     else
