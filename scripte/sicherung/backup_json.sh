@@ -103,9 +103,11 @@ sichere_dir_als_targz() {
         if [ -f "$source/$tarlog" ]; then
             mtime=$(stat -c "%y" "$source/$tarlog")
             cp "$source/$tarlog" "$source/$tarlog"_tmp
+            dbg "Tarlog gefunden, mtime=$mtime"
         else
             mtime=
             echo "kein tar.difflog gefunden, mache Vollsicherung" >> "$LOGFILE"
+            dbg "Kein Tarlog, Vollsicherung"
         fi
 
         dbg "pfad tarlog=$source/$tarlog"
@@ -116,7 +118,7 @@ sichere_dir_als_targz() {
 
         if [ -f "$source/$tarlog"_tmp ]; then
             mv "$source/$tarlog"_tmp "$source/$tarlog"
-            touch -d $mtime "$source/$tarlog"
+            touch -d "$mtime" "$source/$tarlog"
         fi
 
     else
