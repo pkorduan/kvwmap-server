@@ -29,6 +29,7 @@
 #   #2021_06_02		1	Umstellung auf JSON
 #   #2021_06_04		1.	differenzielles Backup mit tar
 #   #2021_06_08		1.	mysql_dump ermittelt Host IP über Container-ID und Docker-Netzwerk
+#   #2021_06_23		1	vor Backup prüfen ob genügend Platz vorhanden ist
 #########################################################
 
 #########################################################
@@ -88,14 +89,19 @@ sichere_dir_als_targz() {
     local source=$(cat $CONFIG_FILE | jq -r ".tar[$1].source")
     local target=$BACKUP_DIR/$(cat $CONFIG_FILE | jq -r ".tar[$1].target_name")
     local diff_duration=$(cat $CONFIG_FILE | jq -r ".tar[0].differential_duration")
+    local delete_after_n_days=$(cat $CONFIG_FILE | jq -r '.delete_after_n_days')
 
     dbg "source=$source"
     dbg "target=$target"
     dbg "diff_duration=$diff_duration"
 
     if ! [ -z "$diff_duration" ] && (( $diff_duration > 0 )); then
-#        local tarlog=$(basename $CONFIG_FILE).tarlog
         local tarlog=tar.difflog
+
+        if [ $delete_after_n_days -lt $diff_duration ]; then
+            echo "WARNUNG: Konfiguration mit differenzieller Sicherung ($diff_duration Tage) und löschen alter Backups nach $delete_after_n_days Tagen!" >> "$LOGFILE"
+            echo "Dies führt zu unbrauchbaren Backups!" >> "$LOGFILE"
+        fi
 
         ls -alh "$source/$tarlog" >> "$LOGFILE"
         find "$source" -type f -name "$tarlog" -mtime "+$diff_duration" -exec rm {} \;
@@ -278,110 +284,129 @@ echo "Sicherungsverzeichnis: ${BACKUP_DIR}" >> "$LOGFILE"
 timestamp_backup_start=$(date +"%s")
 
 #########################################################
-## #1 Vereichnisse sichern                              #
+## # Speicherplatz prüfen                               #
 #########################################################
-TAR_COUNT=$(cat $CONFIG_FILE | jq '.tar | length')
-if (( $TAR_COUNT > 0 )); then
-    echo "1/7 Verzeichnisse werden gesichert" >> "$LOGFILE"
-    for (( i=0; i < $TAR_COUNT; i++ )); do
-        sichere_dir_als_targz $i
-        if [[ ! $? -eq 0 ]]; then
-            step_tar_error=TRUE
-            dbg "step_tar_error=$step_tar_error"
-        fi
-    done
-else
-    echo "1/7 keine zu sicherenden Verzeichnisse" >> "$LOGFILE"
+if [ -d "$BACKUP_PATH"/latest ]; then
+    size_latest_backup=$(du -s "$BACKUP_PATH"/latest/ | cut -d$'\t' -f 1)
+    df_size=$(df "$BACKUP_PATH"/latest/ | awk 'NR>1{print $4}')
+    echo "Größe letzte Sicherung: $size_latest_backup" >> "$LOGFILE"
+    echo "Verfügbarer Speicherplatz: $df_size" >> "$LOGFILE"
+    #if  [ $size_latest_backup -gt $df_size ]; then
+    if  [ $df_size -lt $size_latest_backup ]; then
+        echo "Nicht genügend Speicherplatz vorhanden. Backup wird abgebrochen!" >> "$LOGFILE"
+        ABORT_BACKUP=TRUE
+    else
+        ABORT_BACKUP=FALSE
+    fi
 fi
 
-#########################################################
-## #2 PG-DBs sichern                                    #
-#########################################################
-PGDUMP_COUNT=$(cat $CONFIG_FILE | jq '.pg_dump | length')
-if (( $PGDUMP_COUNT > 0 )); then
-    echo "2/7 postgreSQL-Datenbanken werden gesichert" >> "$LOGFILE"
-    for (( i=0; i < $PGDUMP_COUNT; i++ )); do
-        dump_pg $i
-        if [[ ! $? -eq 0 ]]; then
-            step_pgsql_error=TRUE
-            dbg "step_pgsql_error=$step_pgsql_error"
-        fi
-    done
-else
-    echo "2/7 keine zu sichernden PG-Datenbanken" >> "$LOGFILE"
-fi
+if [ "$ABORT_BACKUP" = FALSE ]; then
+    #########################################################
+    ## #1 Vereichnisse sichern                              #
+    #########################################################
+    TAR_COUNT=$(cat $CONFIG_FILE | jq '.tar | length')
+    if (( $TAR_COUNT > 0 )); then
+        echo "1/7 Verzeichnisse werden gesichert" >> "$LOGFILE"
+        for (( i=0; i < $TAR_COUNT; i++ )); do
+            sichere_dir_als_targz $i
+            if [[ ! $? -eq 0 ]]; then
+                step_tar_error=TRUE
+                dbg "step_tar_error=$step_tar_error"
+            fi
+        done
+    else
+        echo "1/7 keine zu sicherenden Verzeichnisse" >> "$LOGFILE"
+    fi
+
+    #########################################################
+    ## #2 PG-DBs sichern                                    #
+    #########################################################
+    PGDUMP_COUNT=$(cat $CONFIG_FILE | jq '.pg_dump | length')
+    if (( $PGDUMP_COUNT > 0 )); then
+        echo "2/7 postgreSQL-Datenbanken werden gesichert" >> "$LOGFILE"
+        for (( i=0; i < $PGDUMP_COUNT; i++ )); do
+            dump_pg $i
+            if [[ ! $? -eq 0 ]]; then
+                step_pgsql_error=TRUE
+                dbg "step_pgsql_error=$step_pgsql_error"
+            fi
+        done
+    else
+        echo "2/7 keine zu sichernden PG-Datenbanken" >> "$LOGFILE"
+    fi
+
+    #########################################################
+    ## #3 pg_dumpall                                        #
+    #########################################################
+    PGDUMPALL_COUNT=$(cat $CONFIG_FILE | jq -r '.pg_dumpall | length')
+    if (( $PGDUMPALL_COUNT > 0 )); then
+        echo "3/7 Postgres-Dumpall ausfuehren" >> "$LOGFILE"
+        for (( i=0; i<$PGDUMPALL_COUNT; i++ )); do
+            pg_dumpall_wrapper $i
+            if [[ ! $? -eq 0 ]]; then
+                step_pgdumpall_error=TRUE
+                dbg "step_rsync_error=$step_rsync_error"
+            fi
+        done
+    else
+        echo "3/7 Postgres-Dumpall keine Konfiguration" >> "$LOGFILE"
+    fi
+
+    #########################################################
+    ## #4 mySQL-DBs sichern                                 #
+    #########################################################
+    MYSQLDUMP_COUNT=$(cat $CONFIG_FILE | jq '.mysql_dump | length')
+    if (( $MYSQLDUMP_COUNT > 0 )); then
+        echo "4/7 mySQL-Datenbanken werden gesichert" >> "$LOGFILE"
+        for (( i=0; i < $MYSQLDUMP_COUNT; i++ )); do
+            dump_mysql $i
+            if [[ ! $? -eq 0 ]]; then
+                step_mysql_error=TRUE
+                dbg "step_mysql_error=$step_mysql_error"
+            fi
+        done
+    else
+        echo "4/7 keine zu sicherenden mySQL-Datenbanken" >> "$LOGFILE"
+    fi
+
+
+    #########################################################
+    ## #5 rsync                                             #
+    #########################################################
+    RSYNC_COUNT=$(cat $CONFIG_FILE | jq -r '.rsync | length')
+    if [ $RSYNC_COUNT -gt 0 ]; then
+        echo "5/7 Dateien/Ordner mit rsync übertragen" >> "$LOGFILE"
+        for (( i=0; i<$RSYNC_COUNT; i++)); do
+            rsync_wrapper "$i"
+            if [[ ! $? -eq 0 ]]; then
+                step_rsync_error=TRUE
+                dbg "step_rsync_error=$step_rsync_error"
+            fi
+        done
+    else
+        echo "5/7 keine rsync-Konfiguration vorhanden" >> "$LOGFILE"
+    fi
+
+    #########################################################
+    ## #6 alte löschen                                      #
+    #########################################################
+    KEEP_FOR_N_DAYS=$(cat $CONFIG_FILE | jq -r '.delete_after_n_days')
+    if [ $KEEP_FOR_N_DAYS -gt 0 ]; then
+        echo "6/7 Backups älter als $KEEP_FOR_N_DAYS Tage werden gelöscht" >> "$LOGFILE"
+        find "$BACKUP_PATH"/* -type d -mtime "+$KEEP_FOR_N_DAYS" -exec rm -fdr {} \;
+    else
+        echo "6/7 alte Backups werden nicht gelöscht, Parameter KEEP_FOR_N_DAYS=0"
+    fi
+
+fi #ABORT_BACKUP ?
+
 
 #########################################################
-## #3 mySQL-DBs sichern                                 #
+## #7 Symlink setzen                                    #
 #########################################################
-MYSQLDUMP_COUNT=$(cat $CONFIG_FILE | jq '.mysql_dump | length')
-if (( $MYSQLDUMP_COUNT > 0 )); then
-    echo "3/7 mySQL-Datenbanken werden gesichert" >> "$LOGFILE"
-    for (( i=0; i < $MYSQLDUMP_COUNT; i++ )); do
-        dump_mysql $i
-        if [[ ! $? -eq 0 ]]; then
-            step_mysql_error=TRUE
-            dbg "step_mysql_error=$step_mysql_error"
-        fi
-    done
-else
-    echo "3/7 keine zu sicherenden mySQL-Datenbanken" >> "$LOGFILE"
-fi
-
-#########################################################
-## #4 alte löschen                                      #
-#########################################################
-KEEP_FOR_N_DAYS=$(cat $CONFIG_FILE | jq -r '.delete_after_n_days')
-if (( $KEEP_FOR_N_DAYS > 0 )); then
-	echo "4/7 Backups älter als $KEEP_FOR_N_DAYS Tage werden gelöscht" >> "$LOGFILE"
-	find "$BACKUP_PATH"/* -type d -mtime "+$KEEP_FOR_N_DAYS" -exec rm -fdr {} \;
-else
-	echo "4/7 alte Backups werden nicht gelöscht, Parameter KEEP_FOR_N_DAYS=0"
-fi
-
-
-#########################################################
-## #5 Symlink setzen                                    #
-#########################################################
-echo "5/7 aktualisiere Sym-Link $BACKUP_PATH/latest auf aktuelles Sicherungsverzeichnis" >> "$LOGFILE"
+echo "7/7 aktualisiere Sym-Link $BACKUP_PATH/latest auf aktuelles Sicherungsverzeichnis" >> "$LOGFILE"
 rm "$BACKUP_PATH"/latest >> "$LOGFILE"
 ln -s "$BACKUP_DIR" "$BACKUP_PATH"/latest >> "$LOGFILE"
-
-#########################################################
-## #6 rsync                                             #
-#########################################################
-RSYNC_COUNT=$(cat $CONFIG_FILE | jq -r '.rsync | length')
-if [ $RSYNC_COUNT > 0 ]; then
-    echo "6/7 Dateien/Ordner mit rsync übertragen" >> "$LOGFILE"
-    for (( i=0; i<$RSYNC_COUNT; i++)); do
-        rsync_wrapper "$i"
-        if [[ ! $? -eq 0 ]]; then
-            step_rsync_error=TRUE
-            dbg "step_rsync_error=$step_rsync_error"
-        fi
-    done
-else
-    echo "6/7 keine rsync-Konfiguration vorhanden" >> "$LOGFILE"
-fi
-
-
-#########################################################
-## #7 pg_dumpall                                        #
-#########################################################
-PGDUMPALL_COUNT=$(cat $CONFIG_FILE | jq -r '.pg_dumpall | length')
-if (( $PGDUMPALL_COUNT > 0 )); then
-    echo "7/7 Postgres-Dumpall ausfuehren" >> "$LOGFILE"
-    for (( i=0; i<$PGDUMPALL_COUNT; i++ )); do
-        pg_dumpall_wrapper $i
-        if [[ ! $? -eq 0 ]]; then
-            step_pgdumpall_error=TRUE
-            dbg "step_rsync_error=$step_rsync_error"
-        fi
-
-    done
-else
-    echo "7/7 Postgres-Dumpall keine Konfiguration" >> "$LOGFILE"
-fi
 
 
 #########################################################

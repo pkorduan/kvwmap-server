@@ -1,3 +1,4 @@
 cargo-enabled/*
 config/config
 !README.md
+**/tar.difflog
