@@ -36,6 +36,9 @@
     "delete_after_n_days": {
       "type": "integer"
     },
+    "tar_differential_backup_duration": {
+      "type": "integer"
+    },
     "tar": {
       "type": "array",
       "items": [
@@ -52,8 +55,8 @@
               "tar_compress": {
                 "type": "boolean"
               },
-              "differential_duration": {
-                "type": "integer"
+              "exclude": {
+                "type": "string"
               }
             }
           }

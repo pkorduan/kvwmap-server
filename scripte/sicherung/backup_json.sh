@@ -30,6 +30,8 @@
 #   #2021_06_04		1.	differenzielles Backup mit tar
 #   #2021_06_08		1.	mysql_dump ermittelt Host IP über Container-ID und Docker-Netzwerk
 #   #2021_06_23		1	vor Backup prüfen ob genügend Platz vorhanden ist
+#   #2021_06_28   	1.	".tar_differential_backup_duration" eingeführt
+#                               ".tar[].exclude" eingeführt
 #########################################################
 
 #########################################################
@@ -51,6 +53,9 @@ step_mysql_error=FALSE
 step_pgsql_error=FALSE
 step_rsync_error=FALSE
 step_pgdumpall_error=FALSE
+
+# TARLOG geloescht?
+DELETED_TARLOG=TRUE
 
 # DEBUG-Messages to stdout
 debug=TRUE
@@ -88,12 +93,18 @@ sichere_dir_als_targz() {
 
     local source=$(cat $CONFIG_FILE | jq -r ".tar[$1].source")
     local target=$BACKUP_DIR/$(cat $CONFIG_FILE | jq -r ".tar[$1].target_name")
-    local diff_duration=$(cat $CONFIG_FILE | jq -r ".tar[0].differential_duration")
+    local diff_duration=$(cat $CONFIG_FILE | jq -r ".tar_differential_backup_duration")
     local delete_after_n_days=$(cat $CONFIG_FILE | jq -r '.delete_after_n_days')
+    local tar_exclude=$(cat $CONFIG_FILE | jq -r ".tar[$1].exclude")
 
     dbg "source=$source"
     dbg "target=$target"
     dbg "diff_duration=$diff_duration"
+
+    if ! [ -z "$tar_exclude" ]; then
+        tar_exclude="--exclude="$tar_exclude
+        dbg "tar_exclude=$tar_exclude"
+    fi
 
     if ! [ -z "$diff_duration" ] && (( $diff_duration > 0 )); then
         local tarlog=tar.difflog
@@ -104,8 +115,14 @@ sichere_dir_als_targz() {
         fi
 
         ls -alh "$source/$tarlog" >> "$LOGFILE"
-        find "$source" -type f -name "$tarlog" -mtime "+$diff_duration" -exec rm {} \;
+        while read TARLOG
+        do
+            echo "tar.difflog loeschen" >> "$LOGFILE"
+            DELETED_TARLOG=TRUE
+            rm "$source/$tarlog"
+        done < <(find "$source" -type f -name "$tarlog" -mtime "+$diff_duration")
 
+        #fuer differenzielle Sicherung letztes Tarlog kopieren da dies sonst von tar aktualisiert wird
         if [ -f "$source/$tarlog" ]; then
             mtime=$(stat -c "%y" "$source/$tarlog")
             cp "$source/$tarlog" "$source/$tarlog"_tmp
@@ -116,11 +133,7 @@ sichere_dir_als_targz() {
             dbg "Kein Tarlog, Vollsicherung"
         fi
 
-        dbg "pfad tarlog=$source/$tarlog"
-
-        dbg "Diff"
-        echo "Differentielle Sicherung" >> "$LOGFILE"
-        tar -cf $target -g $source/$tarlog $source > /dev/null 2>> "$LOGFILE"
+        tar $tar_exclude -cf $target -g $source/$tarlog $source > /dev/null 2>> "$LOGFILE"
 
         if [ -f "$source/$tarlog"_tmp ]; then
             mv "$source/$tarlog"_tmp "$source/$tarlog"
@@ -129,7 +142,7 @@ sichere_dir_als_targz() {
 
     else
         echo "Sichere Verzeichnis $source nach $target" >> "$LOGFILE"
-        tar -cf $target $source > /dev/null 2>> "$LOGFILE"
+        tar $tar_exclude -cf $target $source > /dev/null 2>> "$LOGFILE"
     fi
 
 
@@ -137,7 +150,6 @@ sichere_dir_als_targz() {
         echo "Verzeichnis $source nach $target gesichert" >> "$LOGFILE"
     else
         echo "Verzeichnis $source konnte nicht gesichert werden" >> "$LOGFILE"
-        echo "tar -cf $target $source" >> "$LOGFILE"
         return 1
     fi
     dbg "leaving sichere_dir_als_targz"
@@ -169,7 +181,7 @@ dump_pg() {
         mv /home/gisadmin/db/postgresql/data/"$target_name" "$BACKUP_DIR" >> "$LOGFILE"
     else
         echo "FEHLER: PG-Dump nicht erfolgreich!" >> "$LOGFILE"
-        echo "docker exec pgsql-server bash -c \"pg_dump -Fc -U kvwmap -f /var/lib/postgresql/data/$target_name $database\"" >> "$LOGFILE"
+        echo "docker exec pgsql-server bash -c pg_dump -Fc -U kvwmap -f /var/lib/postgresql/data/$target_name $database" >> "$LOGFILE"
         return 1
     fi
     dbg "leaving dump_pg"
@@ -212,7 +224,6 @@ dump_mysql() {
             mv /home/gisadmin/db/mysql/"$target_name" "$BACKUP_DIR" >> "$LOGFILE"
         else
             echo "FEHLER: mySQL-Dump nicht erfolgreich!" >> "$LOGFILE"
-            echo "mysqldump -h $MYSQLHOST --user=$MYSQLUSER --databases $MYSQLDB --password=*** > /var/lib/mysql/$target_name" >> "$LOGFILE"
             return 1
         fi
     else
@@ -262,12 +273,10 @@ pg_dumpall_wrapper(){
     docker exec $container_id bash -c "pg_dumpall -U $db_user -l $db_name ${pg_dumpall_parameter} -f /var/lib/postgresql/data/$target_name"
 
     if [[ $? -eq 0 ]]; then
-        echo "    pg_dumpall erfolgreich" >> "$LOGFILE"
+        echo "pg_dumpall erfolgreich" >> "$LOGFILE"
         mv /home/gisadmin/db/postgresql/data/"$target_name" "$BACKUP_DIR" >> "$LOGFILE"
     else
         echo "FEHLER: pg_dumpall nicht erfolgreich!" >> "$LOGFILE"
-        echo "docker exec $container_id bash -c \"pg_dumpall -U $db_user -l $db_name ${pg_dumpall_parameter} -f /var/lib/postgresql/data/$target_name\"" >> "$LOGFILE"
-
         return 1
     fi
 
@@ -298,6 +307,8 @@ if [ -d "$BACKUP_PATH"/latest ]; then
     else
         ABORT_BACKUP=FALSE
     fi
+else
+    ABORT_BACKUP=FALSE
 fi
 
 if [ "$ABORT_BACKUP" = FALSE ]; then
@@ -399,7 +410,6 @@ if [ "$ABORT_BACKUP" = FALSE ]; then
     fi
 
 fi #ABORT_BACKUP ?
-
 
 #########################################################
 ## #7 Symlink setzen                                    #
