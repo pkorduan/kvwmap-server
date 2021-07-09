@@ -1,7 +1,12 @@
 osm2po_IMAGE="pkorduan/osm2po"
-osm2po_IMAGE_VERSION="5.1.0"
+osm2po_IMAGE_VERSION="mv"
 osm2po_VERSION="5.1.0"
 
-osm2po_env_vars="-e \"OSM2PO_VERSION=${osm2po_VERSION}\""
-osm2po_volumes="-v ${USER_DIR}/etc/osm2po/config/osm2po.config:/usr/local/osm2po-${osm2po_VERSION}/osm2po.config \
-                -v ${USER_DIR}/www/logs/osm2po:/usr/local/osm2po-${osm2po_VERSION}/logs"
+osm2po_network_alias="osm2po"
+
+osm2po_env_vars="-e OSM2PO_VERSION=${osm2po_VERSION}"
+
+osm2po_volumes="\
+ -v ${USER_DIR}/etc/osm2po/config/osm2po.config:/usr/local/osm2po-${osm2po_VERSION}/osm2po.config\
+ -v ${USER_DIR}/www/logs/osm2po:/usr/local/osm2po-${osm2po_VERSION}/logs\
+"

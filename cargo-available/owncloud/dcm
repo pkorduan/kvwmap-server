@@ -76,24 +76,23 @@ remove_owncloud_image() {
 
 run_owncloud_container() {
   source $USER_DIR/etc/owncloud/env_and_volumes
-  echo "Erzeuge und starte den owncloud Container"
-  echo "mit volumes: ${owncloud_volumes}"
-  echo "docker run --name owncloud \
+
+  create_bridge_network
+
+  echo "Erzeuge und starte den owncloud Container mit Befehl:"
+#  echo "mit volumes: ${owncloud_volumes}"
+  dcm="docker run --name owncloud \
     -h ${SERVER_NAME}-owncloud-container \
-    --link mysql-server:mysql \
+    --network=${network_name} \
+    --net-alias=owncloud \
     $owncloud_volumes \
     $owncloud_env_vars \
     --restart=always \
     -d \"${owncloud_IMAGE}:${owncloud_VERSION}\""
 #  -p 80:80 \
 #  -p 443:443 \
-  docker run --name owncloud \
-    -h ${SERVER_NAME}-owncloud-container \
-    --link mysql-server:mysql \
-    $owncloud_volumes \
-    $owncloud_env_vars \
-    --restart=always \
-    -d "${owncloud_IMAGE}:${owncloud_VERSION}"
+  echo $dcm
+  $dcm
 }
 
 set_owncloud_web_link() {
