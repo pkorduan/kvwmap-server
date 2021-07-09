@@ -1,0 +1,4 @@
+#!/bin/bash
+owncloud_IMAGE="owncloud"
+owncloud_VERSION="10.0.10"
+

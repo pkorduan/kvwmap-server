@@ -1,16 +1,5 @@
 #!/bin/bash
-
-#load settings
-CONFIG_FILE=$( dirname "${BASH_SOURCE[0]}" )
-if [ -f $CONFIG_FILE/config/config ] ; then
-  CONFIG_FILE=$CONFIG_FILE/config/config
-else
-  cp $CONFIG_FILE/config/config-default $CONFIG_FILE/config/config
-  CONFIG_FILE=$CONFIG_FILE/config/config-default
-fi
-
-echo "Load config file ${CONFIG_FILE}"
-source $CONFIG_FILE
+# Version 3.0.0
 
 usage() {
   echo ""
@@ -19,15 +8,16 @@ usage() {
   echo "Kontakt: peter.korduan@gdi-service.de"
   echo ""
   echo "Aufruf:";
-  echo "kvwmap [Option]";
+  echo "dcm command [container|all] [network]";
   echo ""
-  echo "Optionen:"
+  echo "Varianten von command und container:"
   echo "build gdal     Erzeugt ein neues Image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
   echo "build kvwmap   Erzeugt ein neues Image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
   echo "clean          Löscht alle beendeten Container und nicht getaggete images."
   echo "console mysql  Öffnet eine Console im Mysql Container."
   echo "console pgsql  Öffnet eine Console im PostgreSQL Container."
   echo "console web    Öffnet eine Console im Web Container"
+  echo "create network Erzeugt ein Netzwerk je nach Namen im 3. Parameter network"
   echo "install        - Installiert auf dem Hostrechner den Docker-Server und Utilities zum Betrieb der Container,"
   echo "               - Richtet ggf. benötigte Verzeichnisse und lokale Dateien für den Betrieb der Container ein."
   echo "install all    Installiert die Voraussetzungen zum Betrieb aller Container."
@@ -53,11 +43,13 @@ usage() {
   echo "reload         Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
   echo "reload all     Läd alle Container neu."
   echo "reload web     Läd nur den Web Container neu."
+  echo "reload proxy   Läd die Konfiguration vom Proxy-Container neu, z.B. nach Änderungen im Verzeichnis config/conf.d"
   echo "rm             Löscht Container."
   echo "rm all         Löscht alle Container."
   echo "rm mysql       Löscht nur den Container mysql-server."
   echo "rm pgsql       Löscht nur den Container pgsql-server."
   echo "rm web         Löscht nur den Container web."
+  echo "rm network     Löscht das Netzwerk mit dem Namen aus dem 3. Parameter network"
   echo "rerun          Stoppt und löscht alle oder die angegebenen Container und erzeugt und startet sie danach wieder."
   echo "rerun all      Rerun für alle Container."
   echo "rerun gdal     Stopped und löscht nur den gdal Container und erzeugt und startet ihn anschließend neu."
@@ -67,6 +59,7 @@ usage() {
   echo "restart web    Führt es nur für den web Container aus."
   echo "run            Erzeugt und startet alle oder den angegebenen Container."
   echo "run all        Erzeugt und startet alle Container."
+  echo "run proxy      Erzeugt und startet nur den Container proxy."
   echo "run gdal       Erzeugt und startet nur den Container gdal."
   echo "run mysql      Erzeugt und startet nur den Container mysql-server."
   echo "run pgsql      Erzeugt und startet nur den Container pgsql-server."
@@ -74,6 +67,7 @@ usage() {
   echo "show_ip        Zeigt die IP Adressen der Container an. Der Containername als zusätzlicher Parameter zeigt nur die IP dieses Containers an."
   echo "start          Startet alle oder den angegebenen Container."
   echo "start all      Startet alle Container."
+  echo "start proxy    Startet den Proxy Container."
   echo "start mysql    Startet nur den Container mysql-server."
   echo "start pgsql    Startet nur den Container pgsql-server."
   echo "start pydio    Startet nur den Container pydio."
@@ -98,10 +92,13 @@ usage() {
   echo "update cron    Aktualisiert umgehend die cronjobs des Nutzers gisadmin im Web Container durch die Eintragungen,"
   echo "               die mit kvwmap in die Datei /var/www/cron/crontab_gisadmin geschrieben wurden."
   echo ""
+  echo "Als Netzwerknamen können alle in kvwmap-server/config/config definierten Cases verwendet werden. Defaultmäßig sind die kvwmap_prod, kvwmap_dev und kvwmap_test verfügbar."
+  echo "Ohne Angabe des Netzwerknames wird kvwmap_prod verwendet!"
   echo "Beispiele:"
   echo "$0 start"
   echo "$0 stop"
   echo "$0 pgsql status"
+  echo "$0 rerun web kvwmap_dev"
   echo ""
   echo "Je nach dem welche Erweiterungen in cargo-enabeld eingestellt sind gibt es weitere Befehle. Folgende sind derzeit aktiviert:"
   usage_cargos
@@ -142,13 +139,13 @@ build_gdal_image() {
 }
 
 call_cargo_cases() {
-  debug "Call cargo cases with Arguments '$1' and '$2' and '$3'"
-  echo "Call cargo cases with Arguments '$1' and '$2' and '$3'"
+  #debug "Call cargo cases with Arguments '$1' and '$2' and '$3'"
+  #echo "Call cargo cases with Arguments '$1' and '$2' and '$3'"
   any_case_found=false
   for cargo in "${CARGOS[@]}"
   do :
-    debug "Search for case $1 $2 in cargo $cargo"
-    echo "   Search for case $1 $2 in cargo $cargo cases_$cargo"
+    #debug "Search for case $1 $2 in cargo $cargo"
+    #echo "   Search for case $1 $2 in cargo $cargo cases_$cargo"
     cases_$cargo $1 $2 $3
     if $case_found ; then
       #echo "Found case in cargo $cargo $1 $2"
@@ -182,8 +179,6 @@ fail_unless_root() {
     else
       echo "${dcm_user} in gruppe ${dcm_user_group}"
     fi
-  else
-    echo 'root'
   fi
 }
 
@@ -198,7 +193,7 @@ load_cargo() {
 
   for dcmfile in ${dcmfiles[@]}
   do
-    echo "Load dcmfile: ${dcmfile}"
+    #echo "Load dcmfile: ${dcmfile}"
     source $dcmfile
   done
   #echo "CARGOS: "
@@ -433,6 +428,20 @@ remove_networks() {
   docker network prune -f
 }
 
+remove_network() {
+  echo "Remove network ${network_name}"
+  cmd="docker network rm ${network_name}"
+  echo $cmd
+  $cmd
+}
+
+remove_proxy_container() {
+  stop_proxy_container
+  echo "Entferne proxy Container."
+  docker rm proxy
+  echo "fertig"
+}
+
 remove_gdal_container() {
   stop_gdal_container
 
@@ -545,40 +554,23 @@ run_gdal_container() {
 
   source $USER_DIR/etc/gdal/env_and_volumes
 
-  if [ -z "$GDAL_NETWORK" ]; then
-    GDAL_NETWORK="kvwmap_prod"
-  fi
-
-  create_bridge_network $GDAL_NETWORK
-
-  if [ -z "$GDAL_NETWORK_ALIAS" ]; then
-    GDAL_NETWORK_ALIAS="gdal"
-  fi
+  create_bridge_network
 
   echo  ${SERVER_NAME}-gdal-container
-  echo "run gdal Container with command: \
-    docker run \
+  echo "run gdal Container with command:"
+  cmd="docker run \
       -h ${SERVER_NAME}-gdal-container \
       --name gdal \
-      --network=${GDAL_NETWORK} \
-      --net-alias=${GDAL_NETWORK_ALIAS} \
+      --network=${network_name} \
+      --net-alias=gdal \
       --restart=always \
       $gdal_env_vars \
       $gdal_volumes \
       $gdal_ports \
       -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION} \
   "
-
-  docker run \
-    -h ${SERVER_NAME}-gdal-container \
-    --name gdal \
-    --network=${GDAL_NETWORK} \
-    --net-alias=${GDAL_NETWORK_ALIAS} \
-    --restart=always \
-    $gdal_env_vars \
-    $gdal_volumes \
-    $gdal_ports \
-    -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}
+  echo $cmd
+  $cmd
 }
 
 run_mysql_container() {
@@ -588,40 +580,23 @@ run_mysql_container() {
     START_MYSQL_WITH_DCM="true"
   fi
 
-  if [ -z "$MYSQL_NETWORK" ]; then
-    MYSQL_NETWORK="kvwmap_prod"
-  fi
-
-  if [ -z "$MYSQL_NETWORK_ALIAS" ]; then
-    MYSQL_NETWORK_ALIAS="mysql"
-  fi
-
-  create_bridge_network $MYSQL_NETWORK
+  create_bridge_network
 
   if [ "${START_MYSQL_WITH_DCM}" = "true" ] ; then
-    echo "run mysql Container with command: \
-      docker run \
+    echo "run mysql Container with command:"
+    cmd="docker run \
         -h ${SERVER_NAME}-mysql-container \
         --name mysql-server \
-        --network=${MYSQL_NETWORK} \
-        --net-alias=${MYSQL_NETWORK_ALIAS} \
+        --network=${network_name} \
+        --net-alias=mysql \
         $mysql_env_vars \
         $mysql_volumes \
         $mysql_ports \
         --restart=always \
         -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION} \
     "
-
-    docker run \
-      -h ${SERVER_NAME}-mysql-container \
-      --name mysql-server \
-      --network=${MYSQL_NETWORK} \
-      --net-alias=${MYSQL_NETWORK_ALIAS} \
-      $mysql_env_vars \
-      $mysql_volumes \
-      $mysql_ports \
-      --restart=always \
-      -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}
+    echo $cmd
+    $cmd
   else
     echo "Starten von mysql container wird ausgelassen weil START_MYSQL_WITH_DCM auf false steht."
   fi
@@ -650,22 +625,14 @@ run_pgsql_container() {
       pgsql_config=""
     fi
 
-    if [ -z "$PGSQL_NETWORK" ]; then
-      PGSQL_NETWORK="kvwmap_prod"
-    fi
+    create_bridge_network
 
-    if [ -z "$PGSQL_NETWORK_ALIAS" ]; then
-      PGSQL_NETWORK_ALIAS="pgsql"
-    fi
-
-    create_bridge_network $PGSQL_NETWORK
-
-    echo "run pgsql container with command: \
-      docker run \
+    echo "run pgsql container with command:"
+    cmd="docker run \
         -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
         --name ${PGSQL_CONTAINER_NAME} \
-        --network=${PGSQL_NETWORK} \
-        --net-alias=${PGSQL_NETWORK_ALIAS} \
+        --network=${network_name} \
+        --net-alias=pgsql \
         --restart=always \
         $pgsql_env_vars \
         $pgsql_volumes \
@@ -673,18 +640,8 @@ run_pgsql_container() {
         -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION} \
         $pgsql_config \
     "
-
-    docker run \
-      -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
-      --name ${PGSQL_CONTAINER_NAME} \
-      --network=${PGSQL_NETWORK} \
-      --net-alias=${PGSQL_NETWORK_ALIAS} \
-      --restart=always \
-      $pgsql_env_vars \
-      $pgsql_volumes \
-      $pgsql_ports \
-      -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION} \
-      $pgsql_config
+    echo $cmd
+    $cmd
   else
     echo "Starten von pgsql container wird ausgelassen weil START_WITH_DCM auf false steht."
   fi
@@ -707,45 +664,66 @@ run_web_container() {
                -p 443:443"
   fi
 
-  if [ -z "$NETWORK_ALIAS" ]; then
-    WEB_NETWORK_ALIAS="$PGSQL_CONTAINER_NAME"
-  fi
-
-  if [ -z "$WEB_NETWORK_ALIAS" ]; then
-    WEB_NETWORK_ALIAS="web"
-  fi
-
-  if [ -z "$WEB_NETWORK" ]; then
-    WEB_NETWORK="kvwmap_prod"
-  fi
-
-  create_bridge_network $WEB_NETWORK
-
-  echo "run web container with command: \
-    docker run \
-      -h ${SERVER_NAME}-web-container${container_version} \
-      --name web${container_version} \
-      --network ${WEB_NETWORK} \
-      --net-alias ${WEB_NETWORK_ALIAS} \
-      --restart=always \
-      $web_env_vars \
-      $web_volumes \
-      $web_hosts \
-      $web_ports \
-      -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION} \
+  create_bridge_network
+  echo "Starte web Container:"
+  cmd="docker run\
+    -h ${SERVER_NAME}-web-container${container_version}\
+    --name web${container_version}\
+    --network $network_name\
+    --net-alias web\
+    --restart=always\
+    $web_env_vars\
+    $web_volumes\
+    $web_hosts\
+    $web_ports\
+    -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}\
   "
+  echo $cmd
+  $cmd
+}
 
-  docker run \
-    -h ${SERVER_NAME}-web-container${container_version} \
-    --name web${container_version} \
-    --network ${WEB_NETWORK} \
-    --net-alias ${WEB_NETWORK_ALIAS} \
-    --restart=always \
-    $web_env_vars \
-    $web_volumes \
-    $web_hosts \
-    $web_ports \
-    -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}
+run_proxy_container() {
+  source $USER_DIR/etc/proxy/env_and_volumes
+  if [ -z "${proxy_ports}" ]; then
+    proxy_ports="-p 80:80 \
+                 -p 443:443"
+  fi
+
+  cmd="\
+    docker run \
+      -h ${SERVER_NAME}-proxy-container \
+      --name proxy \
+      --restart=always \
+      $proxy_env_vars \
+      $proxy_volumes \
+      $proxy_hosts \
+      $proxy_ports \
+      -d ${PROXY_IMAGE}:${PROXY_IMAGE_VERSION} \
+  "
+  echo "Starte Container proxy:"
+  echo $cmd
+  $cmd
+  # connect container to all custom networks
+  for custom_network_i in $(docker network ls --filter type=custom --format {{.Name}}); do
+    echo "Füge Container proxy zu Netzwerk ${custom_network_i} hinzu"
+    cmd="docker network connect $custom_network_i proxy"
+    echo $cmd
+    $cmd
+  done
+}
+
+reload_proxy_container() {
+  cmd="docker exec proxy nginx -s reload"
+  echo "Reload Konfiguration des proxy Containers:"
+  echo $cmd
+  $cmd
+}
+
+test_proxy_container() {
+  cmd="docker exec proxy nginx -t"
+  echo "Teste proxy Container:"
+  echo $cmd
+  $cmd
 }
 
 show_all_container_ips() {
@@ -836,6 +814,12 @@ stop_container() {
   fi
 }
 
+stop_proxy_container() {
+  echo "Stoppe proxy Container. Bitte warten ..."
+  docker stop proxy
+  echo "fertig"
+}
+
 stop_gdal_container() {
   if [ "$(docker ps -a -q -f name=gdal -f status=running)" ] ; then
     echo "Stoppe Container. Bitte warten ..."
@@ -918,7 +902,6 @@ uninstall_kvwmap() {
 }
 
 function exists_network(){
-  network_name=$1
   while read nw
   do
     if [ "$nw" = "$1" ]; then
@@ -930,25 +913,41 @@ function exists_network(){
 }
 
 function create_bridge_network() {
-  network_name=$1
-  echo "Check if network $network_name exists"
   if [ $(exists_network $network_name) -eq 0 ]; then
-    echo "Create network with command: \
+    echo "Erzeuge Docker Netzwerk ${network_name}:"
+    cmd="\
       docker network create \
-      --driver=bridge \
-      --ip-range=$NETWORK_IP_RANGE \
-      --subnet=$NETWORK_SUBNET \
+        --driver=bridge \
+        --ip-range=$NETWORK_IP_RANGE \
+        --subnet=$NETWORK_SUBNET \
       $network_name \
     "
-    docker network create \
-    --driver=bridge \
-    --ip-range=$NETWORK_IP_RANGE \
-    --subnet=$NETWORK_SUBNET \
-    $network_name
+    echo $cmd
+    $cmd
   else
-    echo "yes it exists"
+    echo "Docker Netzwerk ${network_name} existiert bereits"
   fi
 }
+
+#----------------------------------------------
+container_version=$3
+# Ab Version 3.0.0
+network_name=$3
+if [ -z "$network_name" ] ; then
+  network_name="kvwmap_prod"
+fi
+
+#load settings
+CONFIG_FILE=$( dirname "${BASH_SOURCE[0]}" )
+if [ -f $CONFIG_FILE/config/config ] ; then
+  CONFIG_FILE=$CONFIG_FILE/config/config
+else
+  cp $CONFIG_FILE/config/config-default $CONFIG_FILE/config/config
+  CONFIG_FILE=$CONFIG_FILE/config/config-default
+fi
+
+#echo "Load config file ${CONFIG_FILE}"
+source $CONFIG_FILE
 
 fail_unless_root
 
@@ -956,7 +955,7 @@ load_cargo
 
 core_case_found=true
 
-container_version=$3
+#echo "Führe Befehl aus mit Command: $1, Container: $2, Netzwerk: $3"
 
 case "$1" in
   build)
@@ -984,6 +983,10 @@ case "$1" in
 
   console)
     case $2 in
+      proxy)
+        echo "Öffne ein Terminal im Container in dem der Proxy läuft..."
+        docker exec -it proxy /bin/bash
+      ;;
       gdal)
         echo "Öffne ein Terminal im Container in dem gdal mit ogr2ogr läuft..."
         docker exec -it gdal /bin/bash
@@ -1017,6 +1020,18 @@ case "$1" in
       *)
         core_sub_cases="gdal, mysql, pgsql, web"
         call_cargo_cases $1 $2 $3
+      ;;
+    esac
+  ;;
+
+  create)
+    case $2 in
+      network)
+        create_bridge_network
+        docker network ls
+      ;;
+      *)
+        usage
       ;;
     esac
   ;;
@@ -1171,19 +1186,24 @@ case "$1" in
         docker rmi -f $(docker images -q pkorduan/kvwmap-server)
         docker pull pkorduan/kvwmap-server:$KVWMAP_IMAGE_VERSION
         run_all_container
+        docker images
+        docker ps -a
+      ;;
+      proxy)
+        reload_proxy_container
       ;;
       web)
         remove_web_container
         docker rmi -f $(docker images -q pkorduan/kvwmap-server)
         docker pull pkorduan/kvwmap-server:$KVWMAP_IMAGE_VERSION
         run_web_container
+        docker images
+        docker ps -a
       ;;
       *)
         echo "Gib nach reload einen der folgenden Parameter ein: all oder web."
       ;;
     esac
-    docker images
-    docker ps -a
   ;;
 
   rm)
@@ -1191,25 +1211,37 @@ case "$1" in
       all)
         stop_all_container
         remove_all_container
+        docker ps -a
+      ;;
+      proxy)
+        remove_proxy_container
+        docker ps -a
       ;;
       gdal)
         remove_gdal_container
+        docker ps -a
       ;;
       mysql)
         remove_mysql_container
+        docker ps -a
       ;;
       pgsql)
         remove_pgsql_container
+        docker ps -a
+      ;;
+      network)
+        remove_network
+        docker network ls
       ;;
       web)
         remove_web_container
+        docker ps -a
       ;;
       * )
         core_sub_cases="all, gdal, mysql, pgsql, web"
         call_cargo_cases $1 $2 $3
       ;;
     esac
-    docker ps -a
   ;;
 
   rerun)
@@ -1259,6 +1291,9 @@ case "$1" in
     case $2 in
       all)
         run_all_container
+      ;;
+      proxy)
+        run_proxy_container
       ;;
       gdal)
         run_gdal_container
@@ -1371,6 +1406,9 @@ case "$1" in
       all)
         stop_all_container
       ;;
+      proxy)
+        stop_proxy_container
+      ;;
       gdal)
         stop_gdal_container
       ;;
@@ -1389,11 +1427,22 @@ case "$1" in
         stop_web_container
       ;;
       *)
-      core_sub_cases="all, gdal, mysql, kvwmap, pgsql, web"
-      call_cargo_cases $1 $2 $3
+        core_sub_cases="all, gdal, mysql, kvwmap, pgsql, web"
+        call_cargo_cases $1 $2 $3
       ;;
     esac
     docker ps -a
+  ;;
+
+  test)
+    case $2 in
+      proxy)
+        test_proxy_container
+      ;;
+      *)
+        echo "Derzeit können nur folgende Container getestet werden: proxy"
+      ;;
+    esac
   ;;
 
   uninstall)

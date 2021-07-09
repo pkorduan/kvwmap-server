@@ -87,15 +87,19 @@ remove_deegree_image() {
 
 run_deegree_container() {
   source $USER_DIR/etc/deegree/env_and_volumes
-  echo "Erzeuge und starte den deegree Container"
-  echo "mit volumes: ${deegree_volumes}"
-  docker run --name deegree \
-    -h ${SERVER_NAME}-deegree-container \
-    --link pgsql-server:pgsql \
-    $deegree_volumes \
-    $deegree_env_vars \
-    --restart=always \
-    -d $deegree_IMAGE
+  echo "Erzeuge und starte den deegree Container:"
+  cmd="docker run\
+    --name deegree\
+    -h ${SERVER_NAME}-deegree-container\
+    --network=${network_name}\
+    --net-alias=deegree\
+    $deegree_volumes\
+    $deegree_env_vars\
+    --restart=always\
+    -d $deegree_IMAGE\
+  "
+  echo $cmd
+  $cmd
 }
 
 set_deegree_web_link() {

@@ -9,8 +9,8 @@ read -s -p "Enter password for kvwmap user: " KVWMAP_INIT_PASSWORD
 
 HTTP_PROXY_WEB=
 NO_PROXY_WEB=localhost,pgsql
-WEB_NETWORK=kvwmap_prod
-WEB_NETWORK_ALIAS=web
+
+web_network_alias="web"
 
 IP_EXTERN=$(hostname -I | cut -d ' ' -f 1)
 
@@ -38,6 +38,7 @@ web_env_vars="-e OS_USER=$OS_USER \
 
 web_volumes=" -v $WWW_ROOT:/var/www \
               -v $USER_DIR/etc/postgresql/.pgpass:/root/.pgpass \
+              -v $USER_DIR/etc/postgresql/.pgpass_gisadmin:/home/gisadmin/.pgpass \
               -v $USER_DIR/etc/apache2/sites-available:/etc/apache2/sites-available \
               -v $USER_DIR/etc/apache2/sites-enabled:/etc/apache2/sites-enabled \
               -v $USER_DIR/etc/apache2/ssl:/etc/apache2/ssl \

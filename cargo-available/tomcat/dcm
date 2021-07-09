@@ -88,20 +88,23 @@ remove_tomcat_image() {
 #    -d $tomcat_IMAGE
 run_tomcat_container() {
   source $USER_DIR/etc/tomcat/env_and_volumes
-  echo "Erzeuge und starte den tomcat Container"
-  #echo "mit volumes: ${webapp_volumes}"
-  docker run --name tomcat \
-    -h ${SERVER_NAME}-tomcat-container \
-    $tomcat_volumes \
-    $tomcat_env_vars \
-    -p 8888:8080 \
-    --restart=always \
-    -d $tomcat_IMAGE
-}
 
-set_tomcat_web_link() {
-  echo "Setzte tomcat link zum Starten des web containers: --link tomcat:tomcat"
-  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link tomcat:tomcat"
+  create_bridge_network
+
+  echo "Erzeuge und starte den tomcat Container:"
+  cmd="docker run\
+    --name tomcat\
+    -h ${SERVER_NAME}-tomcat-container\
+    --network=${network_name}\
+    --net-alias=tomcat\
+    $tomcat_volumes\
+    $tomcat_env_vars\
+    $tomcat_ports\
+    --restart=always\
+    -d ${tomcat_IMAGE}:${tomcat_VERSION}
+  "
+  echo $cmd
+  $cmd
 }
 
 show_status() {

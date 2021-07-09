@@ -32,6 +32,7 @@
 #   #2021_06_23		1	vor Backup prüfen ob genügend Platz vorhanden ist
 #   #2021_06_28   	1.	".tar_differential_backup_duration" eingeführt
 #                               ".tar[].exclude" eingeführt
+#   #2021_07_09         1.      rm -f beim löschen von tar.difflog verwenden um Nachfragen zu vermeiden
 #########################################################
 
 #########################################################
@@ -119,7 +120,7 @@ sichere_dir_als_targz() {
         do
             echo "tar.difflog loeschen" >> "$LOGFILE"
             DELETED_TARLOG=TRUE
-            rm "$source/$tarlog"
+            rm -f "$source/$tarlog"
         done < <(find "$source" -type f -name "$tarlog" -mtime "+$diff_duration")
 
         #fuer differenzielle Sicherung letztes Tarlog kopieren da dies sonst von tar aktualisiert wird

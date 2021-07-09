@@ -1,3 +1,16 @@
 #!/bin/bash
-tomcat_volumes="-v ${tomcat_DATA_DIR}/test:/usr/local/tomcat/webapps/test \
-                -v ${tomcat_DATA_DIR}/app2:/usr/local/tomcat/webapps/app2"
+tomcat_IMAGE=tomcat
+tomcat_VERSION=latest
+tomcat_CONTAINER_NAME="tomcat"
+TERM=linux
+COLUMNS=180
+LINES=200
+
+tomcat_networ_alias="tomcat"
+
+tomcat_ports="-p 8888:8080"
+
+tomcat_volumes="\
+ -v ${tomcat_DATA_DIR}/test:/usr/local/tomcat/webapps/test\
+ -v ${tomcat_DATA_DIR}/app2:/usr/local/tomcat/webapps/app2\
+"

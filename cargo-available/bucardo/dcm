@@ -61,20 +61,18 @@ remove_bucardo_image() {
 
 run_bucardo_container() {
   source $USER_DIR/etc/bucardo/env_and_volumes
-  echo "Erzeuge und starte den bucardo Container"
-  echo "mit Image: ${BUCARDO_IMAGE}:${BUCARDO_IMAGE_VERSION}"
-  echo "mit volumes: ${bucardo_volumes}"
-  docker run --name bucardo \
-    -h ${SERVER_NAME}-bucardo-container \
-    --link pgsql-server:pgsql \
-    $bucardo_volumes \
-    $bucardo_env_vars \
-    --restart=always \
-    -d $BUCARDO_IMAGE:$BUCARDO_IMAGE_VERSION
-}
-
-set_bucardo_web_link() {
-  echo "Für bucardo wird kein Web-Link im Web-Container gesetzt."
+  echo "Erzeuge und starte den bucardo Container:"
+  cmd="docker run --name bucardo\
+    -h ${SERVER_NAME}-bucardo-container\
+    --network=${network_name}\
+    --net-alias=bucardo \
+    $bucardo_volumes\
+    $bucardo_env_vars\
+    --restart=always\
+    -d $BUCARDO_IMAGE:$BUCARDO_IMAGE_VERSION\
+  "
+  echo $cmd
+  $cmd
 }
 
 show_status() {

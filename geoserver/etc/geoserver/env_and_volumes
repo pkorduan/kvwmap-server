@@ -8,10 +8,18 @@ TERM=linux
 COLUMNS=80
 LINES=120
 
-geoserver_env_vars="-e \"TERM=${TERM}\" \
-                    -e \"COLUMNS=${COLUMNS}\" \
-                    -e \"LINES=${LINES}\""
+geoserver_network_alias="geoserver"
 
-geoserver_volumes="-v $GEOSERVER_DATA_DIR:/opt/geoserver/data_dir"
+geoserver_env_vars="\
+ -e TERM=$TERM\
+ -e COLUMNS=$COLUMNS\
+ -e LINES=$LINES\
+"
+
+geoserver_volumes="\
+ -v $GEOSERVER_DATA_DIR:/opt/geoserver/data_dir\
+ -v /home/gisadmin/etc/geoserver/web.xml:/opt/geoserver/webapps/geoserver/WEB-INF/web.xml \
+ -v $WWW_ROOT:/var/www\
+"
 
 geoserver_ports="-p 8080:8080"

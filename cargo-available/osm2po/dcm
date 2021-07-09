@@ -56,7 +56,7 @@ remove_osm2po_container() {
   stop_osm2po_container
 
   if [ "$(docker ps -a -q -f name=osm2po -f status=exited)" ] ; then
-    echo "Lösche Container ..."
+    echo "Lösche Container osm2po ..."
     docker rm osm2po
   else
     echo "Container osm2po kann nicht gelöscht werden, weil er nicht existiert."
@@ -70,9 +70,12 @@ remove_osm2po_image() {
 
 run_osm2po_container() {
   source $USER_DIR/etc/osm2po/env_and_volumes
+
   echo "Erzeuge und starte den osm2po Container:"
   cmd="docker run --name osm2po \
     -h ${SERVER_NAME}-osm2po-container \
+    --network=${network_name} \
+    --net-alias=osm2po \
     $osm2po_env_vars \
     $osm2po_volumes \
     --restart=always \
@@ -80,11 +83,6 @@ run_osm2po_container() {
   "
   echo $cmd
   $cmd
-}
-
-set_osm2po_web_link() {
-  echo "Setzte osm2po link zum Starten des web containers: --link osm2po:osm2po"
-  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link osm2po:osm2po"
 }
 
 show_status() {
@@ -98,7 +96,7 @@ start_osm2po_container() {
 
 stop_osm2po_container() {
   if [ "$(docker ps -a -q -f name=osm2po -f status=running)" ] ; then
-    echo "Stoppe Container. Bitte warten ..."
+    echo "Stoppe Container osm2po. Bitte warten ..."
     docker stop osm2po
   else
     echo "Container osm2po kann nicht gestoppt werden, weil er nicht läuft."

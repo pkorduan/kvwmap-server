@@ -11,6 +11,7 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 
 SERVER_NAME=`hostname`
 DOMAIN_NAME=`hostname --fqd`
+IP_EXTERN="217.160.240.15"
 DOCKER_ROOT="${USER_DIR}/docker"
 WWW_ROOT="${DOCKER_ROOT}/www"
 DB_ROOT="${DOCKER_ROOT}/db"
@@ -18,6 +19,24 @@ CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
 CARGO_WEB_LINKS=
 CARGO_PGSQL_LINKS=
-KVWMAP_SERVER_VERSION=2.2.2
-NETWORK_IP_RANGE=172.23.0.0/24
+KVWMAP_SERVER_VERSION=2.2.3
+PROD_APP="kvwmap"
+
+# Network settings
+case "$network_name" in
+  kvwmap_prod)
+    NETWORK_IP_RANGE="172.0.10.0/24"
+  ;;
+  kvwmap_dev)
+    NETWORK_IP_RANGE="172.0.20.0/24"
+  ;;
+  kvwmap_test)
+    NETWORK_IP_RANGE="172.0.30.0/24"
+  ;;
+  *)
+#    usage
+#    exit
+  ;;
+esac
+
 NETWORK_SUBNET=$NETWORK_IP_RANGE
