@@ -17,7 +17,7 @@ declare(strict_types=1);
  */
 $cfg['blowfish_secret'] = 'HK_kd-taX.8dskjfdsfk_sdf,sfsad.asdffsadfs*sawwe134345tg45gergte_mV,8aDR!v'; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
 
-$cfg['PmaAbsoluteUri'] = 'http://' . getenv('IP_EXTERN') . '/userDbAdmin/';
+$cfg['PmaAbsoluteUri'] = 'https://bauleitplaene-mv.de/userDbAdmin/';
 
 /**
  * Servers configuration
@@ -31,8 +31,8 @@ $i++;
 /* Authentication type */
 $cfg['Servers'][$i]['auth_type'] = 'cookie';
 /* Server parameters */
-$cfg['Servers'][$i]['host'] = getenv('MYSQL_PORT_3306_TCP_ADDR');
-$cfg['Servers'][$i]['port'] = getenv('MYSQL_PORT_3306_TCP_PORT');
+$cfg['Servers'][$i]['host'] = 'mysql'
+$cfg['Servers'][$i]['port'] = 3306
 $cfg['Servers'][$i]['connect_type'] = 'tcp';
 $cfg['Servers'][$i]['compress'] = true;
 $cfg['Servers'][$i]['AllowNoPassword'] = false;

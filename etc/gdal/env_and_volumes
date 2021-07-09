@@ -1,9 +1,9 @@
 #!/bin/bash
-GDAL_IMAGE=pkorduan/gdal-sshd
-GDAL_IMAGE_VERSION=2.3.0
+#GDAL_IMAGE=pkorduan/gdal-sshd
+#GDAL_IMAGE_VERSION=2.3.0
 
-#GDAL_IMAGE=pkorduan/gdal-http
-#GDAL_IMAGE_VERSION=0.0.1
+GDAL_IMAGE=pkorduan/gdal-http
+GDAL_IMAGE_VERSION=0.1.0
 
 TERM=linux
 COLUMNS=80
