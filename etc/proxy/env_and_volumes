@@ -1,0 +1,25 @@
+#!/bin/bash
+PROXY_IMAGE=nginx
+PROXY_IMAGE_VERSION=stable
+TERM=linux
+COLUMNS=180
+LINES=200
+
+proxy_hosts="--add-host=$SERVER_NAME:${IP_EXTERN} \
+             --add-host=$DOMAIN_NAME:${IP_EXTERN}"
+
+proxy_ports="
+ -p 8090:80\
+ -p 9443:443\
+"
+
+proxy_env_vars="\
+ -e TERM=${TERM}\
+ -e COLUMNS=${COLUMNS}\
+ -e LINES=${LINES}\
+"
+
+proxy_volumes="
+ -v $USER_DIR/etc/proxy/nginx:/etc/nginx
+ -v $USER_DIR/etc/proxy/certs:/etc/ssl/private \
+"
