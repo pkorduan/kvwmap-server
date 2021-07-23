@@ -1,0 +1,104 @@
+version: "3.6"
+networks:
+  kvwmap_prod:
+    name: kvwmap_prod
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.0.10.0/24"
+services:
+  web:
+    hostname: web-prod
+#    user: gisadmin
+    image: pkorduan/kvwmap-server:2.2.3
+#    ports:
+#      - 8091:80
+    networks:
+      kvwmap_prod:
+        aliases:
+          - web
+    environment:
+      # Environment variables with only a key are resolved to their values on the machine Compose is running on, which can be helpful for secret or host-specific values.
+      - KVWMAP_INIT_PASSWORD
+      - OS_USER=gisadmin
+      - IP_EXTERN=85.214.121.45
+      - DOMAIN_EXTERN=gdi-service.de
+      #- http_proxy
+      #- no_proxy=localhost
+      - TERM=linux
+      - COLUMNS=180
+      - LINES=200
+    volumes:
+      - "/home/gisadmin/networks/kvwmap_prod/pgsql/.pgpass:/root/.pgpass"
+      - "/home/gisadmin/networks/kvwmap_prod/pgsql/.pgpass_gisadmin:/home/gisadmin/.pgpass"
+      - "/home/gisadmin/networks/kvwmap_prod/web/apache2/sites-available:/etc/apache2/sites-available"
+      - "/home/gisadmin/networks/kvwmap_prod/web/apache2/sites-enabled:/etc/apache2/sites-enabled"
+      - "/home/gisadmin/networks/kvwmap_prod/web/cron/load_gisadmin_cron_file:/etc/cron.hourl/load_gisadmin_cron_file"
+      - "/home/gisadmin/networks/kvwmap_prod/web/php/7.3:/etc/php/7.3"
+      - "/home/gisadmin/networks/kvwmap_prod/web/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php"
+      - "/home/gisadmin/networks/kvwmap_prod/proj/epsg:/usr/share/proj/epsg"
+      - "/home/gisadmin/networks/kvwmap_prod/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb"
+      - "/home/gisadmin/networks/kvwmap_prod/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"
+#      - " /mnt/ftp_backup/81.169.183.177:/mnt/ftp_backup
+      - "/home/gisadmin/networks/kvwmap_prod/web/www:/var/www"
+
+  mysql:
+    hostname: mysql-prod
+    image: mysql:5.5
+    networks:
+      kvwmap_prod:
+        aliases:
+          - mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - TERM=xterm
+      - COLUMNS=180
+      - LINES=200
+    volumes:
+      - "/home/gisadmin/networks/kvwmap_prod/mysql/data:/var/lib/mysql"
+      - "/home/gisadmin/networks/kvwmap_prod/mysql/etc:/etc/mysql"
+      - "/home/gisadmin/networks/kvwmap_prod/mysql/logs:/var/logs/mysql"
+
+  pgsql:
+    hostname: pgsql-prod
+    user: postgres
+    image: pkorduan/postgis:13.1-3.1
+    networks:
+      kvwmap_prod:
+        aliases:
+          - pgsql
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD
+      - PGSQL_DB=postgres
+      - PGSQL_USER=postgres
+      - PGSQL_PASSFILE=/root/.pgpass
+      - PGSQL_MAJOR_VERSION=13.1
+      - POSTGIS_VERSION=3.1
+      - TERM=linux
+      - COLUMNS=180
+      - LINES=200
+    volumes:
+      - "/home/gisadmin/networks/kvwmap_prod/pgsql/.pgpass:/root/.pgpass"
+      - "/home/gisadmin/networks/kvwmap_prod/pgsql/data:/var/lib/postgresql/data"
+      - "/home/gisadmin/networks/kvwmap_prod/pgsql/logs:/var/log/postgresql"
+      - "/home/gisadmin/networks/kvwmap_prod/proj/epsg:/usr/share/proj/epsg"
+      - "/home/gisadmin/networks/kvwmap_prod/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb"
+      - "/home/gisadmin/networks/kvwmap_prod/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"
+      - "/home/gisadmin/networks/kvwmap_prod/web/www:/var/www"
+
+  gdal:
+    hostname: gdal-prod
+    image: pkorduan/gdal-http:0.2.0
+    networks:
+      kvwmap_prod:
+        aliases:
+          - gdalcmdserver
+    environment:
+      - PGSQL_PASSFILE=/home/gisadmin/.pgpass
+      - TERM=xterm
+    volumes:
+      - "/home/gisadmin/networks/kvwmap_prod/pgsql/.pgpass:/root/.pgpass"
+      - "/home/gisadmin/networks/kvwmap_prod/pgsql/.pgpass_gisadmin:/home/gisadmin/.pgpass"
+      - "/home/gisadmin/networks/kvwmap_prod/web/www:/var/www"
