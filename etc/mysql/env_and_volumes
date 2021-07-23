@@ -2,9 +2,6 @@
 read -s -p "Enter Password for MySql user root: " MYSQL_ROOT_PASSWORD
 MYSQL_IMAGE=mysql
 MYSQL_IMAGE_VERSION=5.5
-MYSQL_ROOT_HOST=web.kvwmap_prod
-MYSQL_NETWORK_ALIAS=mysql
-MYSQL_NETWORK=kvwmap_prod
 
 mysql_ports="-p 3306:3306"
 
