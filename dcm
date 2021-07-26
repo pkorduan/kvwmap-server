@@ -236,6 +236,9 @@ install_docker() {
       mv /var/lib/docker $USER_DIR/docker/lib
       ln -s $USER_DIR/docker/lib/docker /var/lib/docker
       systemctl start docker
+      echo "Installiere docker-compose"
+      sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      sudo chmod +x /usr/local/bin/docker-compose
     ;;
   esac
 
@@ -421,9 +424,21 @@ migrate_to_mariadb() {
   # restore mysql-Databases
 }
 
+ps_container() {
+  if [ -z $1 ] ; then
+    echo "Liste alle Container"
+    docker ps -a
+  else
+    echo "Liste nur Container im Netzwerk $1"
+    docker ps -a --filter network=$1 | sort -k 2
+  fi
+}
+
 remove_all_container() {
   echo "Lösche alle Container ..."
-  docker rm $(docker ps -a -q)
+  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s"
+  echo $cmd
+  $cmd
   echo "Alle Container gelöscht."
 }
 
@@ -440,66 +455,32 @@ remove_network() {
 }
 
 remove_proxy_container() {
-  stop_proxy_container
   echo "Entferne proxy Container."
   docker rm proxy
   echo "fertig"
 }
 
 remove_gdal_container() {
-  stop_gdal_container
-
-  if [ "$(docker ps -a -q -f name=gdal -f status=exited)" ] ; then
-    echo "Lösche Container ..."
-    docker rm gdal
-  else
-    echo "Container gdal kann nicht gelöscht werden, weil er nicht existiert."
-  fi
+  remove_container gdal
 }
 
 remove_mysql_container() {
-  stop_mysql_container
-
-  if [ "$(docker ps -a -q -f name=mysql-server -f status=exited)" ] ; then
-    echo "Lösche Container ..."
-    docker rm mysql-server
-  else
-    echo "Container mysql-server kann nicht gelöscht werden, weil er nicht existiert."
-  fi
+  remove_container mysql
 }
 
 remove_pgsql_container() {
-  stop_pgsql_container
-
-  if [ -n $container_version ] ; then
-    container=pgsql-server${container_version}
-  else
-    container=pgsql-server
-  fi
-
-  if [ "$(docker ps -a -q -f name=${container} -f status=exited)" ] ; then
-    echo "Lösche Container ${container}..."
-    docker rm $container
-  else
-    echo "Container ${container} kann nicht gelöscht werden, weil er nicht existiert."
-  fi
+  remove_container pgsql
 }
 
 remove_web_container() {
-  stop_web_container
+  remove_container web
+}
 
-  if [ -n $container_version ] ; then
-    container=web${container_version}
-  else
-    container=web
-  fi
-
-  if [ "$(docker ps -a -q -f name=${container} -f status=exited)" ] ; then
-    echo "Lösche Container ..."
-    docker rm $container
-  else
-    echo "Container ${container} kann nicht gelöscht werden, weil er nicht existiert."
-  fi
+remove_container() {
+  echo "Entferne Container $1 in Netzwerk ${network_name}"
+  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s $1"
+  echo $cmd
+  $cmd
 }
 
 remove_all_images() {
@@ -509,41 +490,10 @@ remove_all_images() {
 }
 
 run_all_container() {
-  echo "Erzeuge und Starte alle Container ..."
-  run_mysql_container
-  if type -t run_oracle_container | grep -q "^function$" ; then
-    run_oracle_container
-  fi
-  run_pgsql_container
-  run_gdal_container
-  if type -t run_geoserver_container | grep -q "^function$" ; then
-    run_geoserver_container
-  fi
-  if type -t run_tomcat_container | grep -q "^function$" ; then
-    run_tomcat_container
-  fi
-  if type -t run_pydio_container | grep -q "^function$" ; then
-    run_pydio_container
-  fi
-  if type -t run_owncloud_container | grep -q "^function$" ; then
-    run_owncloud_container
-  fi
-  if type -t run_owncloud_10.0.10_container | grep -q "^function$" ; then
-    run_owncloud_10.0.10_container
-  fi
-  if type -t run_deegree_container | grep -q "^function$" ; then
-    run_deegree_container
-  fi
-  if type -t run_osm2po_container | grep -q "^function$" ; then
-    run_osm2po_container
-  fi
-  if type -t run_bucardo_container | grep -q "^function$" ; then
-    run_bucardo_container
-  fi
-  if type -t run_ftpserver_container | grep -q "^function$" ; then
-    run_ftpserver_container
-  fi
-  run_web_container
+  echo "Erzeuge und Starte alle Container im Netzwerk: ${network_name}"
+  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d"
+  echo $cmd
+  $cmd
 }
 
 run_cargo_containers() {
@@ -554,140 +504,66 @@ run_cargo_containers() {
 }
 
 run_gdal_container() {
-  echo "Erzeuge und Starte container gdal"
-
-  source $USER_DIR/etc/gdal/env_and_volumes
-
-  create_bridge_network
-
-  echo  ${SERVER_NAME}-gdal-container
-  echo "run gdal Container with command:"
-  cmd="docker run \
-      -h ${SERVER_NAME}-gdal-container \
-      --name gdal \
-      --network=${network_name} \
-      --net-alias=gdal \
-      --restart=always \
-      $gdal_env_vars \
-      $gdal_volumes \
-      $gdal_ports \
-      -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION} \
-  "
+  echo "Erzeuge und Starte container gdal im Netzwerk ${network_name}"
+  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d gdal"
   echo $cmd
   $cmd
 }
 
 run_mysql_container() {
-  source $USER_DIR/etc/mysql/env_and_volumes
-
-  if [ -z "${START_MYSQL_WITH_DCM}" ] ; then
-    START_MYSQL_WITH_DCM="true"
-  fi
-
-  create_bridge_network
-
-  if [ "${START_MYSQL_WITH_DCM}" = "true" ] ; then
-    echo "run mysql Container with command:"
-    cmd="docker run \
-        -h ${SERVER_NAME}-mysql-container \
-        --name mysql-server \
-        --network=${network_name} \
-        --net-alias=mysql \
-        $mysql_env_vars \
-        $mysql_volumes \
-        $mysql_ports \
-        --restart=always \
-        -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION} \
-    "
-    echo $cmd
-    $cmd
-  else
-    echo "Starten von mysql container wird ausgelassen weil START_MYSQL_WITH_DCM auf false steht."
-  fi
+  echo "Erzeuge und Starte container mysql im Netzwerk ${network_name}"
+  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d mysql"
+  echo $cmd
+  $cmd
 }
 
 run_pgsql_container() {
-  if [ -n "${container_version}" ] ; then
-    source $USER_DIR/etc/postgresql/env_and_volumes_${container_version}
-  else
-    source $USER_DIR/etc/postgresql/env_and_volumes
-  fi
-
-  if [ "${START_WITH_DCM}" = "true" ] ; then
-    echo "\
-    Erzeuge und Starte container pgsql"
-
-    if [ -z "$pgsql_ports" ] ; then
-      pgsql_ports="-p 5432:5432"
-    fi
-
-    if [ -z "${PGSQL_CONTAINER_NAME}" ] ; then
-      PGSQL_CONTAINER_NAME="pgsql-server"
-    fi
-
-    if [ -z "$pgsql_config" ] ; then
-      pgsql_config=""
-    fi
-
-    create_bridge_network
-
-    echo "run pgsql container with command:"
-    cmd="docker run \
-        -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
-        --name ${PGSQL_CONTAINER_NAME} \
-        --network=${network_name} \
-        --net-alias=pgsql \
-        --restart=always \
-        $pgsql_env_vars \
-        $pgsql_volumes \
-        $pgsql_ports \
-        -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION} \
-        $pgsql_config \
-    "
-    echo $cmd
-    $cmd
-  else
-    echo "Starten von pgsql container wird ausgelassen weil START_WITH_DCM auf false steht."
-  fi
+  echo "Starte container postgres im Netzwerk: ${network_name}"
+  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d pgsql"
+  echo $cmd
+  $cmd
 }
 
 run_web_container() {
-  if [ -n "${container_version}" ] ; then
-    source $USER_DIR/etc/web/env_and_volumes_${container_version}
-  else
-    source $USER_DIR/etc/web/env_and_volumes
-  fi
+  echo "Starte container web im Netzwerk: ${network_name}"
+  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d web"
 
-  if [ -z "${web_hosts}" ]; then
-    web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
-               --add-host=$SERVER_NAME:${IP_EXTERN}"
-  fi
+#  if [ -n "${container_version}" ] ; then
+#    source $USER_DIR/etc/web/env_and_volumes_${container_version}
+#  else
+#    source $USER_DIR/etc/web/env_and_volumes
+#  fi
 
-  if [ -z "${web_ports}" ]; then
-    web_ports="-p 80:80 \
-               -p 443:443"
-  fi
+#  if [ -z "${web_hosts}" ]; then
+#    web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
+#               --add-host=$SERVER_NAME:${IP_EXTERN}"
+#  fi
 
-  create_bridge_network
-  echo "Starte web Container:"
-  cmd="docker run\
-    -h ${SERVER_NAME}-web-container${container_version}\
-    --name web${container_version}\
-    --network $network_name\
-    --net-alias web\
-    --restart=always\
-    $web_env_vars\
-    $web_volumes\
-    $web_hosts\
-    $web_ports\
-    -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}\
-  "
+#  if [ -z "${web_ports}" ]; then
+#    web_ports="-p 80:80 \
+#               -p 443:443"
+#  fi
+
+#  create_bridge_network
+#  echo "Starte web Container:"
+#  cmd="docker run\
+#    -h ${SERVER_NAME}-web-container${container_version}\
+#    --name web${container_version}\
+#    --network $network_name\
+#    --net-alias web\
+#    --restart=always\
+#    $web_env_vars\
+#    $web_volumes\
+#    $web_hosts\
+#    $web_ports\
+#    -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}\
+#  "
   echo $cmd
   $cmd
 }
 
 run_proxy_container() {
-  source $USER_DIR/etc/proxy/env_and_volumes
+  source $USER_DIR/proxy/env_and_volumes
   if [ -z "${proxy_ports}" ]; then
     proxy_ports="-p 80:80 \
                  -p 443:443"
@@ -799,23 +675,16 @@ start_web_container() {
 
 stop_all_container() {
   echo "Stoppe alle Container. Bitte warten ..."
-  docker stop $(docker ps -a -q)
+  docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s
   echo "Alle Container gestopped."
 }
 
 stop_container() {
-  if [ -n $container_version ] ; then
-    container=$1${container_version}
-  else
-    container=$1
-  fi
-  if [ ! -z $container ] ; then
-    RUNNING=$(is_running $container)
-    if [ "$RUNNING" == "true" ]; then
-      echo "Stoppe Container $container ..."
-      docker stop $container
-    fi
-  fi
+  echo "Stoppe container $1 in Network: ${network_name}"
+  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml stop $1"
+#  cmd="docker stop $1"
+  echo $cmd
+  $cmd
 }
 
 stop_proxy_container() {
@@ -825,37 +694,19 @@ stop_proxy_container() {
 }
 
 stop_gdal_container() {
-  if [ "$(docker ps -a -q -f name=gdal -f status=running)" ] ; then
-    echo "Stoppe Container. Bitte warten ..."
-    docker stop gdal
-  else
-    echo "Container gdal kann nicht gestoppt werden, weil er nicht läuft."
-  fi
+#  if [ "$(docker ps -a -q -f name=gdal -f status=running)" ] ; then
+  stop_container gdal
+#  else
+#    echo "Container gdal kann nicht gestoppt werden, weil er nicht läuft."
+#  fi
 }
 
 stop_mysql_container() {
-  if [ "$(docker ps -a -q -f name=mysql-server -f status=running)" ] ; then
-    echo "Stoppe Container. Bitte warten ..."
-    docker stop mysql-server
-  else
-    echo "Container mysql-server kann nicht gestoppt werden, weil er nicht läuft."
-  fi
+  stop_container mysql
 }
 
 stop_pgsql_container() {
-  if [ -n $container_version ] ; then
-    container=pgsql-server${container_version}
-  else
-    container=pgsql-server
-  fi
-
-
-  if [ "$(docker ps -a -q -f name=pgsql-server -f status=running)" ] ; then
-    echo "Stoppe Container. Bitte warten ..."
-    docker stop $container
-  else
-    echo "Container pgsql-server kann nicht gestoppt werden, weil er nicht läuft."
-  fi
+  stop_container pgsql
 }
 
 stop_web_container() {
@@ -936,10 +787,12 @@ function create_bridge_network() {
 #----------------------------------------------
 container_version=$3
 # Ab Version 3.0.0
-network_name=$3
-if [ -z "$network_name" ] ; then
+if [ -z $3 ] ; then
   network_name="kvwmap_prod"
+else
+  network_name="kvwmap_$3"
 fi
+export network_name=$network_name
 
 #load settings
 CONFIG_FILE=$( dirname "${BASH_SOURCE[0]}" )
@@ -977,6 +830,27 @@ case "$1" in
     esac
   ;;
 
+  cd)
+    case $2 in
+      apps)
+        dir="web/www/apps/"
+      ;;
+      data)
+        dir="web/www/data/"
+      ;;
+      apache)
+        dir="web/apache2/sites-enabled/"
+      ;;
+      *)
+        dir=""
+      ;;
+    esac
+    echo "Wechsel in das Verzeichnis $dir von Netzwerk ${network_name}"
+    cmd="cd ${USER_DIR}/networks/${network_name}/${dir}"
+    echo $cmd
+    $cmd
+  ;;
+
   clean)
     echo "Lösche alle nicht genutzten Container."
     docker rm $(docker ps -q -f status=exited)
@@ -985,40 +859,64 @@ case "$1" in
     docker rmi $(docker images -a | grep "^<none>" | awk '{print $3}')
   ;;
 
+  config)
+    export network_name="kvwmap_$2"
+    echo "Validiere und zeige docker-compose.yaml von Netzwerk ${network_name}"
+    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml config"
+    echo $cmd
+    $cmd
+  ;;
+
   console)
     case $2 in
-      proxy)
-        echo "Öffne ein Terminal im Container in dem der Proxy läuft..."
-        docker exec -it proxy /bin/bash
-      ;;
       gdal)
         echo "Öffne ein Terminal im Container in dem gdal mit ogr2ogr läuft..."
-        docker exec -it gdal /bin/bash
+        if [ "${network_name}" == "kvwmap_ohne" ]; then
+          cmd="docker exec -it gdal /bin/bash"
+        else
+          cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml exec gdal /bin/bash"
+        fi
+        echo $cmd
+        $cmd
       ;;
       mysql)
         echo "Öffne ein Terminal im Container in dem der MySQL-Server läuft..."
-        docker exec -it mysql-server /bin/bash
+        if [ "${network_name}" == "kvwmap_ohne" ]; then
+          cmd="docker exec -it mysql-server /bin/bash"
+        else
+          cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml exec mysql /bin/bash"
+        fi
+        echo $cmd
+        $cmd
       ;;
       pgsql)
         echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft..."
-        if [ -n "${container_version}" ] ; then
-          docker exec -it pgsql-server$container_version /bin/bash
+        if [ "${network_name}" == "kvwmap_ohne" ]; then
+          cmd="docker exec -it pgsql-server /bin/bash"
         else
-          docker exec -it pgsql-server /bin/bash
+          cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml exec pgsql /bin/bash"
         fi
+        echo $cmd
+        $cmd
+      ;;
 
-        #docker exec -it -e TERM=$TERM -e COLUMNS=$COLUMNS -e LINES=$LINES pgsql-server /bin/bash # Option -e erst ab Versiom 1.25+ unterstützt
+      proxy)
+        source $USER_DIR/proxy/env_and_volumes
+        echo "Öffne ein Terminal im Container in dem der Proxy läuft..."
+        cmd="docker exec -it -e TERM=$TERM -e COLUMNS=$COLUMNS -e LINES=$LINES proxy /bin/bash"
+        echo $cmd
+        $cmd
       ;;
 
       web)
-        echo "Öffne ein Terminal im Container in dem der Web-Server läuft..."
-        if [ -n "${container_version}" ] ; then
-          echo "mit Containerversion: ${container_version}"
-          docker exec -it web$container_version /bin/bash
+        echo "Öffne ein Terminal zum web container"
+        if [ "${network_name}" == "kvwmap_ohne" ]; then
+          cmd="docker exec -it web /bin/bash"
         else
-          echo "docker exec -it web /bin/bash"
-          docker exec -it web /bin/bash
+          cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml exec web /bin/bash"
         fi
+        echo $cmd
+        $cmd
       ;;
 
       *)
@@ -1038,6 +936,20 @@ case "$1" in
         usage
       ;;
     esac
+  ;;
+
+  inspect)
+    if [[ "$2" == "network" ]] ; then
+      echo "Informationen über das Netzwerk $3"
+      cmd="network ${network_name}"
+    else
+      echo "Informationen über Container ${network_name}_$2_1 in Netz ${network_name}"
+      cmd="${network_name}_$2_1"
+    fi
+    cmd="docker inspect $cmd"
+    $cmd
+    echo "Ausgeführt mit Commando: $cmd"
+    ps_container
   ;;
 
   install)
@@ -1084,6 +996,17 @@ case "$1" in
     esac
   ;;
 
+  logs)
+    case $2 in
+      proxy)
+        docker logs proxy
+      ;;
+      *)
+        docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml logs -f $2
+      ;;
+    esac
+  ;;
+
   mysql)
     case $2 in
       client)
@@ -1100,11 +1023,11 @@ case "$1" in
       ;;
       stop)
         docker stop mysql-server
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       remove)
         docker rm mysql-server
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       tomariadb)
         migrate_to_mariadb
@@ -1134,11 +1057,11 @@ case "$1" in
       ;;
       stop)
         docker stop pgsql-server
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       remove)
         docker rm pgsql-server
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       run)
         run_pgsql_container
@@ -1153,7 +1076,16 @@ case "$1" in
   ;;
 
   ps)
-    docker ps $2
+    if [[ -z $2 ]] ; then
+      network_name=""
+    else
+      if [[ "$2" == kvwmap_* ]] ; then
+        network_name=$2
+      else
+        network_name="kvwmap_$2"
+      fi
+    fi
+    ps_container $network_name
   ;;
 
   rebuild)
@@ -1179,7 +1111,7 @@ case "$1" in
       ;;
     esac
     docker images
-    docker ps -a
+    docker ps -a | sort -k 2
   ;;
 
   reload)
@@ -1191,18 +1123,19 @@ case "$1" in
         docker pull pkorduan/kvwmap-server:$KVWMAP_IMAGE_VERSION
         run_all_container
         docker images
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       proxy)
         reload_proxy_container
       ;;
       web)
+        stop_web_container
         remove_web_container
         docker rmi -f $(docker images -q pkorduan/kvwmap-server)
         docker pull pkorduan/kvwmap-server:$KVWMAP_IMAGE_VERSION
         run_web_container
         docker images
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       *)
         echo "Gib nach reload einen der folgenden Parameter ein: all oder web."
@@ -1215,31 +1148,36 @@ case "$1" in
       all)
         stop_all_container
         remove_all_container
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       proxy)
+        stop_proxy_container
         remove_proxy_container
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       gdal)
+        stop_gdal_container
         remove_gdal_container
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       mysql)
+        stop_mysql_container
         remove_mysql_container
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       pgsql)
+        stop_pgsql_container
         remove_pgsql_container
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       network)
         remove_network
         docker network ls
       ;;
       web)
+        stop_web_container
         remove_web_container
-        docker ps -a
+        docker ps -a | sort -k 2
       ;;
       * )
         core_sub_cases="all, gdal, mysql, pgsql, web"
@@ -1253,7 +1191,6 @@ case "$1" in
       all)
         stop_all_container
         remove_all_container
-        remove_networks
         run_all_container
       ;;
       gdal)
@@ -1261,7 +1198,23 @@ case "$1" in
         remove_gdal_container
         run_gdal_container
       ;;
+      pgsql)
+        stop_pgsql_container
+        remove_pgsql_container
+        run_pgsql_container
+      ;;
+      mysql)
+        stop_mysql_container
+        remove_mysql_container
+        run_mysql_container
+      ;;
+      proxy)
+        stop_proxy_container
+        remove_proxy_container
+        run_proxy_container
+      ;;
       web)
+        stop_web_container
         remove_web_container
         run_web_container
       ;;
@@ -1368,7 +1321,7 @@ case "$1" in
         call_cargo_cases $1 $2 $3
       ;;
     esac
-    docker ps -a
+    docker ps -a | sort -k 2
   ;;
 
   status)
@@ -1435,7 +1388,7 @@ case "$1" in
         call_cargo_cases $1 $2 $3
       ;;
     esac
-    docker ps -a
+    docker ps -a | sort -k 2
   ;;
 
   test)

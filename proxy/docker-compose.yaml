@@ -1,0 +1,20 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:stable
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx
+      - ./letsencrypt:/etc/letsencrypt
+      - ./www:/var/www/html
+      - ./logs:/var/log/nginx
+
+  certbot:
+    image: certbot/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 24h & wait $${!}; done;'"
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+      - ./www:/var/www
+      - ./logs:/var/logs/letsencrypt
