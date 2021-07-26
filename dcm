@@ -232,6 +232,9 @@ install_docker() {
       mv /var/lib/docker $USER_DIR/docker/lib
       ln -s $USER_DIR/docker/lib/docker /var/lib/docker
       systemctl start docker
+      echo "Installiere docker-compose"
+      sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      sudo chmod +x /usr/local/bin/docker-compose
     ;;
   esac
 

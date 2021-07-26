@@ -21,7 +21,7 @@ services:
       # Environment variables with only a key are resolved to their values on the machine Compose is running on, which can be helpful for secret or host-specific values.
       - KVWMAP_INIT_PASSWORD
       - OS_USER=gisadmin
-      - IP_EXTERN=85.214.121.45
+      - IP_EXTERN=$IP_EXTERN
       - DOMAIN_EXTERN=gdi-service.de
       #- http_proxy
       #- no_proxy=localhost
