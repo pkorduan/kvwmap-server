@@ -241,6 +241,8 @@ dcm run web
 # Changelog
 # 2.2.3
 	* upgrade mapserver to 7.6.3 see https://mapserver.org/development/changelog/changelog-7-6.html#changelog-7-6
+	* add --no-install-recommends to apt-get install
+	* chmod to /usr/local/bin executables
 # 2.2.2
 	* Compile ImageMagick with rsvg support
 # 2.2.1

@@ -35,5 +35,6 @@ fi
 #  cat ~/.ssh/id_rsa.pub | ssh gisadmin@$GDAL_PORT_22_TCP_ADDR 'cat >> .ssh/authorized_keys'
 #fi
 
-echo "Rename file kvwmap-firstrun to has been executed" 
-mv /usr/local/bin/kvwmap-firstrun /usr/local/bin/kvwmap-firstrun-executed
+cmd="mv /usr/local/bin/kvwmap-firstrun /usr/local/bin/kvwmap-firstrun-executed"
+echo $cmd
+$cmd

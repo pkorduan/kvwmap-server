@@ -8,9 +8,13 @@ usage() {
   echo "Kontakt: peter.korduan@gdi-service.de"
   echo ""
   echo "Aufruf:";
-  echo "dcm command [container|all] [network]";
+  echo "dcm command service|all [network|ohne]";
   echo ""
-  echo "Varianten von command und container:"
+  echo "Varianten von command, service und network:"
+  echo "command gibt an was mit den Services gemacht werden soll."
+  echo "service gibt den Namen des Services an für den der Befehl ausgeführt werden soll. all führt den Befehl auf alle Services aus, die im docker-compose.yaml konfiguriert sind und die Cargo-Container."
+  echo "network gibt an welches Netzwerk gemeint ist. Wird kein Netzwerk angegeben wird der Befehl auf die Container im Netzwerk kvwmap_prod ausgeführt. Wird ohne angegeben werden die Befehle auf die Container angewendet, die noch nicht in einem Netzwerk sind. (Alte Variante der container)."
+  echo ""
   echo "build gdal     Erzeugt ein neues Image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
   echo "build kvwmap   Erzeugt ein neues Image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
   echo "clean          Löscht alle beendeten Container und nicht getaggete images."

@@ -22,58 +22,59 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&\
 
 RUN echo "deb http://deb.debian.org/debian buster-backports main contrib non-free" > /etc/apt/sources.list.d/backports.list
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
-    apt-utils \
-    apache2 \
-    build-essential \
-    certbot \
-    cmake \
-    cron \
-    curl \
-    dialog \
-    docker.io \
-    libfreetype6-dev \
-    gdal-bin \
-    git \
-    ghostscript \
-    htop \
-    libcairo-dev \
-    libfcgi-dev \
-    libfribidi-dev \
-    libgdal-dev \
-    libgeos-dev \
-    libharfbuzz-dev \
-    libjpeg-dev \
-    libproj-dev \
-    libpq-dev \
-    librsvg2-dev \
-    mariadb-client \
-    ntp \
-    php \
-    php-cli \
-    php-curl \
-    php-dev \
-    php-gd \
-    php-mbstring \
-    php-mysql \
-    php-pgsql \
-    php-soap \
-    php-sqlite3 \
-    php-xsl \
-    php-zip \
-    postgresql-client \
-    protobuf-compiler \
-    python-cairosvg \
-    python3-cairosvg \
-    python3-certbot-apache \
-    sudo \
-    swig \
-    unzip \
-    vim \
-    wget \
-    zip
-
-RUN apt-get clean
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+      apt-utils \
+      apache2 \
+      build-essential \
+      certbot \
+      cmake \
+      cron \
+      curl \
+      dialog \
+      docker.io \
+      libfreetype6-dev \
+      gdal-bin \
+      git \
+      ghostscript \
+      htop \
+      libcairo-dev \
+      libfcgi-dev \
+      libfribidi-dev \
+      libgdal-dev \
+      libgeos-dev \
+      libharfbuzz-dev \
+      libjpeg-dev \
+      libproj-dev \
+      libpq-dev \
+      librsvg2-dev \
+      mariadb-client \
+      ntp \
+      openssh-client \
+      php \
+      php-cli \
+      php-curl \
+      php-dev \
+      php-gd \
+      php-mbstring \
+      php-mysql \
+      php-pgsql \
+      php-soap \
+      php-sqlite3 \
+      php-xsl \
+      php-zip \
+      postgresql-client \
+      protobuf-compiler \
+      python-cairosvg \
+      python3-cairosvg \
+      python3-certbot-apache \
+      sudo \
+      swig \
+      unzip \
+      vim \
+      wget \
+      zip && \
+   rm -rf /var/lib/apt/lists/* && \
+   apt-get clean
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod authz_groupfile && \
@@ -84,11 +85,11 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod proxy && \
     a2enmod proxy_http && \
     a2enmod proxy_html && \
-    a2enmod xml2enc 
-
-RUN phpenmod zip
+    a2enmod xml2enc && \
+    phpenmod zip
 
 ADD sources /usr/local/bin
+RUN chmod a+x /usr/local/bin/kvwmap-start /usr/local/bin/kvwmap-firstrun
 
 # Install mapserver and php-mapscript
 WORKDIR /usr/local
@@ -116,10 +117,8 @@ RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
     ./configure --with-rsvg=yes && \
     make && \
     make install && \
-    ln -s /usr/local/bin/convert /usr/bin/convert
-
-# force imagemagick to make sharp images
-RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /usr/local/etc/ImageMagick-7/delegates.xml && \
+    ln -s /usr/local/bin/convert /usr/bin/convert && \
+    sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /usr/local/etc/ImageMagick-7/delegates.xml && \
     echo '<policy domain="coder" rights="read | write" pattern="PDF" />' >> /usr/local/etc/ImageMagick-7/q.xml
 
 # Install phpMyAdmin
@@ -131,27 +130,23 @@ RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.4/phpMyAdmin-5.0.4-english.
     rm phpMyAdmin-5.0.4-english.tar.gz && \
     mkdir -p /srv/www/ && \
     mv phpmyadmin /srv/www
-WORKDIR /srv/www/phpmyadmin
 
+WORKDIR /srv/www/phpmyadmin
 RUN groupadd -g 1700 ${OS_USER} && \
     useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
     usermod -G ${OS_USER} www-data && \
     chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin && \
     chmod -R g+w /srv/www/phpmyadmin && \
-    echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
-
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-RUN mkdir -p $USER_DIR/.ssh && \
-  ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
-  chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
+    echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git && \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+    mkdir -p $USER_DIR/.ssh && \
+    ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
+    chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 USER $OS_USER
-
-#RUN composer update
-
+WORKDIR $USER_DIR
 RUN git config --global user.name "Peter Korduan" && \
     git config --global user.email "peter.korduan@gdi-service.de"
 
@@ -159,7 +154,5 @@ USER root
 
 EXPOSE 80
 EXPOSE 443
-
-WORKDIR $USER_DIR
 
 CMD /usr/local/bin/kvwmap-start
