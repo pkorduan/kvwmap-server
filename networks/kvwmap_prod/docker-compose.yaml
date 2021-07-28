@@ -22,7 +22,7 @@ services:
       - KVWMAP_INIT_PASSWORD
       - OS_USER=gisadmin
       - IP_EXTERN=$IP_EXTERN
-      - DOMAIN_EXTERN=gdi-service.de
+      - DOMAIN_EXTERN=$DOMAIN_EXTERN
       #- http_proxy
       #- no_proxy=localhost
       - TERM=linux
