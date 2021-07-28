@@ -50,7 +50,7 @@ services:
         aliases:
           - mysql
     environment:
-      - MYSQL_ROOT_PASSWORD
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
       - TERM=xterm
       - COLUMNS=180
       - LINES=200
@@ -70,7 +70,7 @@ services:
     ports:
       - 5432:5432
     environment:
-      - POSTGRES_PASSWORD
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
       - PGSQL_DB=postgres
       - PGSQL_USER=postgres
       - PGSQL_PASSFILE=/root/.pgpass
