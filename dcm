@@ -15,86 +15,87 @@ usage() {
   echo "service gibt den Namen des Services an für den der Befehl ausgeführt werden soll. all führt den Befehl auf alle Services aus, die im docker-compose.yaml konfiguriert sind und die Cargo-Container."
   echo "network gibt an welches Netzwerk gemeint ist. Wird kein Netzwerk angegeben wird der Befehl auf die Container im Netzwerk kvwmap_prod ausgeführt. Wird ohne angegeben werden die Befehle auf die Container angewendet, die noch nicht in einem Netzwerk sind. (Alte Variante der container)."
   echo ""
-  echo "build gdal     Erzeugt ein neues Image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
-  echo "build kvwmap   Erzeugt ein neues Image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
-  echo "clean          Löscht alle beendeten Container und nicht getaggete images."
-  echo "console mysql  Öffnet eine Console im Mysql Container."
-  echo "console pgsql  Öffnet eine Console im PostgreSQL Container."
-  echo "console web    Öffnet eine Console im Web Container"
-  echo "create network Erzeugt ein Netzwerk je nach Namen im 3. Parameter network"
-  echo "install        - Installiert auf dem Hostrechner den Docker-Server und Utilities zum Betrieb der Container,"
-  echo "               - Richtet ggf. benötigte Verzeichnisse und lokale Dateien für den Betrieb der Container ein."
-  echo "install all    Installiert die Voraussetzungen zum Betrieb aller Container."
-  echo "install kvwmap Installiert die Voraussetzungen zum Betrieb des web Containers."
-  echo "install pydio  Installiert pydio Image."
-  echo "mysql client   Öffnet eine Komandozeile im mysql Client."
-  echo "mysql start    Startet nur den Container mit der MySQL-Datenbank (mysql-server)"
-  echo "mysql status   Zeigt den Status des MySQL Containers an."
-  echo "mysql stop     Stoppt den MySQL Container und zeigt alle vorhandenen an."
-  echo "mysql remove   Löscht den MySQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
-  echo "mysql run      Erzeugt und startet den MySQL Container mit dem Namen mysql-server."
-  echo "pgsql client   Öffnet eine Komandozeile im psql Client."
-  echo "pgsql start    Startet nur den Container mit der PostgreSQL-Datenbank (pgsql-server)."
-  echo "pgsql status   Zeigt den Status des PostgreSQL-Datenbank Containers an."
-  echo "pgsql stop     Stoppt den PostgreSQL Container und zeigt alle vorhandenen an."
-  echo "pgsql remove   Löscht den PostgreSQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
-  echo "pgsql run      Erzeugt und startet den PostgreSQL Container mit dem Namen pgsql-server."
-  echo "pgsql allowip <IP> Führt das Script allowip im postgres data Verzeichnis aus, welches die IP in die pg_hba.conf einträgt für einen externen Zugriff."
-  echo "rebuild        Stoppt und löscht Container, löscht images, die neu gebildet werden sollen, bildet diese neu und erzeugt und startet danach Container neu."
-  echo "rebuild all    Stoppt, löscht und restartet zum rebuild des Web Containers alle Container."
-  echo "rebuild gdal   Stoppt und löscht den gdal Container, löscht und rebuild das image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} neu und run gdal Container neu."
-  echo "rebuild web    Macht ein Rebuild vom image kvwmap-server:#{KVWMAP_IMAGE_VERSION}."
-  echo "reload         Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
-  echo "reload all     Läd alle Container neu."
-  echo "reload web     Läd nur den Web Container neu."
-  echo "reload proxy   Läd die Konfiguration vom Proxy-Container neu, z.B. nach Änderungen im Verzeichnis config/conf.d"
-  echo "rm             Löscht Container."
-  echo "rm all         Löscht alle Container."
-  echo "rm mysql       Löscht nur den Container mysql-server."
-  echo "rm pgsql       Löscht nur den Container pgsql-server."
-  echo "rm web         Löscht nur den Container web."
-  echo "rm network     Löscht das Netzwerk mit dem Namen aus dem 3. Parameter network"
-  echo "rerun          Stoppt und löscht alle oder die angegebenen Container und erzeugt und startet sie danach wieder."
-  echo "rerun all      Rerun für alle Container."
-  echo "rerun gdal     Stopped und löscht nur den gdal Container und erzeugt und startet ihn anschließend neu."
-  echo "rerun web      Stopped und löscht nur den web Container und erzeugt und startet ihn anschließend neu."
-  echo "restart        Stoppt und löscht Container und erzeugt und startet sie neu wie beim Parameter run."
-  echo "restart all    Führt es für alle Container aus."
-  echo "restart web    Führt es nur für den web Container aus."
-  echo "run            Erzeugt und startet alle oder den angegebenen Container."
-  echo "run all        Erzeugt und startet alle Container."
-  echo "run proxy      Erzeugt und startet nur den Container proxy."
-  echo "run gdal       Erzeugt und startet nur den Container gdal."
-  echo "run mysql      Erzeugt und startet nur den Container mysql-server."
-  echo "run pgsql      Erzeugt und startet nur den Container pgsql-server."
-  echo "run web        Erzeugt und startet nur den Container web."
-  echo "show_ip        Zeigt die IP Adressen der Container an. Der Containername als zusätzlicher Parameter zeigt nur die IP dieses Containers an."
-  echo "start          Startet alle oder den angegebenen Container."
-  echo "start all      Startet alle Container."
-  echo "start proxy    Startet den Proxy Container."
-  echo "start mysql    Startet nur den Container mysql-server."
-  echo "start pgsql    Startet nur den Container pgsql-server."
-  echo "start pydio    Startet nur den Container pydio."
-  echo "start web      Startet nur den Container web."
-  echo "status         Listet Status der angegebenen Container auf."
-  echo "status all     Listet den Status aller Container auf."
-  echo "status mysql   Listet den Status des Containers mysql-server."
-  echo "status pgsql   Listet den Status des Containers pgsql-server."
-  echo "status web     Listet den Status des Containers web"
-  echo "stop           Stoppt alle oder einen der angegebenen Container."
-  echo "stop all       Stoppt alle Container."
-  echo "stop mysql     Stoppt nur den Container mysql-server."
-  echo "stop pgsql     Stoppt nur den Container pgsql-server."
-  echo "stop web       Stoppt nur den Container web."
-  echo "uninstall      Vorsicht, Stoppt und löscht Container, löscht Images und deinstalliert eingerichtete Verzeichnisse auf dem Host-Rechner."
-  echo "uninstall all  Deinstalliert alle images."
-  echo "uninsall gdal  Deinstalliert das gdal image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
-  echo "uninstall kvwmap Deinstalliert kvwmap-server."
-  echo "               Dazu gehört alles in  ${WWW_ROOT} sowie die Verzeichnisse db, etc und kvwmap-server"
-  echo "               unter dem Installationsverzeichnis z.B. unter /home/gisadmin"
-  echo "               Damit werden auch alle Daten und Datenbankinhalte gelöscht."
-  echo "update cron    Aktualisiert umgehend die cronjobs des Nutzers gisadmin im Web Container durch die Eintragungen,"
-  echo "               die mit kvwmap in die Datei /var/www/cron/crontab_gisadmin geschrieben wurden."
+  echo "build gdal      Erzeugt ein neues Image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
+  echo "build kvwmap    Erzeugt ein neues Image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION} an Hand des lokalen Dockerfiles."
+  echo "clean           Löscht alle beendeten Container und nicht getaggete images."
+  echo "console mysql   Öffnet eine Console im Mysql Container."
+  echo "console pgsql   Öffnet eine Console im PostgreSQL Container."
+  echo "console web     Öffnet eine Console im Web Container"
+  echo "create network  Erzeugt ein Netzwerk je nach Namen im 3. Parameter network"
+  echo "install         - Installiert auf dem Hostrechner den Docker-Server und Utilities zum Betrieb der Container,"
+  echo "                - Richtet ggf. benötigte Verzeichnisse und lokale Dateien für den Betrieb der Container ein."
+  echo "install all     Installiert die Voraussetzungen zum Betrieb aller Container."
+  echo "install kvwmap  Installiert die Voraussetzungen zum Betrieb des web Containers."
+  echo "install network Installiert die erforderlichen Ressourcen zum Betrieb des Netzwerkes mit dem Namen kvwmap_<network>. z.B. install network prod"
+  echo "install pydio   Installiert pydio Image."
+  echo "mysql client    Öffnet eine Komandozeile im mysql Client."
+  echo "mysql start     Startet nur den Container mit der MySQL-Datenbank (mysql-server)"
+  echo "mysql status    Zeigt den Status des MySQL Containers an."
+  echo "mysql stop      Stoppt den MySQL Container und zeigt alle vorhandenen an."
+  echo "mysql remove    Löscht den MySQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
+  echo "mysql run       Erzeugt und startet den MySQL Container mit dem Namen mysql-server."
+  echo "pgsql client    Öffnet eine Komandozeile im psql Client."
+  echo "pgsql start     Startet nur den Container mit der PostgreSQL-Datenbank (pgsql-server)."
+  echo "pgsql status    Zeigt den Status des PostgreSQL-Datenbank Containers an."
+  echo "pgsql stop      Stoppt den PostgreSQL Container und zeigt alle vorhandenen an."
+  echo "pgsql remove    Löscht den PostgreSQL Container und zeigt die verbleibenden an. Der Container muss vorher gestoppt worden sein."
+  echo "pgsql run       Erzeugt und startet den PostgreSQL Container mit dem Namen pgsql-server."
+  echo "pgsql allowip < IP> Führt das Script allowip im postgres data Verzeichnis aus, welches die IP in die pg_hba.conf einträgt für einen externen Zugriff."
+  echo "rebuild         Stoppt und löscht Container, löscht images, die neu gebildet werden sollen, bildet diese neu und erzeugt und startet danach Container neu."
+  echo "rebuild all     Stoppt, löscht und restartet zum rebuild des Web Containers alle Container."
+  echo "rebuild gdal    Stoppt und löscht den gdal Container, löscht und rebuild das image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} neu und run gdal Container neu."
+  echo "rebuild web     Macht ein Rebuild vom image kvwmap-server:#{KVWMAP_IMAGE_VERSION}."
+  echo "reload          Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
+  echo "reload all      Läd alle Container neu."
+  echo "reload web      Läd nur den Web Container neu."
+  echo "reload proxy    Läd die Konfiguration vom Proxy-Container neu, z.B. nach Änderungen im Verzeichnis config/conf.d"
+  echo "rm              Löscht Container."
+  echo "rm all          Löscht alle Container."
+  echo "rm mysql        Löscht nur den Container mysql-server."
+  echo "rm pgsql        Löscht nur den Container pgsql-server."
+  echo "rm web          Löscht nur den Container web."
+  echo "rm network      Löscht das Netzwerk mit dem Namen aus dem 3. Parameter network"
+  echo "rerun           Stoppt und löscht alle oder die angegebenen Container und erzeugt und startet sie danach wieder."
+  echo "rerun all       Rerun für alle Container."
+  echo "rerun gdal      Stopped und löscht nur den gdal Container und erzeugt und startet ihn anschließend neu."
+  echo "rerun web       Stopped und löscht nur den web Container und erzeugt und startet ihn anschließend neu."
+  echo "restart         Stoppt und löscht Container und erzeugt und startet sie neu wie beim Parameter run."
+  echo "restart all     Führt es für alle Container aus."
+  echo "restart web     Führt es nur für den web Container aus."
+  echo "run             Erzeugt und startet alle oder den angegebenen Container."
+  echo "run all         Erzeugt und startet alle Container."
+  echo "run proxy       Erzeugt und startet nur den Container proxy."
+  echo "run gdal        Erzeugt und startet nur den Container gdal."
+  echo "run mysql       Erzeugt und startet nur den Container mysql-server."
+  echo "run pgsql       Erzeugt und startet nur den Container pgsql-server."
+  echo "run web         Erzeugt und startet nur den Container web."
+  echo "show_ip         Zeigt die IP Adressen der Container an. Der Containername als zusätzlicher Parameter zeigt nur die IP dieses Containers an."
+  echo "start           Startet alle oder den angegebenen Container."
+  echo "start all       Startet alle Container."
+  echo "start proxy     Startet den Proxy Container."
+  echo "start mysql     Startet nur den Container mysql-server."
+  echo "start pgsql     Startet nur den Container pgsql-server."
+  echo "start pydio     Startet nur den Container pydio."
+  echo "start web       Startet nur den Container web."
+  echo "status          Listet Status der angegebenen Container auf."
+  echo "status all      Listet den Status aller Container auf."
+  echo "status mysql    Listet den Status des Containers mysql-server."
+  echo "status pgsql    Listet den Status des Containers pgsql-server."
+  echo "status web      Listet den Status des Containers web"
+  echo "stop            Stoppt alle oder einen der angegebenen Container."
+  echo "stop all        Stoppt alle Container."
+  echo "stop mysql      Stoppt nur den Container mysql-server."
+  echo "stop pgsql      Stoppt nur den Container pgsql-server."
+  echo "stop web        Stoppt nur den Container web."
+  echo "uninstall       Vorsicht, Stoppt und löscht Container, löscht Images und deinstalliert eingerichtete Verzeichnisse auf dem Host-Rechner."
+  echo "uninstall all   Deinstalliert alle images."
+  echo "uninsall gdal   Deinstalliert das gdal image pkorduan/gdal-ssh:${GDAL_IMAGE_VERSION} und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+  echo "uninstall kvwma p Deinstalliert kvwmap-server."
+  echo "                Dazu gehört alles in  ${WWW_ROOT} sowie die Verzeichnisse db, etc und kvwmap-server"
+  echo "                unter dem Installationsverzeichnis z.B. unter /home/gisadmin"
+  echo "                Damit werden auch alle Daten und Datenbankinhalte gelöscht."
+  echo "update cron     Aktualisiert umgehend die cronjobs des Nutzers gisadmin im Web Container durch die Eintragungen,"
+  echo "                die mit kvwmap in die Datei /var/www/cron/crontab_gisadmin geschrieben wurden."
   echo ""
   echo "Als Netzwerknamen können alle in kvwmap-server/config/config definierten Cases verwendet werden. Defaultmäßig sind die kvwmap_prod, kvwmap_dev und kvwmap_test verfügbar."
   echo "Ohne Angabe des Netzwerknames wird kvwmap_prod verwendet!"
@@ -180,8 +181,8 @@ fail_unless_root() {
       echo "/usr/sbin/usermod -a -G docker ${dcm_user}"
       echo "zur Gruppe von docker hinzu."
       exit 1
-    else
-      echo "${dcm_user} in gruppe ${dcm_user_group}"
+#    else
+      #echo "${dcm_user} in gruppe ${dcm_user_group}"
     fi
   fi
 }
@@ -253,6 +254,41 @@ install_docker() {
 
   git config --global user.email "peter.korduan@gdi-service.de"
   git config --global user.name "Peter Korduan"
+}
+
+install_kvwmap_network() {
+  echo "Installiere Voraussetzungen für den Betrieb des Netzwerkes $network_name"
+  if [ -d "$USER_DIR/networks/$network_name" ]; then
+    read -p "Netzwerk $network_name existiert bereits. Soll es gelöscht und neu angelegt werden (j/n)? " answer
+    case ${answer:0:1} in
+      j|Y )
+        if [ ! "$(whoami)" == "root" ] ; then
+          echo "Die Funktion kann nur als root ausgeführt werden. Abbruch!"
+          return
+        fi
+        rm -R "$USER_DIR/networks/$network_name"
+      ;;
+      * )
+        echo "OK, nix passiert!"
+        return
+      ;;
+    esac
+  fi
+  cp -Rp "$USER_DIR/kvwmap-server/networks/$network_name" "$USER_DIR/networks/$network_name"
+  echo "Verzeichnis $USER_DIR/networks/$network_name neu angelgt."
+  if [ ! -d "$USER_DIR/proxy" ]; then
+    read -p "Das proxy Verzeichnis fehlt auch noch. Soll es jetzt auch angelegt werden? (j/n)? " answer
+    case ${answer:0:1} in
+      j|Y )
+        cp -Rp "$USER_DIR/kvwmap_server/proxy $USER_DIR/proxy" 
+      ;;
+      * )
+        echo "OK, nix passiert!"
+      ;;
+    esac
+  fi
+  echo "fertig
+  "
 }
 
 install_kvwmap_images() {
@@ -808,7 +844,7 @@ else
   CONFIG_FILE=$CONFIG_FILE/config/config-default
 fi
 
-echo "Load config file ${CONFIG_FILE}"
+#echo "Load config file ${CONFIG_FILE}"
 source $CONFIG_FILE
 
 fail_unless_root
@@ -958,19 +994,30 @@ case "$1" in
   ;;
 
   install)
-    echo "
-    Erzeuge user: ${OS_USER} ..."
-    # create user for web gis anwendung if not exists
-    $OS_USER_EXISTS || adduser $OS_USER
-    /usr/sbin/usermod -u 17000 $OS_USER
-    /usr/sbin/groupmod -g 1700 $OS_USER
+    if ! id "${OS_USER}" >/dev/null 2>&1; then
+      echo "
+      Erzeuge user: ${OS_USER} ..."
+      # create user for web gis anwendung if not exists
+      $OS_USER_EXISTS || adduser $OS_USER
+      /usr/sbin/usermod -u 17000 $OS_USER
+      /usr/sbin/groupmod -g 1700 $OS_USER
+    fi
+
     if [ ! -f /usr/bin/docker ]; then
       install_docker
     fi
+
     case $2 in
       all)
         install_kvwmap_images
         install_cargos
+      ;;
+      network)
+        if [ "$network_name" == "kvwmap_ohne" ] ; then
+          echo "Das Netzwerk $network_name wird nicht unterstützt."
+        else
+          install_kvwmap_network
+        fi
       ;;
       kvwmap)
         install_kvwmap_images
