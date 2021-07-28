@@ -478,7 +478,11 @@ remove_web_container() {
 
 remove_container() {
   echo "Entferne Container $1 in Netzwerk ${network_name}"
-  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s $1"
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    cmd="docker rm $1"
+  else
+    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s $1"
+  fi
   echo $cmd
   $cmd
 }
@@ -525,39 +529,37 @@ run_pgsql_container() {
 }
 
 run_web_container() {
-  echo "Starte container web im Netzwerk: ${network_name}"
-  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d web"
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    source $USER_DIR/etc/web/env_and_volumes
 
-#  if [ -n "${container_version}" ] ; then
-#    source $USER_DIR/etc/web/env_and_volumes_${container_version}
-#  else
-#    source $USER_DIR/etc/web/env_and_volumes
-#  fi
+    if [ -z "${web_hosts}" ]; then
+      web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
+                 --add-host=$SERVER_NAME:${IP_EXTERN}"
+    fi
 
-#  if [ -z "${web_hosts}" ]; then
-#    web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
-#               --add-host=$SERVER_NAME:${IP_EXTERN}"
-#  fi
+    if [ -z "${web_ports}" ]; then
+      web_ports="-p 80:80 \
+                 -p 443:443"
+    fi
 
-#  if [ -z "${web_ports}" ]; then
-#    web_ports="-p 80:80 \
-#               -p 443:443"
-#  fi
-
-#  create_bridge_network
-#  echo "Starte web Container:"
-#  cmd="docker run\
-#    -h ${SERVER_NAME}-web-container${container_version}\
-#    --name web${container_version}\
-#    --network $network_name\
-#    --net-alias web\
-#    --restart=always\
-#    $web_env_vars\
-#    $web_volumes\
-#    $web_hosts\
-#    $web_ports\
-#    -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}\
-#  "
+    create_bridge_network
+    echo "Starte web Container:"
+    cmd="docker run\
+      -h ${SERVER_NAME}-web-container\
+      --name web\
+      --network kvwmap_prod\
+      --net-alias web\
+      --restart=always\
+      $web_env_vars\
+      $web_volumes\
+      $web_hosts\
+      $web_ports\
+      -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}\
+    "
+  else
+    echo "Starte container web im Netzwerk: ${network_name}"
+    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d web"
+  fi
   echo $cmd
   $cmd
 }
@@ -681,8 +683,11 @@ stop_all_container() {
 
 stop_container() {
   echo "Stoppe container $1 in Network: ${network_name}"
-  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml stop $1"
-#  cmd="docker stop $1"
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    cmd="docker stop $1"
+  else
+    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml stop $1"
+  fi
   echo $cmd
   $cmd
 }
@@ -803,7 +808,7 @@ else
   CONFIG_FILE=$CONFIG_FILE/config/config-default
 fi
 
-#echo "Load config file ${CONFIG_FILE}"
+echo "Load config file ${CONFIG_FILE}"
 source $CONFIG_FILE
 
 fail_unless_root
