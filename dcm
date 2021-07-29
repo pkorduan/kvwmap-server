@@ -258,7 +258,7 @@ install_docker() {
 
 install_kvwmap_network() {
   echo "Installiere Voraussetzungen für den Betrieb des Netzwerkes $network_name"
-  if [ -d "$USER_DIR/networks/$network_name" ]; then
+  if [ -d "$NETWORK_DIR" ]; then
     read -p "Netzwerk $network_name existiert bereits. Soll es gelöscht und neu angelegt werden (j/n)? " answer
     case ${answer:0:1} in
       j|Y )
@@ -266,7 +266,7 @@ install_kvwmap_network() {
           echo "Die Funktion kann nur als root ausgeführt werden. Abbruch!"
           return
         fi
-        rm -R "$USER_DIR/networks/$network_name"
+        rm -R "$NETWORK_DIR"
       ;;
       * )
         echo "OK, nix passiert!"
@@ -274,8 +274,8 @@ install_kvwmap_network() {
       ;;
     esac
   fi
-  cp -Rp "$USER_DIR/kvwmap-server/networks/$network_name" "$USER_DIR/networks/$network_name"
-  echo "Verzeichnis $USER_DIR/networks/$network_name neu angelgt."
+  cp -Rp "$USER_DIR/kvwmap-server/networks/$network_name" "$NETWORK_DIR"
+  echo "Verzeichnis $NETWORK_DIR neu angelgt."
   if [ ! -d "$USER_DIR/proxy" ]; then
     read -p "Das proxy Verzeichnis fehlt auch noch. Soll es jetzt auch angelegt werden? (j/n)? " answer
     case ${answer:0:1} in
@@ -293,6 +293,10 @@ install_kvwmap_network() {
 
 install_kvwmap_images() {
   echo "Installiere Voraussetzungen für den Betrieb von kvwmap ..."
+  if [ ! "$(whoami)" == "root" ] ; then
+    echo "Die Funktion kann nur als root ausgeführt werden. Abbruch!"
+    return
+  fi
 
   /usr/sbin/usermod -a -G docker $OS_USER
 
@@ -315,88 +319,46 @@ install_kvwmap_images() {
 
   source ~/.bashrc
 
-  echo "Erzeuge www_root Verzeichnis."
-  mkdir -p $WWW_ROOT
-
-  echo "Kopiere www Verzeichnisse die vordefinierte Daten enthalten, apps, cron, data, html."
-  cp -R $USER_DIR/kvwmap-server/www/* $WWW_ROOT
+  install_kvwmap_network
 
   echo "
   Erzeuge restliche Verzeichnisstruktur für die Datenbank und Web-Anwendungen von kvwmap ..."
-  # create directories
-  mkdir -p $DB_ROOT/mysql \
-           $DB_ROOT/postgresql/data \
-           $USER_DIR/etc \
-           $WWW_ROOT/logs \
-           $WWW_ROOT/logs/apache2 \
-           $WWW_ROOT/logs/cron \
-           $WWW_ROOT/logs/pgsql \
-           $WWW_ROOT/logs/mysql \
-           $WWW_ROOT/tmp \
-           $WWW_ROOT/cache \
-           $WWW_ROOT/wms \
-           $WWW_ROOT/data/synchro \
-           $WWW_ROOT/data/upload \
-           $WWW_ROOT/data/druckrahmen \
-           $WWW_ROOT/data/bilder \
-           $WWW_ROOT/data/alb \
-           $WWW_ROOT/data/nachweise \
-           $WWW_ROOT/data/recherchierte_antraege \
-           $WWW_ROOT/data/festpunkte/archiv
 
-  ln -s $WWW_ROOT $USER_DIR/www
-  ln -s $DB_ROOT $USER_DIR/db
+  ln -s "$NETWORK_DIR/web/www" "$USER_DIR/www"
+  mkdir -p "$USER_DIR/db"
+  ln -s "$NETWORK_DIR/mysql/data" "$USER_DIR/db/mysql"
+  ln -s "$NETWORK_DIR/pgsql/data" "$USER_DIR/db/postgresql"
 
   echo "
-  Kopiere Konfigurationsdateien für Apache Web-Server ..."
-  cp -R $USER_DIR/kvwmap-server/etc/apache2 $USER_DIR/etc/
-  cp -R $USER_DIR/kvwmap-server/etc/gdal $USER_DIR/etc/
-  cp -R $USER_DIR/kvwmap-server/etc/mysql $USER_DIR/etc/
-  cp -R $USER_DIR/kvwmap-server/etc/postgresql $USER_DIR/etc/
-  cp -R $USER_DIR/kvwmap-server/etc/php5 $USER_DIR/etc/
-  cp -R $USER_DIR/kvwmap-server/etc/php $USER_DIR/etc/
-  cp -R $USER_DIR/kvwmap-server/etc/phpmyadmin $USER_DIR/etc/
-  cp -R $USER_DIR/kvwmap-server/etc/proj $USER_DIR/etc/
-  cp -R $USER_DIR/kvwmap-server/etc/web $USER_DIR/etc/
-
-  echo "
-  Erzeuge Unterverzeichnisse im Apache Konfigurationsverzeichnis..."
-  mkdir -p $USER_DIR/etc/apache2/sites-enabled \
-           $USER_DIR/etc/apache2/ssl \
-           $USER_DIR/etc/apache2/letsencrypt
-
-  echo "
-  Erzeuge Links für den Zugriff auf die Datenbankverzeichnisse ..."
-  # create links to have access to the postgres config files, even if the files do not exist yet
-  ln -s $DB_ROOT/postgresql/data/pg_hba.conf $USER_DIR/etc/postgresql/pg_hba.conf
-  ln -s $DB_ROOT/postgresql/data/postgresql.conf $USER_DIR/etc/postgresql/postgresql.conf
+  Erzeuge Unterverzeichnis sites-enabled im Apache Konfigurationsverzeichnis..."
+  mkdir -p "$NETWORK_DIR/web/apache2/sites-enabled"
 
   echo "
   Setze Servername für Apache default Konfiguration ..."
   # Servername in Apache default Konfiguration eintragen
-  sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" $USER_DIR/etc/apache2/sites-available/000-default.conf
+  sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" "$NETWORK_DIR/web/apache2/sites-available/000-default.conf"
 
   echo "
   Clone kvwmap von github ins Web-Verzeichnis ..."
-  if [ ! -d "${WWW_ROOT}/apps/kvwmap" ]; then
+  if [ ! -d "${USER_DIR}/networks/$network_name/web/www/apps/kvwmap" ]; then
     # clone kvwmap repository into apps
-    git clone https://github.com/srahn/kvwmap.git $WWW_ROOT/apps/kvwmap
-    cd $WWW_ROOT/apps/kvwmap
+    git clone https://github.com/srahn/kvwmap.git "$NETWORK_DIR/web/www/apps/kvwmap"
+    cd "$NETWORK_DIR/web/www/apps/kvwmap"
     git checkout develop
   fi
 
   echo "
   Erzeuge kvwmap custom Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
-  mkdir -p $WWW_ROOT/apps/kvwmap/custom/fonts \
-           $WWW_ROOT/apps/kvwmap/custom/graphics \
-           $WWW_ROOT/apps/kvwmap/custom/wappen \
-           $WWW_ROOT/apps/kvwmap/custom/layouts \
-           $WWW_ROOT/apps/kvwmap/custom/layouts/snippets \
-           $WWW_ROOT/apps/kvwmap/custom/symbols
+  mkdir -p $NETWORK_DIR/web/www/apps/kvwmap/custom/fonts \
+           $NETWORK_DIR/web/www/apps/kvwmap/custom/graphics \
+           $NETWORK_DIR/web/www/apps/kvwmap/custom/wappen \
+           $NETWORK_DIR/web/www/apps/kvwmap/custom/layouts \
+           $NETWORK_DIR/web/www/apps/kvwmap/custom/layouts/snippets \
+           $NETWORK_DIR/web/www/apps/kvwmap/custom/symbols
 
-  touch $WWW_ROOT/apps/kvwmap/custom/layouts/custom.css
+  touch $NETWORK_DIR/web/www/apps/kvwmap/custom/layouts/custom.css
 
-  wget -O $WWW_ROOT/apps/kvwmap/custom/wappen/Logo_GDI-Service_200x47.png https://gdi-service.de/public/kvwmap_resources/Logo_GDI-Service_200x47.png
+  wget -O $NETWORK_DIR/web/www/apps/kvwmap/custom/wappen/Logo_GDI-Service_200x47.png https://gdi-service.de/public/kvwmap_resources/Logo_GDI-Service_200x47.png
 
   echo "#geo_name_search_field {
     width: 100%;
@@ -404,24 +366,26 @@ install_kvwmap_images() {
 
   #search_div {
     display: none;
-  }" >> $WWW_ROOT/apps/kvwmap/custom/layouts/custom.css
+  }" >> $NETWORK_DIR/web/www/apps/kvwmap/custom/layouts/custom.css
 
-  cd $WWW_ROOT/apps
+  cd $NETWORK_DIR/web/www/apps
 
   echo "
   Setze Rechte auf kvwmap Datenverzeichnisse ..."
-  chown -R $OS_USER.$OS_USER $USER_DIR $WWW_ROOT
-  chmod -R g+w $WWW_ROOT
+  chown -R $OS_USER.$OS_USER $USER_DIR $NETWORK_DIR/web/www
+  chmod -R g+w $NETWORK_DIR/web/www
 
   echo "
   Setze Rechte auf logs Verzeichnisse ..."
-  chown 999.gisadmin $WWW_ROOT/logs/pgsql
-  chmod a+r $WWW_ROOT/logs/pgsql
+  chown 999.gisadmin $NETWORK_DIR/pgsql/logs
+  chmod a+r $NETWORK_DIR/pgsql/logs
 
   echo "
   Setze Rechte 600 auf .pgpass ..."
-  chown root.root $USER_DIR/etc/postgresql/.pgpass
-  chmod 600 $USER_DIR/etc/postgresql/.pgpass
+  chown root.root $NETWORK_DIR/pgsql/.pgpass
+  chmod 600 $NETWORK_DIR/pgsql/.pgpass
+  chown gisadmin.gisadmin $NETWORK_DIR/pgsql/.pgpass_gisadmin
+  chmod 600 $NETWORK_DIR/pgsql/.pgpass_gisadmin
 
   echo "
   Nächste Schritte zum installieren von kvwmap:"
@@ -834,6 +798,7 @@ else
   network_name="kvwmap_$3"
 fi
 export network_name=$network_name
+NETWORK_DIR="${USER_DIR}/networks/$network_name"
 
 #load settings
 CONFIG_FILE=$( dirname "${BASH_SOURCE[0]}" )
