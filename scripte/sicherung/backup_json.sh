@@ -33,6 +33,7 @@
 #   #2021_06_28   	1.	".tar_differential_backup_duration" eingeführt
 #                               ".tar[].exclude" eingeführt
 #   #2021_07_09         1.      rm -f beim löschen von tar.difflog verwenden um Nachfragen zu vermeiden
+#   #2021_08_02         1. $LOGFILE wird nicht mehr ins log.json integriert
 #########################################################
 
 #########################################################
@@ -443,9 +444,9 @@ cat << EOF
 "LOG":"
 EOF
 )                > "$JSON_LOG"
-cat "$LOGFILE"  >> "$JSON_LOG"
+#cat "$LOGFILE"  >> "$JSON_LOG"
 echo "\"}"      >> "$JSON_LOG"
 
-rm "$LOGFILE"
+#rm "$LOGFILE"
 
 exit 0
