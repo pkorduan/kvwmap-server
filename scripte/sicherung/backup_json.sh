@@ -441,11 +441,10 @@ cat << EOF
 "PGDUMPALL_ERROR":"$step_pgsql_error",
 "RSYNC_ERROR":"$step_rsync_error",
 "SIZE_OF_BACKUP":"$size_of_backup",
-"LOG":"
 EOF
 )                > "$JSON_LOG"
 #cat "$LOGFILE"  >> "$JSON_LOG"
-echo "\"}"      >> "$JSON_LOG"
+echo "}"      >> "$JSON_LOG"
 
 #rm "$LOGFILE"
 
