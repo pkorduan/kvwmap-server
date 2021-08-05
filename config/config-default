@@ -9,11 +9,11 @@ USER_DIR=/home/$OS_USER
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
-SERVER_NAME=$(hostname)
+export SERVER_NAME=$(hostname)
 echo "Folgenden Hostname ermittelt: $SERVER_NAME"
-DOMAIN_NAME=$(hostname --fqd)
+export DOMAIN_NAME=$(hostname)
 echo "Folgenden Domainname ermittelt: $DOMAIN_NAME"
-IP_EXTERN=$(hostname -I | awk '{print $1}')
+export IP_EXTERN=$(hostname -I | awk '{print $1}')
 echo "Folgende IP ermittelt: $IP_EXTERN"
 CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
