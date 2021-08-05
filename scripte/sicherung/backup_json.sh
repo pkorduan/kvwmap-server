@@ -35,6 +35,7 @@
 #   #2021_07_09         1.      rm -f beim löschen von tar.difflog verwenden um Nachfragen zu vermeiden
 #   #2021_08_02         1. $LOGFILE wird nicht mehr ins log.json integriert
 #   #2021_08_04		1. Prüfung ob JSON-Config-Datei syntaktisch ok ist
+#   #2021_08_05		1. Fixed bug im #2021_08_04
 #########################################################
 
 #########################################################
@@ -67,11 +68,13 @@ debug=TRUE
 ## # JSON pruefen                                       #
 #########################################################
 
-cat $CONFIG_FILE | jq > /dev/null 2>&1
-if [[ $? -ne 0 ]]; then
+dummy=$(cat $CONFIG_FILE | jq '.')
+if [ $? -gt 0 ]; then
     ABORT_BACKUP=TRUE
     echo "Config-Datei ungültig!"
     exit 1
+else
+    ABORT_BACKUP=FALSE
 fi
 
 #########################################################
