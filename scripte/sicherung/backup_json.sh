@@ -33,6 +33,8 @@
 #   #2021_06_28   	1.	".tar_differential_backup_duration" eingeführt
 #                               ".tar[].exclude" eingeführt
 #   #2021_07_09         1.      rm -f beim löschen von tar.difflog verwenden um Nachfragen zu vermeiden
+#   #2021_08_02         1. $LOGFILE wird nicht mehr ins log.json integriert
+#   #2021_08_04		1. Prüfung ob JSON-Config-Datei syntaktisch ok ist
 #########################################################
 
 #########################################################
@@ -61,8 +63,21 @@ DELETED_TARLOG=TRUE
 # DEBUG-Messages to stdout
 debug=TRUE
 
-# Verzeichnisse
-#BACKUP_DIR=$(cat $CONFIG_FILE | jq -r '(.backup_path + "/" + .backup_folder)')
+#########################################################
+## # JSON pruefen                                       #
+#########################################################
+
+cat $CONFIG_FILE | jq > /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+    ABORT_BACKUP=TRUE
+    echo "Config-Datei ungültig!"
+    exit 1
+fi
+
+#########################################################
+## # Verzeichnisse                                      #
+#########################################################
+
 BACKUP_FOLDER=$(cat $CONFIG_FILE | jq -r '(.backup_folder)')
 BACKUP_FOLDER=$($BACKUP_FOLDER) #variable expansion for dates etc.
 BACKUP_PATH=$(cat $CONFIG_FILE | jq -r '.backup_path')
@@ -296,20 +311,21 @@ timestamp_backup_start=$(date +"%s")
 #########################################################
 ## # Speicherplatz prüfen                               #
 #########################################################
-if [ -d "$BACKUP_PATH"/latest ]; then
-    size_latest_backup=$(du -s "$BACKUP_PATH"/latest/ | cut -d$'\t' -f 1)
-    df_size=$(df "$BACKUP_PATH"/latest/ | awk 'NR>1{print $4}')
-    echo "Größe letzte Sicherung: $size_latest_backup" >> "$LOGFILE"
-    echo "Verfügbarer Speicherplatz: $df_size" >> "$LOGFILE"
-    #if  [ $size_latest_backup -gt $df_size ]; then
-    if  [ $df_size -lt $size_latest_backup ]; then
-        echo "Nicht genügend Speicherplatz vorhanden. Backup wird abgebrochen!" >> "$LOGFILE"
-        ABORT_BACKUP=TRUE
+if [ "$ABORT_BACKUP" = FALSE ]; then
+    if [ -d "$BACKUP_PATH"/latest ]; then
+        size_latest_backup=$(du -s "$BACKUP_PATH"/latest/ | cut -d$'\t' -f 1)
+        df_size=$(df "$BACKUP_PATH"/latest/ | awk 'NR>1{print $4}')
+        echo "Größe letzte Sicherung: $size_latest_backup" >> "$LOGFILE"
+        echo "Verfügbarer Speicherplatz: $df_size" >> "$LOGFILE"
+        if  [ $df_size -lt $size_latest_backup ]; then
+            echo "Nicht genügend Speicherplatz vorhanden. Backup wird abgebrochen!" >> "$LOGFILE"
+            ABORT_BACKUP=TRUE
+        else
+            ABORT_BACKUP=FALSE
+        fi
     else
         ABORT_BACKUP=FALSE
     fi
-else
-    ABORT_BACKUP=FALSE
 fi
 
 if [ "$ABORT_BACKUP" = FALSE ]; then
@@ -439,13 +455,12 @@ cat << EOF
 "PGDUMP_ERROR":"$step_pgsql_error",
 "PGDUMPALL_ERROR":"$step_pgsql_error",
 "RSYNC_ERROR":"$step_rsync_error",
-"SIZE_OF_BACKUP":"$size_of_backup",
-"LOG":"
+"SIZE_OF_BACKUP":"$size_of_backup"
 EOF
 )                > "$JSON_LOG"
-cat "$LOGFILE"  >> "$JSON_LOG"
-echo "\"}"      >> "$JSON_LOG"
+#cat "$LOGFILE"  >> "$JSON_LOG"
+echo "}"      >> "$JSON_LOG"
 
-rm "$LOGFILE"
+#rm "$LOGFILE"
 
 exit 0
