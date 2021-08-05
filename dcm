@@ -274,13 +274,14 @@ install_kvwmap_network() {
       ;;
     esac
   fi
-  cp -Rp "$USER_DIR/kvwmap-server/networks/$network_name" "$NETWORK_DIR"
+  mkdir -p "$USER_DIR/networks"
+  cp -R -p "$USER_DIR/kvwmap-server/networks/$network_name" "$USER_DIR/networks"
   echo "Verzeichnis $NETWORK_DIR neu angelgt."
   if [ ! -d "$USER_DIR/proxy" ]; then
     read -p "Das proxy Verzeichnis fehlt auch noch. Soll es jetzt auch angelegt werden? (j/n)? " answer
     case ${answer:0:1} in
       j|Y )
-        cp -Rp "$USER_DIR/kvwmap_server/proxy $USER_DIR/proxy" 
+        cp -R -p "$USER_DIR/kvwmap-server/proxy" "$USER_DIR/proxy" 
       ;;
       * )
         echo "OK, nix passiert!"
