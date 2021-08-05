@@ -749,7 +749,8 @@ uninstall_kvwmap() {
         rm -RI $USER_DIR/networks $USER_DIR/proxy
         echo "Lösche Verzeichniss kvwmap-server"
         rm -RI $USER_DIR/kvwmap-server
-        rm -RI $USER_DIR/inithost.sh
+        rm -RI $USER_DIR/db
+        rm $USER_DIR/www
       fi
       echo "So jetzt ist alles weg außer de Images. Zum Löschen der Images folgenden Befehl aufrufen:"
       echo " docker images purge' ausführen."

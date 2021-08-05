@@ -1,0 +1,32 @@
+version: "3"
+services:
+  postgres2:
+    image: pkorduan/postgis:12.4-3.0
+    container_name: "postgres2"
+    restart: always
+    environment:
+    - PG_MAJOR=12.4
+    - TZ=Europe/Berlin
+    - POSTGRES_DB=postgres
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=postgres
+    - PGPASSFILE=/root/.pgpass
+    - TERM=linux
+    - COLUMNS=180
+    - LINES=200
+    volumes:
+    - $USER_DIR/etc/postgresql/.pgpass:/root/.pgpass
+    - $USER_DIR/etc/proj/epsg:/usr/share/proj/epsg
+    - $USER_DIR/etc/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
+    - $USER_DIR/etc/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb
+    - $WWW_ROOT:/var/www
+    - $DB_ROOT/postgresql/data-test2:/var/lib/postgresql/data
+    networks:
+      kvwmap-dev:
+        aliases:
+          - pgsql
+    ports:
+      - 54322:5432
+networks:
+    kvwmap-dev:
+        external: true

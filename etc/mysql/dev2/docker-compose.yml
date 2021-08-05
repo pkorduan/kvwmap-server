@@ -1,0 +1,22 @@
+version: "3"
+services:
+  mysql:
+    image: mysql:5.5
+    container_name: "mysql-test2"
+    restart: always
+    environment:
+    - MYSQL_ROOT_HOST=web.kvwmap_prod
+    - MYSQL_ROOT_PASSWORD=root
+    networks:
+      kvwmap-dev:
+        aliases:
+          - mysql
+    ports:
+    - 33062:3306
+    volumes:
+    - $USER_DIR/etc/mysql:/etc/mysql
+    - $DB_ROOT/mysql-dev2:/var/lib/mysql
+    - $WWW_ROOT/logs/mysql:/var/logs/mysql
+networks:
+    kvwmap-dev:
+        external: true
