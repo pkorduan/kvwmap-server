@@ -237,9 +237,6 @@ install_docker() {
       mv /var/lib/docker $USER_DIR/docker/lib
       ln -s $USER_DIR/docker/lib/docker /var/lib/docker
       systemctl start docker
-      echo "Installiere docker-compose"
-      sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      sudo chmod +x /usr/local/bin/docker-compose
     ;;
   esac
 
@@ -251,9 +248,12 @@ install_docker() {
     -e "s|GRUB_CMDLINE_LINUX=\"\"|GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"|g" \
     /etc/default/grub
   update-grub
+}
 
-  git config --global user.email "peter.korduan@gdi-service.de"
-  git config --global user.name "Peter Korduan"
+install_docker-compose() {
+  echo "Installiere docker-compose"
+  sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
 }
 
 install_kvwmap_network() {
@@ -978,6 +978,10 @@ case "$1" in
       install_docker
     fi
 
+    if [ ! -f /usr/bin/docker-compose ]; then
+      install_docker_compose
+    fi
+
     case $2 in
       all)
         install_kvwmap_images
@@ -991,6 +995,8 @@ case "$1" in
         fi
       ;;
       kvwmap)
+        git config --global user.email "peter.korduan@gdi-service.de"
+        git config --global user.name "Peter Korduan"
         install_kvwmap_images
       ;;
       *)
