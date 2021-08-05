@@ -393,13 +393,7 @@ install_kvwmap_images() {
   chmod 600 $NETWORK_DIR/pgsql/.pgpass_gisadmin
 
   echo "
-  Nächste Schritte zum installieren von kvwmap:"
-  echo "    $ dcm run all"
-  echo "    Browser öffnen mit der Adresse: https://${IP_EXTERN}/kvwmap/install.php"
-  echo ""
-  echo "Die Installation ist erfolgreich abgeschlossen."
-  echo "Achtung Der Zugang als root ist jetzt von außen gesperrt!"
-  echo "Sie können sich nur noch als gisadmin per ssh mit diesem Server verbinden."
+  Installation abgeschlossen. Die Container können gestartet werden mit dcm run all"
 }
 
 is_stopped() {

@@ -57,8 +57,6 @@ PATH=$PATH:/home/gisadmin/kvwmap-server
 
 kvwmap-server/dcm install kvwmap
 
-kvwmap-server/dcm run all
-
 cd $CURRENT_DIR
 read -p "Initscript löschen? (j/n) " answer
 case ${answer:0:1} in
@@ -69,3 +67,12 @@ case ${answer:0:1} in
     echo "OK, nix passiert!"
   ;;
 esac
+
+echo "
+Nächste Schritte zum installieren von kvwmap:"
+echo "    $ dcm run all"
+echo "    Browser öffnen mit der Adresse: https://${IP_EXTERN}/kvwmap/install.php"
+echo ""
+echo "Die Installation ist erfolgreich abgeschlossen."
+echo "Achtung Der Zugang als root ist jetzt von außen gesperrt!"
+echo "Sie können sich nur noch als gisadmin per ssh mit diesem Server verbinden."
