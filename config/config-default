@@ -10,9 +10,11 @@ SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
 SERVER_NAME=$(hostname)
+echo "Folgenden Hostname ermittelt: $SERVER_NAME"
 DOMAIN_NAME=$(hostname --fqd)
+echo "Folgenden Domainname ermittelt: $DOMAIN_NAME"
 IP_EXTERN=$(hostname -I | awk '{print $1}')
-echo "IP ermittelt: $IP_EXTERN"
+echo "Folgende IP ermittelt: $IP_EXTERN"
 CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
 CARGO_WEB_LINKS=

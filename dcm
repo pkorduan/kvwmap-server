@@ -277,14 +277,15 @@ install_kvwmap_network() {
   mkdir -p "$USER_DIR/networks"
   cp -R -p "$USER_DIR/kvwmap-server/networks/$network_name" "$USER_DIR/networks"
   echo "Verzeichnis $NETWORK_DIR neu angelgt."
-  if [ ! -d "$USER_DIR/proxy" ]; then
-    read -p "Das proxy Verzeichnis fehlt auch noch. Soll es jetzt auch angelegt werden? (j/n)? " answer
+  if [ -d "$USER_DIR/proxy" ]; then
+    read -p "Das proxy Verzeichnis existiert bereits. Soll es gelöscht und neu angelegt werden? (j/n)? " answer
     case ${answer:0:1} in
       j|Y )
+        rm -R "$USER_DIR/proxy"
         cp -R -p "$USER_DIR/kvwmap-server/proxy" "$USER_DIR/proxy" 
       ;;
       * )
-        echo "OK, nix passiert!"
+        echo "OK, wir lassen das bestehende so wie es ist!"
       ;;
     esac
   fi
@@ -980,7 +981,7 @@ case "$1" in
     fi
 
     if [ ! -f /usr/bin/docker-compose ]; then
-      install_docker_compose
+      install_docker-compose
     fi
 
     case $2 in
