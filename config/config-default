@@ -12,6 +12,7 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 SERVER_NAME=`hostname`
 DOMAIN_NAME=`hostname --fqd`
 IP_EXTERN=$(hostname -I | awk '{print $1}')
+echo "IP ermittelt: $IP_EXTERN"
 CARGOPATH="$SCRIPTPATH/cargo-enabled"
 CARGOS=()
 CARGO_WEB_LINKS=
