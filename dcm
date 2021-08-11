@@ -576,14 +576,16 @@ run_web_container() {
                  -p 443:443"
     fi
 
-    create_bridge_network
+#    create_bridge_network
     echo "Starte web Container:"
-    cmd="docker run\
-      -h ${SERVER_NAME}-web-container\
-      --name web\
-      --network kvwmap_prod\
-      --net-alias web\
-      --restart=always\
+    cmd="docker run \
+      -h ${SERVER_NAME}-web-container \
+      --name web \
+      --restart=always \
+      --link mysql-server:mysql \
+      --link pgsql-server:pgsql \
+      --link gdal:gdal \
+      $CARGO_WEB_LINKS \
       $web_env_vars\
       $web_volumes\
       $web_hosts\
