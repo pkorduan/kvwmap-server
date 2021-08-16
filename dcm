@@ -810,6 +810,7 @@ uninstall_kvwmap() {
     y|Y )
       stop_all_container
       remove_all_container
+      docker network prune
       #remove_all_images
 
       if [ ! -z "$USER_DIR" ] ; then
