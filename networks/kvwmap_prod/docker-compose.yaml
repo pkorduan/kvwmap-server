@@ -61,7 +61,7 @@ services:
 
   pgsql:
     hostname: pgsql-prod
-    user: postgres
+#    user: postgres
     image: pkorduan/postgis:13.1-3.1
     networks:
       kvwmap_prod:
