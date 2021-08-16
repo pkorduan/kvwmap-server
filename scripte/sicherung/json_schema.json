@@ -109,6 +109,9 @@
               "db_user": {
                 "type": "string"
               },
+              "docker_network": {
+                "type": "string"
+              },
               "db_name": {
                 "type": "string"
               },
@@ -176,6 +179,9 @@
                 "type": "string"
               },
               "pg_dumpall_parameter": {
+                "type": "string"
+              },
+              "docker_network": {
                 "type": "string"
               }
             }

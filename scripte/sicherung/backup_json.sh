@@ -36,6 +36,7 @@
 #   #2021_08_02         1. $LOGFILE wird nicht mehr ins log.json integriert
 #   #2021_08_04		1. Prüfung ob JSON-Config-Datei syntaktisch ok ist
 #   #2021_08_05		1. Fixed bug im #2021_08_04
+#                       2. dump_pg(),dump_mysql(),pg_dumpall_wrapper() kopieren Dumps nun aus Pfad abhängig vom Docker-Netzwerk
 #########################################################
 
 #########################################################
@@ -180,6 +181,8 @@ dump_pg() {
     local container_id=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].container_id")
     local db_user=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].db_user")
     local target_name=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].target_name")
+    local docker_network=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].docker_network")
+
 #    local pg_dump_inserts=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].pg_dump_inserts")
 #    local pg_dump_column_inserts=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].pg_dump_column_inserts")
 #    local pg_dump_in_exclude_schemas=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].pg_dump_in_exclude_schemas")
@@ -192,12 +195,21 @@ dump_pg() {
     dbg "container_id=$container_id"
     dbg "db_user=$db_user"
     dbg "target_name=$target_name"
+    dbg "docker_network=$docker_network"
 
     docker exec $container_id bash -c "pg_dump -Fc -U $db_user -f /var/lib/postgresql/data/$target_name $database" 2>> "$LOGFILE"
 
+    if [[ -z $docker_network ]]; then
+        dbg "ohne Docker-Netzwerk"
+        pg_dump_data_dir=/home/gisadmin/db/postgresql/data/
+    else
+        dbg "mit Docker-Netzwerk"
+        pg_dump_data_dir=/home/gisadmin/networks/"$docker_network"/pgsql/data
+    fi
+
     if [[ $? -eq 0 ]]; then
         echo "PG-Dump erfolgreich für $database" >> "$LOGFILE"
-        mv /home/gisadmin/db/postgresql/data/"$target_name" "$BACKUP_DIR" >> "$LOGFILE"
+        mv "$pg_dump_data_dir"/"$target_name" "$BACKUP_DIR" >> "$LOGFILE"
     else
         echo "FEHLER: PG-Dump nicht erfolgreich!" >> "$LOGFILE"
         echo "docker exec pgsql-server bash -c pg_dump -Fc -U kvwmap -f /var/lib/postgresql/data/$target_name $database" >> "$LOGFILE"
@@ -222,9 +234,11 @@ dump_mysql() {
     if [[ -z $docker_network ]]; then
         dbg "ohne Docker-Netzwerk"
         mysql_host=$(docker inspect --format "{{.NetworkSettings.IPAddress}}" $container_id)
+        mysql_data_dir=/home/gisadmin/db/mysql/
     else
         dbg "mit Docker-Netzwerk"
         mysql_host=$(docker inspect --format "{{json .}}" $container_id | jq -r ".NetworkSettings.Networks.${docker_network}.IPAddress")
+        mysql_data_dir=/home/gisadmin/networks/"$docker_network"/mysql/data
     fi
 
     if [ -f "$APPS_DIR"/"$PROD_APP"/credentials.php ]; then
@@ -240,7 +254,7 @@ dump_mysql() {
 
         if [[ $? -eq 0 ]]; then
             echo "mySQL-Dump von $MYSQLDB erfolgreich" >> "$LOGFILE"
-            mv /home/gisadmin/db/mysql/"$target_name" "$BACKUP_DIR" >> "$LOGFILE"
+            mv "$mysql_data_dir"/"$target_name" "$BACKUP_DIR" >> "$LOGFILE"
         else
             echo "FEHLER: mySQL-Dump nicht erfolgreich!" >> "$LOGFILE"
             return 1
@@ -282,6 +296,7 @@ pg_dumpall_wrapper(){
     local db_name=$(cat $CONFIG_FILE | jq -r ".pg_dumpall[$1].db_name")
     local target_name=$(cat $CONFIG_FILE | jq -r ".pg_dumpall[$1].target_name")
     local pg_dumpall_parameter=$(cat $CONFIG_FILE | jq -r ".pg_dumpall[$1].pg_dumpall_parameter")
+    local docker_network=$(cat $CONFIG_FILE | jq -r ".pg_dumpall[$1].docker_network")
 
     dbg "container_id=$container_id"
     dbg "db_user=$db_user"
@@ -290,6 +305,14 @@ pg_dumpall_wrapper(){
     dbg "pg_dumpall_parameter=$pg_dumpall_parameter"
 
     docker exec $container_id bash -c "pg_dumpall -U $db_user -l $db_name ${pg_dumpall_parameter} -f /var/lib/postgresql/data/$target_name"
+
+    if [[ -z $docker_network ]]; then
+        dbg "ohne Docker-Netzwerk"
+        pg_dump_data_dir=/home/gisadmin/db/postgresql/data/
+    else
+        dbg "mit Docker-Netzwerk"
+        pg_dump_data_dir=/home/gisadmin/networks/"$docker_network"/pgsql/data
+    fi
 
     if [[ $? -eq 0 ]]; then
         echo "pg_dumpall erfolgreich" >> "$LOGFILE"

@@ -404,7 +404,7 @@ install_kvwmap_images() {
   chown 999.docker $NETWORK_DIR/pgsql/data/allowip
   sed -i -e "s|#log_destination = 'stderr'|log_destination = 'csvlog'|g" $NETWORK_DIR/pgsql/data/postgresql.conf
   sed -i -e "s|#logging_collector = off|logging_collector = on|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  sed -i -e "s|#log_directory = 'pg_log'|log_directory = '/var/log/pgsql'|g" $NETWORK_DIR/pgsql/data/postgresql.conf
+  sed -i -e "s|#log_directory = 'pg_log'|log_directory = '/var/log/postgresql'|g" $NETWORK_DIR/pgsql/data/postgresql.conf
   sed -i -e "s|#log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'|log_filename = 'pgsql-%Y-%m-%d.log'|g" $NETWORK_DIR/pgsql/data/postgresql.conf
   sed -i -e "s|#log_file_mode = 0600|log_file_mode = 0640|g" $NETWORK_DIR/pgsql/data/postgresql.conf
   sed -i -e "s|#log_truncate_on_rotation = off|log_truncate_on_rotation = on|g" $NETWORK_DIR/pgsql/data/postgresql.conf
@@ -586,14 +586,16 @@ run_web_container() {
                  -p 443:443"
     fi
 
-    create_bridge_network
+#    create_bridge_network
     echo "Starte web Container:"
-    cmd="docker run\
-      -h ${SERVER_NAME}-web-container\
-      --name web\
-      --network kvwmap_prod\
-      --net-alias web\
-      --restart=always\
+    cmd="docker run \
+      -h ${SERVER_NAME}-web-container \
+      --name web \
+      --restart=always \
+      --link mysql-server:mysql \
+      --link pgsql-server:pgsql \
+      --link gdal:gdal \
+      $CARGO_WEB_LINKS \
       $web_env_vars\
       $web_volumes\
       $web_hosts\
