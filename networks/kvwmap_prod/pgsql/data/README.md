@@ -1,1 +1,0 @@
-# pgsql data directory
