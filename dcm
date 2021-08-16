@@ -576,15 +576,40 @@ run_web_container() {
                  -p 443:443"
     fi
 
-#    create_bridge_network
+    set_cargo_web_links
+
+  	echo "run web container with command: docker run --name web${container_version} \
+      -h ${SERVER_NAME}-web-container \
+      --link mysql-server:mysql \
+      --link pgsql-server:pgsql \
+      --link gdal:gdal \
+      $CARGO_WEB_LINKS \
+      $web_env_vars \
+      $web_volumes \
+      $web_hosts \
+      $web_ports \
+      --restart=always \
+      -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}"
+
+    docker run --name web${container_version} \
+      -h ${SERVER_NAME}-web-container${container_version} \
+      --link mysql-server:mysql \
+      $pgsql_server_web_link \
+      --link gdal:gdal \
+      $CARGO_WEB_LINKS \
+      $web_env_vars \
+      $web_volumes \
+      $web_hosts \
+      $web_ports \
+      --restart=always \
+      -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}
+
     echo "Starte web Container:"
     cmd="docker run \
       -h ${SERVER_NAME}-web-container \
       --name web \
       --restart=always \
-      --link mysql-server:mysql \
-      --link pgsql-server:pgsql \
-      --link gdal:gdal \
+      --net kvwmap_prod \
       $CARGO_WEB_LINKS \
       $web_env_vars\
       $web_volumes\
@@ -593,6 +618,7 @@ run_web_container() {
       -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}\
     "
   else
+    create_bridge_network
     echo "Starte container web im Netzwerk: ${network_name}"
     cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d web"
   fi
