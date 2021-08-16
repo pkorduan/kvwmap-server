@@ -19,18 +19,18 @@ do
         current_month=$M
         echo "lösche Sicherungen im Monat $current_month"
 
-        while [ $(find . -regex ".*${current_year}_${current_month}_[0-3][0-9]*" -type d | wc -l) -gt 1 ]
+        while [ $(find . -regex ".*${current_year}_${current_month}_[0-3][0-9]*" -type d -maxdepth 1 | wc -l) -gt 1 ]
         do
-          rm_folder=$(find . -regex ".*${current_year}_${current_month}_[0-3][0-9]*" -type d | sort | tail -n 1)
+          rm_folder=$(find . -regex ".*${current_year}_${current_month}_[0-3][0-9]*" -type d -maxdepth 1 | sort -r | tail -n 1)
           echo "lösche $rm_folder"
-          rm -d $rm_folder
+          rm -rd $rm_folder
         done
       fi
-    done < <(find . -regex ".*$current_year_[0-1][0-9]_[0-3][0-9]*" -type d | sort)
+    done < <(find . -regex ".*$current_year_[0-1][0-9]_[0-3][0-9]*" -type d -maxdepth 1 | sort)
 
 
   fi
-done < <(find . -regex '.*20[0-9][0-9]_[0-1][0-9]_[0-3][0-9]*' -type d | sort)
+done < <(find . -regex '.*20[0-9][0-9]_[0-1][0-9]_[0-3][0-9]*' -type d -maxdepth 1 | sort)
 
 
 
