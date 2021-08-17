@@ -628,9 +628,6 @@ run_web_container() {
       -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}\
     "
   else
-    read -sp "Vergebe ein Passwort kvwmap: " KVWMAP_INIT_PASSWORD
-    export KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD
-    fi
     echo "Starte container web im Netzwerk: ${network_name}"
     cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d web"
     echo $cmd
