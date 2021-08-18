@@ -672,14 +672,6 @@ run_web_container() {
 run_proxy_container() {
   echo "Starte proxy Container"
   docker-compose -f $USER_DIR/proxy/docker-compose.yaml up -d
-
-  # connect container to all custom networks
-  for custom_network_i in $(docker network ls --filter type=custom --format {{.Name}}); do
-    echo "Füge Container proxy zu Netzwerk ${custom_network_i} hinzu"
-    cmd="docker network connect $custom_network_i proxy_nginx_1"
-    echo $cmd
-    $cmd
-  done
 }
 
 reload_proxy_container() {
