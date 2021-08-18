@@ -487,7 +487,7 @@ remove_network() {
 
 remove_proxy_container() {
   echo "Entferne proxy Container."
-  docker rm proxy
+  docker-compose -f $USER_DIR/proxy/docker-compose.yaml down
   echo "fertig"
 }
 
