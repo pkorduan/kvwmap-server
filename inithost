@@ -85,7 +85,8 @@ sed -i \
   -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" \
   $USER_DIR/proxy/nginx/default-ssl.conf
 
-$USER_DIR/proxy/init-letsencrypt.sh
+cd $USER_DIR/proxy
+./init-letsencrypt.sh
 
 echo "
 Nächste Schritte zum installieren von kvwmap:"
