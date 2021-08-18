@@ -590,7 +590,7 @@ run_gdal_container() {
 run_mysql_container() {
   echo "Erzeuge und Starte container mysql im Netzwerk ${network_name}"
   if [ ! -d "${USER_DIR}/networks/${network_name}/mysql/data/mysql" ] ; then
-    read -p "Vergebe ein Passwort für MySQL-Nutzer root: " MYSQL_ROOT_PASSWORD
+    read -sp "Vergebe ein Passwort für MySQL-Nutzer root: " MYSQL_ROOT_PASSWORD
     export MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
   fi
   cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d mysql"
@@ -601,7 +601,7 @@ run_mysql_container() {
 run_pgsql_container() {
   echo "Starte container postgres im Netzwerk: ${network_name}"
   if [ ! -d "${USER_DIR}/networks/${network_name}/pgsql/data/base" ] ; then
-    read -p "Vergebe ein Passwort für Postgres-Nutzer postgres: " POSTGRES_PASSWORD
+    read -sp "Vergebe ein Passwort für Postgres-Nutzer postgres: " POSTGRES_PASSWORD
     export POSTGRES_PASSWORD=$POSTGRES_PASSWORD
   fi
   cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d pgsql"
