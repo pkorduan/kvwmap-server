@@ -5,7 +5,7 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=(<domain>)
+domains=(platzhalterkvwmapserverdomainname)
 rsa_key_size=4096
 data_path="./letsencrypt"
 email="peter.korduan@gdi-service.de" # Adding a valid address is strongly recommended

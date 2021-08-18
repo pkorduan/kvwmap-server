@@ -74,8 +74,16 @@ esac
 dcm run all
 
 sed -i \
-  -e "s|<server_name>|${HOSTNAME}|g" \
+  -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" \
+  $USER_DIR/proxy/init-letsencrypt.sh
+
+sed -i \
+  -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" \
   $USER_DIR/proxy/nginx/default.conf
+
+sed -i \
+  -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" \
+  $USER_DIR/proxy/nginx/default-ssl.conf
 
 $USER_DIR/proxy/init-letsencrypt.sh
 
