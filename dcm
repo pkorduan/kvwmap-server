@@ -471,7 +471,14 @@ remove_all_container() {
   cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s"
   echo $cmd
   $cmd
-  echo "Alle Container gelöscht."
+  echo "Alle Container im Netzwerk ${network_name} gelöscht."
+}
+
+remove_proxy_containers() {
+  echo "Stoppe und Lösche proxy Container"
+  cmd="$USER_DIR/proxy/docker-compose down"
+  echo $cmd
+  $cmd
 }
 
 remove_networks() {
@@ -830,7 +837,6 @@ uninstall_kvwmap() {
     y|Y )
       stop_all_container
       remove_all_container
-      docker network prune
       #remove_all_images
 
       if [ ! -z "$USER_DIR" ] ; then
@@ -841,6 +847,9 @@ uninstall_kvwmap() {
         rm -RI $USER_DIR/db
         rm $USER_DIR/www
       fi
+      
+      echo "Entferne alle erzeugten Netzwerke"
+      remove_networks
       echo "So jetzt ist alles weg außer de Images. Zum Löschen der Images folgenden Befehl aufrufen:"
       echo " docker images purge' ausführen."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
