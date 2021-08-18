@@ -342,11 +342,6 @@ install_kvwmap_images() {
   mkdir -p "$NETWORK_DIR/web/apache2/sites-enabled"
 
   echo "
-  Setze Servername für Apache default Konfiguration ..."
-  # Servername in Apache default Konfiguration eintragen
-  sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" "$NETWORK_DIR/web/apache2/sites-available/000-default.conf"
-
-  echo "
   Clone kvwmap von github ins Web-Verzeichnis ..."
   if [ ! -d "${USER_DIR}/networks/$network_name/web/www/apps/kvwmap" ]; then
     # clone kvwmap repository into apps
