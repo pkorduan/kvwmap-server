@@ -42,7 +42,7 @@ fi
 echo 'Clone kvwmap-server repository to ./kvwmap-server.'
 git clone https://github.com/pkorduan/kvwmap-server.git
 
-read -p "Enter a Hostname for this server: " HOSTNAME
+read -p "Enter the domain name for this server: " HOSTNAME
 hostname $HOSTNAME
 
 source ~/.bashrc
@@ -71,9 +71,16 @@ case ${answer:0:1} in
   ;;
 esac
 
+dcm run all
+
+sed -i \
+  -e "s|<server_name>|${HOSTNAME}|g" \
+  $USER_DIR/proxy/nginx/default.conf
+
+$USER_DIR/proxy/init-letsencrypt.sh
+
 echo "
 Nächste Schritte zum installieren von kvwmap:"
-echo "    $ dcm run all"
 echo "    Browser öffnen mit der Adresse: https://${IP_EXTERN}/kvwmap/install.php"
 echo ""
 echo "Die Installation ist erfolgreich abgeschlossen."

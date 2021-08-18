@@ -22,6 +22,7 @@ services:
       - OS_USER=gisadmin
       - IP_EXTERN=$IP_EXTERN
       - DOMAIN_EXTERN=$DOMAIN_EXTERN
+      - KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD
       #- http_proxy
       #- no_proxy=localhost
       - TERM=linux

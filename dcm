@@ -48,6 +48,7 @@ usage() {
   echo "rebuild web      Macht ein Rebuild vom image kvwmap-server:#{KVWMAP_IMAGE_VERSION}."
   echo "reload           Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
   echo "reload all       Läd alle Container neu."
+  echo "relaod pgsql     Lad die Konfiguration vom Postmaster im postgres-Container als Nutzer postgres neu mit dem Befehl pg_ctl reload."
   echo "reload web       Läd nur den Web Container neu."
   echo "reload proxy     Läd die Konfiguration vom Proxy-Container neu, z.B. nach Änderungen im Verzeichnis config/conf.d"
   echo "rm               Löscht Container."
@@ -341,11 +342,6 @@ install_kvwmap_images() {
   mkdir -p "$NETWORK_DIR/web/apache2/sites-enabled"
 
   echo "
-  Setze Servername für Apache default Konfiguration ..."
-  # Servername in Apache default Konfiguration eintragen
-  sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" "$NETWORK_DIR/web/apache2/sites-available/000-default.conf"
-
-  echo "
   Clone kvwmap von github ins Web-Verzeichnis ..."
   if [ ! -d "${USER_DIR}/networks/$network_name/web/www/apps/kvwmap" ]; then
     # clone kvwmap repository into apps
@@ -470,7 +466,14 @@ remove_all_container() {
   cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s"
   echo $cmd
   $cmd
-  echo "Alle Container gelöscht."
+  echo "Alle Container im Netzwerk ${network_name} gelöscht."
+}
+
+remove_proxy_containers() {
+  echo "Stoppe und Lösche proxy Container"
+  cmd="$USER_DIR/proxy/docker-compose down"
+  echo $cmd
+  $cmd
 }
 
 remove_networks() {
@@ -662,6 +665,10 @@ run_web_container() {
       -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}\
     "
   else
+    if [ ! -f $USER_DIR/networks/${network_name}/web/www/apps/kvwmap/config.php ] ; then
+      read -sp "Passwort für den Nutzer kvwmap. Wird für die Verbindung zur MySQL und PostgreSQL-Datenbank verwendet und für den Default-Nutzer kvwmap: " KVWMAP_INIT_PASSWORD
+    fi
+    export KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD
     echo "Starte container web im Netzwerk: ${network_name}"
     cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d web"
     echo $cmd
@@ -672,14 +679,13 @@ run_web_container() {
 run_proxy_container() {
   echo "Starte proxy Container"
   docker-compose -f $USER_DIR/proxy/docker-compose.yaml up -d
+}
 
-  # connect container to all custom networks
-  for custom_network_i in $(docker network ls --filter type=custom --format {{.Name}}); do
-    echo "Füge Container proxy zu Netzwerk ${custom_network_i} hinzu"
-    cmd="docker network connect $custom_network_i proxy_nginx_1"
-    echo $cmd
-    $cmd
-  done
+reload_pgsql_container() {
+  cmd="docker exec --user postgres kvwmap_prod_pgsql_1 /usr/lib/postgresql/13/bin/pg_ctl reload"
+  echo "Reload PostgreSQL-Konfiguration im pgsql-Container:"
+  echo $cmd
+  $cmd
 }
 
 reload_proxy_container() {
@@ -826,7 +832,6 @@ uninstall_kvwmap() {
     y|Y )
       stop_all_container
       remove_all_container
-      docker network prune
       #remove_all_images
 
       if [ ! -z "$USER_DIR" ] ; then
@@ -837,6 +842,9 @@ uninstall_kvwmap() {
         rm -RI $USER_DIR/db
         rm $USER_DIR/www
       fi
+      
+      echo "Entferne alle erzeugten Netzwerke"
+      remove_networks
       echo "So jetzt ist alles weg außer de Images. Zum Löschen der Images folgenden Befehl aufrufen:"
       echo " docker images purge' ausführen."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
@@ -1238,6 +1246,9 @@ case "$1" in
         run_all_container
         docker images
         docker ps -a | sort -k 2
+      ;;
+      pgsql)
+        reload_pgsql_container
       ;;
       proxy)
         reload_proxy_container
