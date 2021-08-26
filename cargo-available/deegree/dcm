@@ -2,7 +2,6 @@
 #echo "Load variables in dcm deegree"
 CARGOS+=("deegree")
 deegree_enabled=true
-deegree_IMAGE="segoerke/deegree"
 deegree_CONTAINER_NAME="deegree"
 deegree_DATA_DIR=$WWW_ROOT/data/deegree
 
@@ -13,6 +12,7 @@ usage_deegree() {
   echo "start deegree    Startet nur den Container deegree."
   echo "status deegree   Zeigt den aktuellen Status des Container deegree an."
   echo "stop deegree     Startet nur den Container deegree."
+  echo "rm deegree       Entfernt den Container deegree"
   echo "uninsall deegree Deinstalliert das deegree image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
 }
 
@@ -86,20 +86,24 @@ remove_deegree_image() {
 }
 
 run_deegree_container() {
-  source $USER_DIR/etc/deegree/env_and_volumes
-  echo "Erzeuge und starte den deegree Container:"
-  cmd="docker run\
-    --name deegree\
-    -h ${SERVER_NAME}-deegree-container\
-    --network=${network_name}\
-    --net-alias=deegree\
-    $deegree_volumes\
-    $deegree_env_vars\
-    --restart=always\
-    -d $deegree_IMAGE\
-  "
-  echo $cmd
-  $cmd
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    source $USER_DIR/etc/deegree/env_and_volumes
+    echo "Erzeuge und starte den deegree Container:"
+    cmd="docker run \
+      -h ${SERVER_NAME}-deegree-container \
+      --name deegree \
+      --restart=always \
+      --link pgsql-server:pgsql \
+      $deegree_volumes \
+      $deegree_env_vars \
+      -d $deegree_IMAGE \
+    "
+    echo $cmd
+    $cmd
+  else
+    echo "Starte container deegree im Netzwerk: ${network_name}"
+    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d deegree"
+  fi
 }
 
 set_deegree_web_link() {
@@ -213,7 +217,7 @@ cases_deegree() {
       esac
     ;;
 
-    remove)
+    rm)
       debug "Case remove in deegree"
       case $2 in
         deegree)
