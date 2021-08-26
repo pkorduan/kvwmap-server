@@ -113,7 +113,7 @@ sichere_dir_als_targz() {
 
     local source=$(cat $CONFIG_FILE | jq -r ".tar[$1].source")
     local target=$BACKUP_DIR/$(cat $CONFIG_FILE | jq -r ".tar[$1].target_name")
-    local diff_duration=$(cat $CONFIG_FILE | jq -r ".tar_differential_backup_duration")
+    local diff_duration=$(cat $CONFIG_FILE | jq -r ".tar[$1].differential_duration")
     local delete_after_n_days=$(cat $CONFIG_FILE | jq -r '.delete_after_n_days')
     local tar_exclude=$(cat $CONFIG_FILE | jq -r ".tar[$1].exclude")
 
