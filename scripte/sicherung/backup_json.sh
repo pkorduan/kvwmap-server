@@ -37,6 +37,8 @@
 #   #2021_08_04		1. Prüfung ob JSON-Config-Datei syntaktisch ok ist
 #   #2021_08_05		1. Fixed bug im #2021_08_04
 #                       2. dump_pg(),dump_mysql(),pg_dumpall_wrapper() kopieren Dumps nun aus Pfad abhängig vom Docker-Netzwerk
+#   #2021_08_30         1. sichere_dir_als_targz() Zeitraum und Starttag fpr differenzielle Sicherung für alle Sicherungen gleich
+#                       2. neues Flag "TAR_FULLBACKUP" im log.json
 #########################################################
 
 #########################################################
@@ -60,7 +62,7 @@ step_rsync_error=FALSE
 step_pgdumpall_error=FALSE
 
 # TARLOG geloescht?
-DELETED_TARLOG=TRUE
+DELETED_TARLOG=FALSE
 
 # DEBUG-Messages to stdout
 debug=TRUE
@@ -95,7 +97,6 @@ JSON_LOG=$BACKUP_DIR/log.json
 #########################################################
 
 dbg() {
-
     if [ "$debug" = TRUE ] ; then
         echo "$1"
     fi
@@ -107,53 +108,57 @@ dbg "BACKUP_PATH=${BACKUP_PATH}"
 dbg "CONFIG_FILE=${CONFIG_FILE}"
 dbg "LOGFILE=${LOGFILE}"
 
+
+delete_diff_tarlog(){
+  dbg "entering delete_diff_tarlog()"
+  local diff_duration=$(cat $CONFIG_FILE | jq -r ".differential_backup_duration")
+
+  ls -alh "$source/$tarlog" >> "$LOGFILE"
+  while read TARLOG
+  do
+    echo "tar.difflog loeschen" >> "$LOGFILE"
+    DELETED_TARLOG=TRUE
+    rm -f "$source/$tarlog"
+  done < <(find "$1" -type f -name "$tarlog" -mtime "+$diff_duration")
+  dbg "leaving delete_diff_tarlog()"
+}
+
 #Routine sichert ein Verzeichnis mit tar
 sichere_dir_als_targz() {
     dbg "entering sichere_dir_als_targz $1"
 
     local source=$(cat $CONFIG_FILE | jq -r ".tar[$1].source")
     local target=$BACKUP_DIR/$(cat $CONFIG_FILE | jq -r ".tar[$1].target_name")
-    local diff_duration=$(cat $CONFIG_FILE | jq -r ".tar[$1].differential_duration")
     local delete_after_n_days=$(cat $CONFIG_FILE | jq -r '.delete_after_n_days')
     local tar_exclude=$(cat $CONFIG_FILE | jq -r ".tar[$1].exclude")
+    local tarlog=tar.difflog
 
     dbg "source=$source"
     dbg "target=$target"
     dbg "diff_duration=$diff_duration"
+    dbg "tar_exclude=$tar_exclude"
+
+    delete_diff_tarlog $source
 
     if ! [ -z "$tar_exclude" ]; then
         tar_exclude="--exclude="$tar_exclude
-        dbg "tar_exclude=$tar_exclude"
     fi
 
-    if ! [ -z "$diff_duration" ] && (( $diff_duration > 0 )); then
-        local tarlog=tar.difflog
+    #tar.difflog vorhanden?
+    if [ -f "$source/$tarlog" ]; then
 
-        if [ $delete_after_n_days -lt $diff_duration ]; then
-            echo "WARNUNG: Konfiguration mit differenzieller Sicherung ($diff_duration Tage) und löschen alter Backups nach $delete_after_n_days Tagen!" >> "$LOGFILE"
-            echo "Dies führt zu unbrauchbaren Backups!" >> "$LOGFILE"
-        fi
-
-        ls -alh "$source/$tarlog" >> "$LOGFILE"
-        while read TARLOG
-        do
-            echo "tar.difflog loeschen" >> "$LOGFILE"
-            DELETED_TARLOG=TRUE
-            rm -f "$source/$tarlog"
-        done < <(find "$source" -type f -name "$tarlog" -mtime "+$diff_duration")
-
-        #fuer differenzielle Sicherung letztes Tarlog kopieren da dies sonst von tar aktualisiert wird
-        if [ -f "$source/$tarlog" ]; then
-            mtime=$(stat -c "%y" "$source/$tarlog")
-            cp "$source/$tarlog" "$source/$tarlog"_tmp
-            dbg "Tarlog gefunden, mtime=$mtime"
-        else
-            mtime=
-            echo "kein tar.difflog gefunden, mache Vollsicherung" >> "$LOGFILE"
-            dbg "Kein Tarlog, Vollsicherung"
-        fi
+        mtime=$(stat -c "%y" "$source/$tarlog")
+        cp "$source/$tarlog" "$source/$tarlog"_tmp
+        dbg "Tarlog gefunden, mtime=$mtime"
 
         tar $tar_exclude -cf $target -g $source/$tarlog $source > /dev/null 2>> "$LOGFILE"
+
+        if [[ $? -eq 0 ]]; then
+            echo "Verzeichnis $source nach $target gesichert" >> "$LOGFILE"
+        else
+            echo "Verzeichnis $source konnte nicht gesichert werden" >> "$LOGFILE"
+            return 1
+        fi
 
         if [ -f "$source/$tarlog"_tmp ]; then
             mv "$source/$tarlog"_tmp "$source/$tarlog"
@@ -161,10 +166,14 @@ sichere_dir_als_targz() {
         fi
 
     else
+        mtime=
+        echo "kein tar.difflog gefunden, mache Vollsicherung" >> "$LOGFILE"
+        dbg "Kein Tarlog, Vollsicherung"
+
         echo "Sichere Verzeichnis $source nach $target" >> "$LOGFILE"
         tar $tar_exclude -cf $target $source > /dev/null 2>> "$LOGFILE"
-    fi
 
+    fi
 
     if [[ $? -eq 0 ]]; then
         echo "Verzeichnis $source nach $target gesichert" >> "$LOGFILE"
@@ -481,7 +490,8 @@ cat << EOF
 "PGDUMP_ERROR":"$step_pgsql_error",
 "PGDUMPALL_ERROR":"$step_pgsql_error",
 "RSYNC_ERROR":"$step_rsync_error",
-"SIZE_OF_BACKUP":"$size_of_backup"
+"SIZE_OF_BACKUP":"$size_of_backup",
+"TAR_FULLBACKUP":"$DELETED_TARLOG"
 EOF
 )                > "$JSON_LOG"
 #cat "$LOGFILE"  >> "$JSON_LOG"
