@@ -39,6 +39,8 @@
 #                       2. dump_pg(),dump_mysql(),pg_dumpall_wrapper() kopieren Dumps nun aus Pfad abhängig vom Docker-Netzwerk
 #   #2021_08_30         1. sichere_dir_als_targz() Zeitraum und Starttag fpr differenzielle Sicherung für alle Sicherungen gleich
 #                       2. neues Flag "TAR_FULLBACKUP" im log.json
+#   #2021_09_15         1. neuer Schritt: Sicherungsconfig sichern
+#                       2. Systemconfig sichern
 #########################################################
 
 #########################################################
@@ -461,10 +463,28 @@ if [ "$ABORT_BACKUP" = FALSE ]; then
         echo "6/7 alte Backups werden nicht gelöscht, Parameter KEEP_FOR_N_DAYS=0"
     fi
 
+    #########################################################
+    ## #7 Sicherungsconfig sichern                          #
+    #########################################################
+    cp $CONFIG_FILE $BACKUP_DIR
+
+    #########################################################
+    ## #8 Systemzustand sichern                             #
+    #########################################################
+    #laufende Prozesse
+    ps -eo pid,user,cmd,%mem,%cpu,etime,euser,egroup,ni > "$BACKUP_DIR"/systemstate.log
+    #Speicher
+    lsblk -o name,size,fsavail,fsuse%,ro,type,mountpoint,uuid,owner,group,tran >> "$BACKUP_DIR"/systemstate.log
+    #Docker Container
+    docker inspect  $(docker ps -aq) >> "$BACKUP_DIR"/systemstate.log
+    #user+gruppen
+    cat /etc/passwd >>  "$BACKUP_DIR"/systemstate.log
+    cat /etc/group >>  "$BACKUP_DIR"/systemstate.log
+
 fi #ABORT_BACKUP ?
 
 #########################################################
-## #7 Symlink setzen                                    #
+## #9 Symlink setzen                                    #
 #########################################################
 echo "7/7 aktualisiere Sym-Link $BACKUP_PATH/latest auf aktuelles Sicherungsverzeichnis" >> "$LOGFILE"
 rm "$BACKUP_PATH"/latest >> "$LOGFILE"
@@ -472,7 +492,7 @@ ln -s "$BACKUP_DIR" "$BACKUP_PATH"/latest >> "$LOGFILE"
 
 
 #########################################################
-## #8 Monitoring-Log schreiben                          #
+## #10 Monitoring-Log schreiben                          #
 #########################################################
 
 size_of_backup=$(du -s "$BACKUP_DIR" | cut -f 1 -d$'\t') #am Tabulator trennen
