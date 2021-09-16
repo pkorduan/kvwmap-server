@@ -41,6 +41,8 @@
 #                       2. neues Flag "TAR_FULLBACKUP" im log.json
 #   #2021_09_15         1. neuer Schritt: Sicherungsconfig sichern
 #                       2. Systemconfig sichern
+#   #2021_09_16         1. Bug in sichere_dir_als_targz() auch wenn keine diff.Sicherung definiert ist, wird bei vorhandenem tar.difflog eine gemacht
+#                       2. delete_diff_tarlog() nur ausführen wenn diff.Sicherung konfiguriert
 #########################################################
 
 #########################################################
@@ -113,15 +115,17 @@ dbg "LOGFILE=${LOGFILE}"
 
 delete_diff_tarlog(){
   dbg "entering delete_diff_tarlog()"
-  local diff_duration=$(cat $CONFIG_FILE | jq -r ".differential_backup_duration")
+  local diff_duration=$(cat $CONFIG_FILE | jq -r ".differential_backup_duration // empty")
 
-  ls -alh "$source/$tarlog" >> "$LOGFILE"
-  while read TARLOG
-  do
-    echo "tar.difflog loeschen" >> "$LOGFILE"
-    DELETED_TARLOG=TRUE
-    rm -f "$source/$tarlog"
-  done < <(find "$1" -type f -name "$tarlog" -mtime "+$diff_duration")
+  if [ -n "$diff_duration" ]; then
+    ls -alh "$source/$tarlog" >> "$LOGFILE"
+    while read TARLOG
+    do
+      echo "tar.difflog loeschen" >> "$LOGFILE"
+      DELETED_TARLOG=TRUE
+      rm -f "$source/$tarlog"
+    done < <(find "$1" -type f -name "$tarlog" -mtime "+$diff_duration")
+  fi
   dbg "leaving delete_diff_tarlog()"
 }
 
@@ -131,24 +135,25 @@ sichere_dir_als_targz() {
 
     local source=$(cat $CONFIG_FILE | jq -r ".tar[$1].source")
     local target=$BACKUP_DIR/$(cat $CONFIG_FILE | jq -r ".tar[$1].target_name")
-    local delete_after_n_days=$(cat $CONFIG_FILE | jq -r '.delete_after_n_days')
-    local tar_exclude=$(cat $CONFIG_FILE | jq -r ".tar[$1].exclude")
+    local tar_exclude=$(cat $CONFIG_FILE | jq -r ".tar[$1].exclude // empty")
+    local diff_duration=$(cat $CONFIG_FILE | jq -r ".differential_backup_duration // empty")
+
     local tarlog=tar.difflog
 
     dbg "source=$source"
     dbg "target=$target"
     dbg "diff_duration=$diff_duration"
     dbg "tar_exclude=$tar_exclude"
+    dbg "diff_duration=$diff_duration"
 
     delete_diff_tarlog $source
 
-    if ! [ -z "$tar_exclude" ]; then
+    if [ -n "$tar_exclude" ]; then
         tar_exclude="--exclude="$tar_exclude
     fi
 
-    #tar.difflog vorhanden?
-    if [ -f "$source/$tarlog" ]; then
-
+    #tar.difflog vorhanden und diff.Sicherung konfiguriert?
+    if [ -f "$source/$tarlog" ] && [ -n "$diff_duration" ];  then
         mtime=$(stat -c "%y" "$source/$tarlog")
         cp "$source/$tarlog" "$source/$tarlog"_tmp
         dbg "Tarlog gefunden, mtime=$mtime"
