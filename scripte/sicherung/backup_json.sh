@@ -43,6 +43,7 @@
 #                       2. Systemconfig sichern
 #   #2021_09_16         1. Bug in sichere_dir_als_targz() auch wenn keine diff.Sicherung definiert ist, wird bei vorhandenem tar.difflog eine gemacht
 #                       2. delete_diff_tarlog() nur ausführen wenn diff.Sicherung konfiguriert
+#                       3. ps Optionen -o fsavail,fsuse%  entfernt für Abwärtskompatibilität
 #########################################################
 
 #########################################################
@@ -479,7 +480,7 @@ if [ "$ABORT_BACKUP" = FALSE ]; then
     #laufende Prozesse
     ps -eo pid,user,cmd,%mem,%cpu,etime,euser,egroup,ni > "$BACKUP_DIR"/systemstate.log
     #Speicher
-    lsblk -o name,size,fsavail,fsuse%,ro,type,mountpoint,uuid,owner,group,tran >> "$BACKUP_DIR"/systemstate.log
+    lsblk -o name,size,ro,type,mountpoint,uuid,owner,group,tran >> "$BACKUP_DIR"/systemstate.log
     #Docker Container
     docker inspect  $(docker ps -aq) >> "$BACKUP_DIR"/systemstate.log
     #user+gruppen
