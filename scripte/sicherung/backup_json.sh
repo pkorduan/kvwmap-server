@@ -44,6 +44,8 @@
 #   #2021_09_16         1. Bug in sichere_dir_als_targz() auch wenn keine diff.Sicherung definiert ist, wird bei vorhandenem tar.difflog eine gemacht
 #                       2. delete_diff_tarlog() nur ausführen wenn diff.Sicherung konfiguriert
 #                       3. ps Optionen -o fsavail,fsuse%  entfernt für Abwärtskompatibilität
+#   #2021_09_21         1. tar exclude wird mit eval expandiert
+#                       2. Logik für diff.Sicherungen angepasst
 #########################################################
 
 #########################################################
@@ -70,7 +72,7 @@ step_pgdumpall_error=FALSE
 DELETED_TARLOG=FALSE
 
 # DEBUG-Messages to stdout
-debug=TRUE
+debug=FALSE
 
 #########################################################
 ## # JSON pruefen                                       #
@@ -150,14 +152,17 @@ sichere_dir_als_targz() {
     delete_diff_tarlog $source
 
     if [ -n "$tar_exclude" ]; then
-        tar_exclude="--exclude="$tar_exclude
+        tar_exclude=$(eval echo --exclude=$tar_exclude)
     fi
 
     #tar.difflog vorhanden und diff.Sicherung konfiguriert?
-    if [ -f "$source/$tarlog" ] && [ -n "$diff_duration" ];  then
-        mtime=$(stat -c "%y" "$source/$tarlog")
-        cp "$source/$tarlog" "$source/$tarlog"_tmp
-        dbg "Tarlog gefunden, mtime=$mtime"
+#    if [ -f "$source/$tarlog" ] && [ -n "$diff_duration" ];  then
+    if [ -n "$diff_duration" ];  then
+        if [ -f "$source/$tarlog" ]; then
+            mtime=$(stat -c "%y" "$source/$tarlog")
+            cp "$source/$tarlog" "$source/$tarlog"_tmp
+            dbg "Tarlog gefunden, mtime=$mtime"
+        fi
 
         tar $tar_exclude -cf $target -g $source/$tarlog $source > /dev/null 2>> "$LOGFILE"
 
@@ -179,6 +184,7 @@ sichere_dir_als_targz() {
         dbg "Kein Tarlog, Vollsicherung"
 
         echo "Sichere Verzeichnis $source nach $target" >> "$LOGFILE"
+        echo "tar $tar_exclude -cf $target $source"
         tar $tar_exclude -cf $target $source > /dev/null 2>> "$LOGFILE"
 
     fi
