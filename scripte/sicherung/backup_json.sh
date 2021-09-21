@@ -46,6 +46,7 @@
 #                       3. ps Optionen -o fsavail,fsuse%  entfernt für Abwärtskompatibilität
 #   #2021_09_21         1. tar exclude wird mit eval expandiert
 #                       2. Logik für diff.Sicherungen angepasst
+#                       3. .pg_dump[].docker_network kann auch leer // empty sein
 #########################################################
 
 #########################################################
@@ -72,7 +73,7 @@ step_pgdumpall_error=FALSE
 DELETED_TARLOG=FALSE
 
 # DEBUG-Messages to stdout
-debug=FALSE
+debug=TRUE
 
 #########################################################
 ## # JSON pruefen                                       #
@@ -204,7 +205,7 @@ dump_pg() {
     local container_id=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].container_id")
     local db_user=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].db_user")
     local target_name=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].target_name")
-    local docker_network=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].docker_network")
+    local docker_network=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].docker_network // empty")
 
 #    local pg_dump_inserts=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].pg_dump_inserts")
 #    local pg_dump_column_inserts=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].pg_dump_column_inserts")
@@ -245,9 +246,8 @@ dump_mysql() {
     dbg "entering dump_mysql $1"
     local db_name=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].db_name")
     local target_name=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].target_name")
-    container_id=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].container_id")
-#    local mysql_dump_parameter=$(cat $CONFIG_FILE | jq ".mysql_dump[$1].mysql_dump_parameter")
-    docker_network=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].docker_network // empty")
+    local container_id=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].container_id")
+    local docker_network=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].docker_network // empty")
 
     dbg "db_name=$db_name"
     dbg "target_name=$target_name"
