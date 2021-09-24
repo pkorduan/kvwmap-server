@@ -47,6 +47,9 @@
 #   #2021_09_21         1. tar exclude wird mit eval expandiert
 #                       2. Logik für diff.Sicherungen angepasst
 #                       3. .pg_dump[].docker_network kann auch leer // empty sein
+#   #2021_09_24         1. sichere_dir_als_targz() diff.Sicherung nur bei Verzeichnissen
+#                       2. mysql-PW nicht im Debug-Modus ausgeben
+#                       3. doppelte Log-Eintrage in sichere_dir_als_targz() entfernt
 #########################################################
 
 #########################################################
@@ -165,7 +168,11 @@ sichere_dir_als_targz() {
             dbg "Tarlog gefunden, mtime=$mtime"
         fi
 
-        tar $tar_exclude -cf $target -g $source/$tarlog $source > /dev/null 2>> "$LOGFILE"
+        if [ -f "$source" ]; then
+          tar $tar_exclude -cf $target $source > /dev/null 2>> "$LOGFILE"
+        else
+          tar $tar_exclude -cf $target -g $source/$tarlog $source > /dev/null 2>> "$LOGFILE"
+        fi
 
         if [[ $? -eq 0 ]]; then
             echo "Verzeichnis $source nach $target gesichert" >> "$LOGFILE"
@@ -190,10 +197,7 @@ sichere_dir_als_targz() {
 
     fi
 
-    if [[ $? -eq 0 ]]; then
-        echo "Verzeichnis $source nach $target gesichert" >> "$LOGFILE"
-    else
-        echo "Verzeichnis $source konnte nicht gesichert werden" >> "$LOGFILE"
+    if [[ $? -ne 0 ]]; then
         return 1
     fi
     dbg "leaving sichere_dir_als_targz"
@@ -271,7 +275,7 @@ dump_mysql() {
 
         dbg "mysql_host=$mysql_host"
         dbg "MYSQLUSER=$MYSQLUSER"
-        dbg "MYSQLPW=$MYSQLPW"
+#        dbg "MYSQLPW=$MYSQLPW"
 
         docker exec "$container_id" bash -c "mysqldump -h $mysql_host --single-transaction --user=$MYSQLUSER --databases $db_name --password=\"$MYSQLPW\" > /var/lib/mysql/$target_name" 2>> "$LOGFILE"
 
