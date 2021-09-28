@@ -50,6 +50,7 @@
 #   #2021_09_24         1. sichere_dir_als_targz() diff.Sicherung nur bei Verzeichnissen
 #                       2. mysql-PW nicht im Debug-Modus ausgeben
 #                       3. doppelte Log-Eintrage in sichere_dir_als_targz() entfernt
+#   #2021_09_28         1. dump_mysql() falscher Pfad $mysql_data_dir
 #########################################################
 
 #########################################################
@@ -265,7 +266,7 @@ dump_mysql() {
     else
         dbg "mit Docker-Netzwerk"
         mysql_host=$(docker inspect --format "{{json .}}" $container_id | jq -r ".NetworkSettings.Networks.${docker_network}.IPAddress")
-        mysql_data_dir=/home/gisadmin/networks/"$docker_network"/mysql/data
+        mysql_data_dir=/home/gisadmin/networks/"$docker_network"/mysql/
     fi
 
     if [ -f "$APPS_DIR"/"$PROD_APP"/credentials.php ]; then
