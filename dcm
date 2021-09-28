@@ -625,7 +625,7 @@ run_web_container() {
 
     set_cargo_web_links
 
-  	echo "run web container with command: docker run --name web${container_version} \
+    cmd="docker run --name web \
       -h ${SERVER_NAME}-web-container \
       --link mysql-server:mysql \
       --link pgsql-server:pgsql \
@@ -636,44 +636,16 @@ run_web_container() {
       $web_hosts \
       $web_ports \
       --restart=always \
-      -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}"
-
-    docker run --name web${container_version} \
-      -h ${SERVER_NAME}-web-container${container_version} \
-      --link mysql-server:mysql \
-      $pgsql_server_web_link \
-      --link gdal:gdal \
-      $CARGO_WEB_LINKS \
-      $web_env_vars \
-      $web_volumes \
-      $web_hosts \
-      $web_ports \
-      --restart=always \
-      -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}
-
-    echo "Starte web Container:"
-    cmd="docker run \
-      -h ${SERVER_NAME}-web-container \
-      --name web \
-      --restart=always \
-      --net kvwmap_prod \
-      $CARGO_WEB_LINKS \
-      $web_env_vars\
-      $web_volumes\
-      $web_hosts\
-      $web_ports\
-      -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}\
+      -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION} \
     "
+    echo "Starte web Container:"
   else
-    if [ ! -f $USER_DIR/networks/${network_name}/web/www/apps/kvwmap/config.php ] ; then
-      read -sp "Passwort für den Nutzer kvwmap. Wird für die Verbindung zur MySQL und PostgreSQL-Datenbank verwendet und für den Default-Nutzer kvwmap: " KVWMAP_INIT_PASSWORD
-    fi
-    export KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD
+    create_bridge_network
     echo "Starte container web im Netzwerk: ${network_name}"
     cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d web"
-    echo $cmd
-    $cmd
   fi
+  echo $cmd
+  $cmd
 }
 
 run_proxy_container() {
@@ -700,6 +672,22 @@ test_proxy_container() {
   echo "Teste proxy Container:"
   echo $cmd
   $cmd
+}
+
+set_cargo_web_links() {
+  for cargo in "${CARGOS[@]}"
+  do :
+    set_${cargo}_web_link
+  done
+}
+
+set_cargo_pgsql_links() {
+  for cargo in "${CARGOS[@]}"
+  do :
+    if type -t set_${cargo}_pgsql_link | grep -q "^function$" ; then
+      set_${cargo}_pgsql_link
+    fi
+  done
 }
 
 show_all_container_ips() {
