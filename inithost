@@ -42,7 +42,7 @@ fi
 echo 'Clone kvwmap-server repository to ./kvwmap-server.'
 git clone https://github.com/pkorduan/kvwmap-server.git
 
-read -p "Enter a Hostname for this server: " HOSTNAME
+read -p "Enter the domain name for this server: " HOSTNAME
 hostname $HOSTNAME
 
 source ~/.bashrc
@@ -58,9 +58,25 @@ source ~/.bashrc
 
 PATH=$PATH:/home/gisadmin/kvwmap-server
 
-kvwmap-server/dcm install kvwmap
+dcm install kvwmap
 
 cd $CURRENT_DIR
+
+dcm run all
+
+echo "Ersetze die Platzhalter für den Servernamen durch ${HOSTNAME} in der nginx Konfiguration."
+sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" $USER_DIR/proxy/init-letsencrypt.sh
+sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" $USER_DIR/proxy/nginx/default.conf
+sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" $USER_DIR/proxy/nginx/default-ssl.conf
+
+cd $USER_DIR/proxy
+./init-letsencrypt.sh
+
+echo "Stelle auf HTTPS um in der nginx Konfiguration."
+sed -i '/default.conf;/a\    include /etc/nginx/default-ssl.conf;' $USER_DIR/proxy/nginx/nginx.conf
+
+dcm reload proxy
+
 read -p "Initscript löschen? (j/n) " answer
 case ${answer:0:1} in
   j|J|y|Y )
@@ -72,10 +88,9 @@ case ${answer:0:1} in
 esac
 
 echo "
-Nächste Schritte zum installieren von kvwmap:"
-echo "    $ dcm run all"
-echo "    Browser öffnen mit der Adresse: https://${IP_EXTERN}/kvwmap/install.php"
-echo ""
-echo "Die Installation ist erfolgreich abgeschlossen."
+Die Installation ist erfolgreich abgeschlossen."
 echo "Achtung Der Zugang als root ist jetzt von außen gesperrt!"
 echo "Sie können sich nur noch als gisadmin per ssh mit diesem Server verbinden."
+echo "
+Nächste Schritte zum installieren von kvwmap:"
+echo "Browser öffnen mit der Adresse: https://${HOSTNAME}/install.php"
