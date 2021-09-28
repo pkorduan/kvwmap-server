@@ -21,6 +21,7 @@ usage() {
   echo "console mysql    Öffnet eine Console im Mysql Container."
   echo "console pgsql    Öffnet eine Console im PostgreSQL Container."
   echo "console web      Öffnet eine Console im Web Container"
+  echo "console proxy    Öffnet eine Console im Proxy Container"
   echo "create network   Erzeugt ein Netzwerk je nach Namen im 3. Parameter network"
   echo "install          - Installiert auf dem Hostrechner den Docker-Server und Utilities zum Betrieb der Container,"
   echo "                 - Richtet ggf. benötigte Verzeichnisse und lokale Dateien für den Betrieb der Container ein."
@@ -47,6 +48,7 @@ usage() {
   echo "rebuild web      Macht ein Rebuild vom image kvwmap-server:#{KVWMAP_IMAGE_VERSION}."
   echo "reload           Das selbe wie bei rebuild, nur dass nicht das image lokal neu gebuildet wird, sondern das latest von Dockerhub geladen wird."
   echo "reload all       Läd alle Container neu."
+  echo "relaod pgsql     Lad die Konfiguration vom Postmaster im postgres-Container als Nutzer postgres neu mit dem Befehl pg_ctl reload."
   echo "reload web       Läd nur den Web Container neu."
   echo "reload proxy     Läd die Konfiguration vom Proxy-Container neu, z.B. nach Änderungen im Verzeichnis config/conf.d"
   echo "rm               Löscht Container."
@@ -198,7 +200,7 @@ load_cargo() {
 
   for dcmfile in ${dcmfiles[@]}
   do
-    #echo "Load dcmfile: ${dcmfile}"
+    echo "Load dcmfile: ${dcmfile}"
     source $dcmfile
   done
   #echo "CARGOS: "
@@ -277,17 +279,21 @@ install_kvwmap_network() {
   mkdir -p "$USER_DIR/networks"
   cp -R -p "$USER_DIR/kvwmap-server/networks/$network_name" "$USER_DIR/networks"
   echo "Verzeichnis $NETWORK_DIR neu angelgt."
+
   if [ -d "$USER_DIR/proxy" ]; then
     read -p "Das proxy Verzeichnis existiert bereits. Soll es gelöscht und neu angelegt werden? (j/n)? " answer
     case ${answer:0:1} in
       j|Y )
         rm -R "$USER_DIR/proxy"
+        echo "Das proxy Verzeichnis wird angelegt."
         cp -R -p "$USER_DIR/kvwmap-server/proxy" "$USER_DIR/proxy" 
       ;;
       * )
         echo "OK, wir lassen das bestehende so wie es ist!"
       ;;
     esac
+  else
+    cp -R -p "$USER_DIR/kvwmap-server/proxy" "$USER_DIR/proxy" 
   fi
   echo "fertig
   "
@@ -334,11 +340,6 @@ install_kvwmap_images() {
   echo "
   Erzeuge Unterverzeichnis sites-enabled im Apache Konfigurationsverzeichnis..."
   mkdir -p "$NETWORK_DIR/web/apache2/sites-enabled"
-
-  echo "
-  Setze Servername für Apache default Konfiguration ..."
-  # Servername in Apache default Konfiguration eintragen
-  sed -i -e "s|ServerName localhost|ServerName ${SERVER_NAME}|g" "$NETWORK_DIR/web/apache2/sites-available/000-default.conf"
 
   echo "
   Clone kvwmap von github ins Web-Verzeichnis ..."
@@ -465,7 +466,14 @@ remove_all_container() {
   cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s"
   echo $cmd
   $cmd
-  echo "Alle Container gelöscht."
+  echo "Alle Container im Netzwerk ${network_name} gelöscht."
+}
+
+remove_proxy_containers() {
+  echo "Stoppe und Lösche proxy Container"
+  cmd="$USER_DIR/proxy/docker-compose down"
+  echo $cmd
+  $cmd
 }
 
 remove_networks() {
@@ -482,7 +490,7 @@ remove_network() {
 
 remove_proxy_container() {
   echo "Entferne proxy Container."
-  docker rm proxy
+  docker-compose -f $USER_DIR/proxy/docker-compose.yaml down
   echo "fertig"
 }
 
@@ -520,20 +528,49 @@ remove_all_images() {
 }
 
 run_all_container() {
-  echo "Erzeuge und Starte alle Container im Netzwerk: ${network_name}"
-  echo "Erzeuge und Starte container mysql im Netzwerk ${network_name}"
-  if [ ! -d "${USER_DIR}/networks/${network_name}/mysql/data/mysql" ] ; then
-    read -p "Vergebe ein Passwort für MySQL-Nutzer root: " MYSQL_ROOT_PASSWORD
-    export MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+  echo "Erzeuge und Starte alle Container ..."
+  run_mysql_container
+  if type -t run_oracle_container | grep -q "^function$" ; then
+    run_oracle_container
   fi
-  echo "Starte container postgres im Netzwerk: ${network_name}"
-  if [ ! -d "${USER_DIR}/networks/${network_name}/pgsql/data/base" ] ; then
-    read -p "Vergebe ein Passwort für Postgres-Nutzer postgres: " POSTGRES_PASSWORD
-    export POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+  run_pgsql_container
+  run_gdal_container
+  if type -t run_geoserver_container | grep -q "^function$" ; then
+    run_geoserver_container
   fi
-  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d"
-  echo $cmd
-  $cmd
+  if type -t run_tomcat_container | grep -q "^function$" ; then
+    run_tomcat_container
+  fi
+  if type -t run_pydio_container | grep -q "^function$" ; then
+    run_pydio_container
+  fi
+  if type -t run_owncloud_container | grep -q "^function$" ; then
+    run_owncloud_container
+  fi
+  if type -t run_owncloud_10.0.10_container | grep -q "^function$" ; then
+    run_owncloud_10.0.10_container
+  fi
+  if type -t run_deegree_container | grep -q "^function$" ; then
+    run_deegree_container
+  fi
+  if type -t run_osm2po_container | grep -q "^function$" ; then
+    run_osm2po_container
+  fi
+  if type -t run_bucardo_container | grep -q "^function$" ; then
+    run_bucardo_container
+  fi
+  if type -t run_ftpserver_container | grep -q "^function$" ; then
+    run_ftpserver_container
+  fi
+  run_web_container
+  if [ "${network_name}" != "kvwmap_ohne" ]; then
+    if [ $( docker ps -a | grep proxy_nginx_1 | wc -l ) -gt 0 ]; then
+      echo "Proxy Container existiert bereits."
+    else
+      echo "Proxy Container existiert noch nicht."
+      run_proxy_container
+    fi
+  fi
 }
 
 run_cargo_containers() {
@@ -553,7 +590,7 @@ run_gdal_container() {
 run_mysql_container() {
   echo "Erzeuge und Starte container mysql im Netzwerk ${network_name}"
   if [ ! -d "${USER_DIR}/networks/${network_name}/mysql/data/mysql" ] ; then
-    read -p "Vergebe ein Passwort für MySQL-Nutzer root: " MYSQL_ROOT_PASSWORD
+    read -sp "Vergebe ein Passwort für MySQL-Nutzer root: " MYSQL_ROOT_PASSWORD
     export MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
   fi
   cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d mysql"
@@ -564,7 +601,7 @@ run_mysql_container() {
 run_pgsql_container() {
   echo "Starte container postgres im Netzwerk: ${network_name}"
   if [ ! -d "${USER_DIR}/networks/${network_name}/pgsql/data/base" ] ; then
-    read -p "Vergebe ein Passwort für Postgres-Nutzer postgres: " POSTGRES_PASSWORD
+    read -sp "Vergebe ein Passwort für Postgres-Nutzer postgres: " POSTGRES_PASSWORD
     export POSTGRES_PASSWORD=$POSTGRES_PASSWORD
   fi
   cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d pgsql"
@@ -628,46 +665,31 @@ run_web_container() {
       -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION}\
     "
   else
-    create_bridge_network
+    if [ ! -f $USER_DIR/networks/${network_name}/web/www/apps/kvwmap/config.php ] ; then
+      read -sp "Passwort für den Nutzer kvwmap. Wird für die Verbindung zur MySQL und PostgreSQL-Datenbank verwendet und für den Default-Nutzer kvwmap: " KVWMAP_INIT_PASSWORD
+    fi
+    export KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD
     echo "Starte container web im Netzwerk: ${network_name}"
     cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d web"
+    echo $cmd
+    $cmd
   fi
-  echo $cmd
-  $cmd
 }
 
 run_proxy_container() {
-  source $USER_DIR/proxy/env_and_volumes
-  if [ -z "${proxy_ports}" ]; then
-    proxy_ports="-p 80:80 \
-                 -p 443:443"
-  fi
+  echo "Starte proxy Container"
+  docker-compose -f $USER_DIR/proxy/docker-compose.yaml up -d nginx
+}
 
-  cmd="\
-    docker run \
-      -h ${SERVER_NAME}-proxy-container \
-      --name proxy \
-      --restart=always \
-      $proxy_env_vars \
-      $proxy_volumes \
-      $proxy_hosts \
-      $proxy_ports \
-      -d ${PROXY_IMAGE}:${PROXY_IMAGE_VERSION} \
-  "
-  echo "Starte Container proxy:"
+reload_pgsql_container() {
+  cmd="docker exec --user postgres kvwmap_prod_pgsql_1 /usr/lib/postgresql/13/bin/pg_ctl reload"
+  echo "Reload PostgreSQL-Konfiguration im pgsql-Container:"
   echo $cmd
   $cmd
-  # connect container to all custom networks
-  for custom_network_i in $(docker network ls --filter type=custom --format {{.Name}}); do
-    echo "Füge Container proxy zu Netzwerk ${custom_network_i} hinzu"
-    cmd="docker network connect $custom_network_i proxy"
-    echo $cmd
-    $cmd
-  done
 }
 
 reload_proxy_container() {
-  cmd="docker exec proxy nginx -s reload"
+  cmd="docker exec proxy_nginx_1 nginx -s reload"
   echo "Reload Konfiguration des proxy Containers:"
   echo $cmd
   $cmd
@@ -681,11 +703,11 @@ test_proxy_container() {
 }
 
 show_all_container_ips() {
-  docker inspect -f="Container {{.Name}} IP: {{ .NetworkSettings.Networks.${WEB_NETWORK}.IPAddress }}" $(docker ps -aq)
+  docker inspect -f="Container {{.Name}} IP: {{ .NetworkSettings.Networks.${network_name}.IPAddress }}" $(docker ps -aq)
 }
 
 show_container_ip() {
-  docker inspect -f="Container {{.Name}} IP: {{ .NetworkSettings.Networks.${WEB_NETWORK}.IPAddress }}" $1
+  docker inspect -f="Container {{.Name}} IP: {{ .NetworkSettings.Networks.${network_name}.IPAddress }}" $1
 }
 
 show_container_status() {
@@ -810,7 +832,6 @@ uninstall_kvwmap() {
     y|Y )
       stop_all_container
       remove_all_container
-      docker network prune
       #remove_all_images
 
       if [ ! -z "$USER_DIR" ] ; then
@@ -821,6 +842,9 @@ uninstall_kvwmap() {
         rm -RI $USER_DIR/db
         rm $USER_DIR/www
       fi
+      
+      echo "Entferne alle erzeugten Netzwerke"
+      remove_networks
       echo "So jetzt ist alles weg außer de Images. Zum Löschen der Images folgenden Befehl aufrufen:"
       echo " docker images purge' ausführen."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
@@ -983,9 +1007,8 @@ case "$1" in
       ;;
 
       proxy)
-        source $USER_DIR/proxy/env_and_volumes
         echo "Öffne ein Terminal im Container in dem der Proxy läuft..."
-        cmd="docker exec -it -e TERM=$TERM -e COLUMNS=$COLUMNS -e LINES=$LINES proxy /bin/bash"
+        cmd="docker exec -it proxy_proxy_1 /bin/bash"
         echo $cmd
         $cmd
       ;;
@@ -1223,6 +1246,9 @@ case "$1" in
         run_all_container
         docker images
         docker ps -a | sort -k 2
+      ;;
+      pgsql)
+        reload_pgsql_container
       ;;
       proxy)
         reload_proxy_container

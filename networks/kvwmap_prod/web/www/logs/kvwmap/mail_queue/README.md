@@ -1,0 +1,1 @@
+Verzeichnis in dem die zu versendenden E-Mails abgelegt werden.

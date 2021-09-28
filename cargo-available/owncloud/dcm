@@ -90,7 +90,7 @@ run_owncloud_container() {
     --restart=always \
     -d \"${owncloud_IMAGE}:${owncloud_VERSION}\""
 #  -p 80:80 \
-#  -p 443:443 \
+  -p 443:4434 \
   echo $dcm
   $dcm
 }
