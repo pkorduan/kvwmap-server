@@ -106,6 +106,16 @@ run_geoserver_container() {
   $cmd
 }
 
+set_geoserver_web_link() {
+  source $USER_DIR/etc/geoserver/env_and_volumes
+  echo "Setzte geoserver link zum Starten des web containers: --link geoserver:geoserver"
+  if [ -z "${GEOSERVER_WEB_LINKS}" ] ; then
+    GEOSERVER_WEB_LINKS=" --link geoserver:geoserver"
+  fi
+
+  CARGO_WEB_LINKS="${CARGO_WEB_LINKS} ${GEOSERVER_WEB_LINKS}"
+}
+
 start_geoserver_container() {
   echo "Starte geoserver Container geoserver${1}. Bitte warten ..."
   docker start geoserver$1
