@@ -37,6 +37,19 @@
 #   #2021_08_04		1. Prüfung ob JSON-Config-Datei syntaktisch ok ist
 #   #2021_08_05		1. Fixed bug im #2021_08_04
 #                       2. dump_pg(),dump_mysql(),pg_dumpall_wrapper() kopieren Dumps nun aus Pfad abhängig vom Docker-Netzwerk
+#   #2021_08_30         1. sichere_dir_als_targz() Zeitraum und Starttag fpr differenzielle Sicherung für alle Sicherungen gleich
+#                       2. neues Flag "TAR_FULLBACKUP" im log.json
+#   #2021_09_15         1. neuer Schritt: Sicherungsconfig sichern
+#                       2. Systemconfig sichern
+#   #2021_09_16         1. Bug in sichere_dir_als_targz() auch wenn keine diff.Sicherung definiert ist, wird bei vorhandenem tar.difflog eine gemacht
+#                       2. delete_diff_tarlog() nur ausführen wenn diff.Sicherung konfiguriert
+#                       3. ps Optionen -o fsavail,fsuse%  entfernt für Abwärtskompatibilität
+#   #2021_09_21         1. tar exclude wird mit eval expandiert
+#                       2. Logik für diff.Sicherungen angepasst
+#                       3. .pg_dump[].docker_network kann auch leer // empty sein
+#   #2021_09_24         1. sichere_dir_als_targz() diff.Sicherung nur bei Verzeichnissen
+#                       2. mysql-PW nicht im Debug-Modus ausgeben
+#                       3. doppelte Log-Eintrage in sichere_dir_als_targz() entfernt
 #########################################################
 
 #########################################################
@@ -60,7 +73,7 @@ step_rsync_error=FALSE
 step_pgdumpall_error=FALSE
 
 # TARLOG geloescht?
-DELETED_TARLOG=TRUE
+DELETED_TARLOG=FALSE
 
 # DEBUG-Messages to stdout
 debug=TRUE
@@ -95,7 +108,6 @@ JSON_LOG=$BACKUP_DIR/log.json
 #########################################################
 
 dbg() {
-
     if [ "$debug" = TRUE ] ; then
         echo "$1"
     fi
@@ -107,53 +119,67 @@ dbg "BACKUP_PATH=${BACKUP_PATH}"
 dbg "CONFIG_FILE=${CONFIG_FILE}"
 dbg "LOGFILE=${LOGFILE}"
 
+
+delete_diff_tarlog(){
+  dbg "entering delete_diff_tarlog()"
+  local diff_duration=$(cat $CONFIG_FILE | jq -r ".differential_backup_duration // empty")
+
+  if [ -n "$diff_duration" ]; then
+    ls -alh "$source/$tarlog" >> "$LOGFILE"
+    while read TARLOG
+    do
+      echo "tar.difflog loeschen" >> "$LOGFILE"
+      DELETED_TARLOG=TRUE
+      rm -f "$source/$tarlog"
+    done < <(find "$1" -type f -name "$tarlog" -mtime "+$diff_duration")
+  fi
+  dbg "leaving delete_diff_tarlog()"
+}
+
 #Routine sichert ein Verzeichnis mit tar
 sichere_dir_als_targz() {
     dbg "entering sichere_dir_als_targz $1"
 
     local source=$(cat $CONFIG_FILE | jq -r ".tar[$1].source")
     local target=$BACKUP_DIR/$(cat $CONFIG_FILE | jq -r ".tar[$1].target_name")
-    local diff_duration=$(cat $CONFIG_FILE | jq -r ".tar[$1].differential_duration")
-    local delete_after_n_days=$(cat $CONFIG_FILE | jq -r '.delete_after_n_days')
-    local tar_exclude=$(cat $CONFIG_FILE | jq -r ".tar[$1].exclude")
+    local tar_exclude=$(cat $CONFIG_FILE | jq -r ".tar[$1].exclude // empty")
+    local diff_duration=$(cat $CONFIG_FILE | jq -r ".differential_backup_duration // empty")
+
+    local tarlog=tar.difflog
 
     dbg "source=$source"
     dbg "target=$target"
     dbg "diff_duration=$diff_duration"
+    dbg "tar_exclude=$tar_exclude"
+    dbg "diff_duration=$diff_duration"
 
-    if ! [ -z "$tar_exclude" ]; then
-        tar_exclude="--exclude="$tar_exclude
-        dbg "tar_exclude=$tar_exclude"
+    delete_diff_tarlog $source
+
+    if [ -n "$tar_exclude" ]; then
+        tar_exclude=$(eval echo --exclude=$tar_exclude)
     fi
 
-    if ! [ -z "$diff_duration" ] && (( $diff_duration > 0 )); then
-        local tarlog=tar.difflog
-
-        if [ $delete_after_n_days -lt $diff_duration ]; then
-            echo "WARNUNG: Konfiguration mit differenzieller Sicherung ($diff_duration Tage) und löschen alter Backups nach $delete_after_n_days Tagen!" >> "$LOGFILE"
-            echo "Dies führt zu unbrauchbaren Backups!" >> "$LOGFILE"
-        fi
-
-        ls -alh "$source/$tarlog" >> "$LOGFILE"
-        while read TARLOG
-        do
-            echo "tar.difflog loeschen" >> "$LOGFILE"
-            DELETED_TARLOG=TRUE
-            rm -f "$source/$tarlog"
-        done < <(find "$source" -type f -name "$tarlog" -mtime "+$diff_duration")
-
-        #fuer differenzielle Sicherung letztes Tarlog kopieren da dies sonst von tar aktualisiert wird
+    #tar.difflog vorhanden und diff.Sicherung konfiguriert?
+#    if [ -f "$source/$tarlog" ] && [ -n "$diff_duration" ];  then
+    if [ -n "$diff_duration" ];  then
         if [ -f "$source/$tarlog" ]; then
             mtime=$(stat -c "%y" "$source/$tarlog")
             cp "$source/$tarlog" "$source/$tarlog"_tmp
             dbg "Tarlog gefunden, mtime=$mtime"
-        else
-            mtime=
-            echo "kein tar.difflog gefunden, mache Vollsicherung" >> "$LOGFILE"
-            dbg "Kein Tarlog, Vollsicherung"
         fi
 
-        tar $tar_exclude -cf $target -g $source/$tarlog $source > /dev/null 2>> "$LOGFILE"
+        if [ -f "$source" ]; then
+          tar $tar_exclude -cf $target $source > /dev/null 2>> "$LOGFILE"
+        else
+          tar $tar_exclude -cf $target -g $source/$tarlog $source > /dev/null 2>> "$LOGFILE"
+        fi
+
+        if [[ $? -eq 0 ]]; then
+            echo "Verzeichnis $source nach $target gesichert" >> "$LOGFILE"
+        else
+            echo "Verzeichnis $source konnte nicht gesichert werden" >> "$LOGFILE"
+            return 1
+        fi
 
         if [ -f "$source/$tarlog"_tmp ]; then
             mv "$source/$tarlog"_tmp "$source/$tarlog"
@@ -161,15 +187,17 @@ sichere_dir_als_targz() {
         fi
 
     else
+        mtime=
+        echo "kein tar.difflog gefunden, mache Vollsicherung" >> "$LOGFILE"
+        dbg "Kein Tarlog, Vollsicherung"
+
         echo "Sichere Verzeichnis $source nach $target" >> "$LOGFILE"
+        echo "tar $tar_exclude -cf $target $source"
         tar $tar_exclude -cf $target $source > /dev/null 2>> "$LOGFILE"
+
     fi
 
-
-    if [[ $? -eq 0 ]]; then
-        echo "Verzeichnis $source nach $target gesichert" >> "$LOGFILE"
-    else
-        echo "Verzeichnis $source konnte nicht gesichert werden" >> "$LOGFILE"
+    if [[ $? -ne 0 ]]; then
         return 1
     fi
     dbg "leaving sichere_dir_als_targz"
@@ -181,7 +209,7 @@ dump_pg() {
     local container_id=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].container_id")
     local db_user=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].db_user")
     local target_name=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].target_name")
-    local docker_network=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].docker_network")
+    local docker_network=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].docker_network // empty")
 
 #    local pg_dump_inserts=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].pg_dump_inserts")
 #    local pg_dump_column_inserts=$(cat $CONFIG_FILE | jq -r ".pg_dump[$1].pg_dump_column_inserts")
@@ -222,9 +250,8 @@ dump_mysql() {
     dbg "entering dump_mysql $1"
     local db_name=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].db_name")
     local target_name=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].target_name")
-    container_id=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].container_id")
-#    local mysql_dump_parameter=$(cat $CONFIG_FILE | jq ".mysql_dump[$1].mysql_dump_parameter")
-    docker_network=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].docker_network // empty")
+    local container_id=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].container_id")
+    local docker_network=$(cat $CONFIG_FILE | jq -r ".mysql_dump[$1].docker_network // empty")
 
     dbg "db_name=$db_name"
     dbg "target_name=$target_name"
@@ -248,7 +275,7 @@ dump_mysql() {
 
         dbg "mysql_host=$mysql_host"
         dbg "MYSQLUSER=$MYSQLUSER"
-        dbg "MYSQLPW=$MYSQLPW"
+#        dbg "MYSQLPW=$MYSQLPW"
 
         docker exec "$container_id" bash -c "mysqldump -h $mysql_host --single-transaction --user=$MYSQLUSER --databases $db_name --password=\"$MYSQLPW\" > /var/lib/mysql/$target_name" 2>> "$LOGFILE"
 
@@ -452,10 +479,28 @@ if [ "$ABORT_BACKUP" = FALSE ]; then
         echo "6/7 alte Backups werden nicht gelöscht, Parameter KEEP_FOR_N_DAYS=0"
     fi
 
+    #########################################################
+    ## #7 Sicherungsconfig sichern                          #
+    #########################################################
+    cp $CONFIG_FILE $BACKUP_DIR
+
+    #########################################################
+    ## #8 Systemzustand sichern                             #
+    #########################################################
+    #laufende Prozesse
+    ps -eo pid,user,cmd,%mem,%cpu,etime,euser,egroup,ni > "$BACKUP_DIR"/systemstate.log
+    #Speicher
+    lsblk -o name,size,ro,type,mountpoint,uuid,owner,group,tran >> "$BACKUP_DIR"/systemstate.log
+    #Docker Container
+    docker inspect  $(docker ps -aq) >> "$BACKUP_DIR"/systemstate.log
+    #user+gruppen
+    cat /etc/passwd >>  "$BACKUP_DIR"/systemstate.log
+    cat /etc/group >>  "$BACKUP_DIR"/systemstate.log
+
 fi #ABORT_BACKUP ?
 
 #########################################################
-## #7 Symlink setzen                                    #
+## #9 Symlink setzen                                    #
 #########################################################
 echo "7/7 aktualisiere Sym-Link $BACKUP_PATH/latest auf aktuelles Sicherungsverzeichnis" >> "$LOGFILE"
 rm "$BACKUP_PATH"/latest >> "$LOGFILE"
@@ -463,7 +508,7 @@ ln -s "$BACKUP_DIR" "$BACKUP_PATH"/latest >> "$LOGFILE"
 
 
 #########################################################
-## #8 Monitoring-Log schreiben                          #
+## #10 Monitoring-Log schreiben                          #
 #########################################################
 
 size_of_backup=$(du -s "$BACKUP_DIR" | cut -f 1 -d$'\t') #am Tabulator trennen
@@ -481,7 +526,8 @@ cat << EOF
 "PGDUMP_ERROR":"$step_pgsql_error",
 "PGDUMPALL_ERROR":"$step_pgsql_error",
 "RSYNC_ERROR":"$step_rsync_error",
-"SIZE_OF_BACKUP":"$size_of_backup"
+"SIZE_OF_BACKUP":"$size_of_backup",
+"TAR_FULLBACKUP":"$DELETED_TARLOG"
 EOF
 )                > "$JSON_LOG"
 #cat "$LOGFILE"  >> "$JSON_LOG"
