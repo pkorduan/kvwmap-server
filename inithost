@@ -11,7 +11,11 @@ CURRENT_DIR=$(pwd)
 apt-get update && apt-get install -y \
   apt-utils \
   lshw \
-  git
+  git \
+  snap
+
+snap install core
+snap install yq
 
 if [ $(getent group ${OS_USER}) ] ; then
   echo "Group ${OS_USER} already exists."
