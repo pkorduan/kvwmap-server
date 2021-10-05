@@ -31,3 +31,12 @@ services:
       - ./letsencrypt:/etc/letsencrypt
       - ./www:/var/www
       - ./log:/var/log/letsencrypt
+
+# When it not work with
+# docker-compose run certbot
+# run
+# docker run -it --rm --name certbot \
+#            -v "/home/gisadmin/proxy/www:/var/www" \
+#            -v "/home/gisadmin/proxy/letsencrypt:/etc/letsencrypt" \
+#            -v "/home/gisadmin/proxy/log:/var/log/letsencrypt" \
+#            certbot/certbot certonly

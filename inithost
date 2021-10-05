@@ -14,8 +14,8 @@ apt-get update && apt-get install -y \
   git \
   snap
 
-snap install core
-snap install yq
+wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64
+chmod a+x /usr/local/bin/yq
 
 if [ $(getent group ${OS_USER}) ] ; then
   echo "Group ${OS_USER} already exists."

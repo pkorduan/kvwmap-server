@@ -8,7 +8,7 @@ networks:
         - subnet: "172.0.10.0/24"
 services:
   web:
-    hostname: kvwmap_prod-web
+    hostname: kvwmap_prod_web
     image: pkorduan/kvwmap-server:2.2.3
     networks:
       kvwmap_prod:
@@ -28,7 +28,7 @@ services:
       - "/home/gisadmin/networks/kvwmap_prod/pgsql/.pgpass_gisadmin:/home/gisadmin/.pgpass"
       - "/home/gisadmin/networks/kvwmap_prod/web/apache2/sites-available:/etc/apache2/sites-available"
       - "/home/gisadmin/networks/kvwmap_prod/web/apache2/sites-enabled:/etc/apache2/sites-enabled"
-      - "/home/gisadmin/networks/kvwmap_prod/web/cron/load_gisadmin_cron_file:/etc/cron.hourl/load_gisadmin_cron_file"
+      - "/home/gisadmin/networks/kvwmap_prod/web/cron/load_cron_files:/etc/cron.hourl/load_cron_files"
       - "/home/gisadmin/networks/kvwmap_prod/web/php/7.3:/etc/php/7.3"
       - "/home/gisadmin/networks/kvwmap_prod/web/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php"
       - "/home/gisadmin/networks/kvwmap_prod/proj/epsg:/usr/share/proj/epsg"
@@ -37,7 +37,7 @@ services:
       - "/home/gisadmin/networks/kvwmap_prod/web/www:/var/www"
 
   mysql:
-    hostname: kvwmap_prod-mysql
+    hostname: kvwmap_prod_mysql
     image: mysql:5.5
     networks:
       kvwmap_prod:
@@ -54,9 +54,9 @@ services:
       - "/home/gisadmin/networks/kvwmap_prod/mysql/logs:/var/logs/mysql"
 
   pgsql:
-    hostname: kvwmap_prod-pgsql
+    hostname: kvwmap_prod_pgsql
 #    user: postgres
-    image: pkorduan/postgis:13.1-3.1
+    image: pkorduan/postgis:9.4-2.2
     networks:
       kvwmap_prod:
         aliases:
@@ -83,7 +83,7 @@ services:
       - "/home/gisadmin/networks/kvwmap_prod/web/www:/var/www"
 
   gdal:
-    hostname: kvwmap_prod-gdal
+    hostname: kvwmap_prod_gdal
     image: pkorduan/gdal-http:0.2.0
     networks:
       kvwmap_prod:

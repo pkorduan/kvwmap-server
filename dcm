@@ -280,6 +280,7 @@ install_kvwmap_network() {
   mkdir -p "$USER_DIR/networks"
   cp -R -p "$USER_DIR/kvwmap-server/networks/kvwmap_prod" "$USER_DIR/networks/$network_name"
   rm $USER_DIR/networks/${network_name}/pgsql/data/*
+  chown -R 999.gisadmin $USER_DIR/networks/${network_name}/mysql
   chown -R 999.gisadmin $USER_DIR/networks/${network_name}/pgsql
   chmod -R g+w $USER_DIR/networks/${network_name}/pgsql/logs
 
@@ -292,21 +293,23 @@ install_kvwmap_network() {
 
   # Fragt den ip-range von docker-compose.yaml ab und addiert 10 zum C-Netz dazu
   ip_range="\
-$(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $1}').\
-$(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $2}').\
-$(expr $(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $3}') + 10).\
-$(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $4}')\
+$(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $1}').\
+$(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $2}').\
+$(expr $(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $3}') + 10).\
+$(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $4}')\
 "
+
   sed -i \
-      -e "s|$(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file})|${ip_range}|g" \
+      -e "s|$(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file})|${ip_range}|g" \
       $compose_file
   echo "IP-Range vom Netzwerk ${network_name} eingestellt auf: ${ip_range}. Bitte ggf. anpassen!"
 
   # Zählt Port von pgsql um einen hoch
   pgsql_port=$(yq e '.services.pgsql.ports[0]' $compose_file | awk -F: '{print $1}')
   sed -i \
-      -e "s|${pgsql_port}:5432|$(expr ${pgsql_port} + 1):5432|g"
+      -e "s|${pgsql_port}:5432|$(expr ${pgsql_port} + 1):5432|g" \
       $compose_file
+  echo "Port von pgsql Container nach außen auf $pgsql_port gesetzt. Bitte ggf. anpassen!"
 
   if [ -d "$USER_DIR/proxy" ]; then
     read -p "Das proxy Verzeichnis existiert bereits. Soll es gelöscht und neu angelegt werden? (j/n)? " answer
@@ -326,6 +329,25 @@ $(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file} | awk -F. '
   echo "fertig
   "
   echo "Die Container im Netzwerk ${network_name} können jetzt gestartet werden mit dcm run all $3"
+}
+
+copy_directories() {
+  cp -Rp $USER_DIR/www/apps/* $USER_DIR/networks/$network_name/web/www/apps
+  cp -Rp $USER_DIR/www/cron/* $USER_DIR/networks/$network_name/web/www/cron
+  cp -Rp $USER_DIR/www/data/* $USER_DIR/networks/$network_name/web/www/data
+
+  cp -Rp $USER_DIR/etc/apache2/letsencrypt/live/* $USER_DIR/proxy/letsencrypt/live
+  cp -Rp $USER_DIR/etc/apache2/letsencrypt/csr $USER_DIR/proxy/letsencrypt
+  cp -Rp $USER_DIR/etc/apache2/letsencrypt/keys $USER_DIR/proxy/letsencrypt
+
+  cp -Rp $USER_DIR/db/mysql/* $USER_DIR/networks/$network_name/mysql/data
+  cp -Rp $USER_DIR/etc/mysql/* $USER_DIR/networks/$network_name/mysql/etc
+  cp -Rp $USER_DIR/www/logs/mysql/* $USER_DIR/networks/$network_name/mysql/logs
+
+  cp -Rp $USER_DIR/db/postgresql/data/* $USER_DIR/networks/$network_name/pgsql/data
+  cp -Rp $USER_DIR/etc/postgresql/.pgpass $USER_DIR/networks/$network_name/pgsql
+  cp -Rp $USER_DIR/www/logs/pgsql/* $USER_DIR/networks/$network_name/pgsql/logs
+
 }
 
 install_kvwmap_images() {
@@ -496,9 +518,6 @@ remove_all_container() {
   remove_mysql_container
   remove_pgsql_container
   remove_gdal_container
-#  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s"
-#  echo $cmd
-#  $cmd
   echo "Alle Container gelöscht."
 }
 
@@ -526,11 +545,19 @@ remove_gdal_container() {
 }
 
 remove_mysql_container() {
-  remove_container mysql-server
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    remove_container mysql-server
+  else
+    remove_container mysql
+  fi
 }
 
 remove_pgsql_container() {
-  remove_container pgsql-server
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    remove_container pgsql-server
+  else
+    remove_container pgsql
+  fi
 }
 
 remove_web_container() {
@@ -539,7 +566,7 @@ remove_web_container() {
 
 remove_container() {
   if [ "${network_name}" == "kvwmap_ohne" ]; then
-    echo "Entferne Container"
+    echo "Entferne Container $1"
     cmd="docker rm $1"
   else
     echo "Entferne Container $1 in Netzwerk ${network_name}"
@@ -609,30 +636,101 @@ run_cargo_containers() {
 }
 
 run_gdal_container() {
-  echo "Erzeuge und Starte container gdal im Netzwerk ${network_name}"
-  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d gdal"
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    echo "Erzeuge und Starte container gdal"
+    source $USER_DIR/etc/gdal/env_and_volumes
+    echo  ${SERVER_NAME}-gdal-container 
+    cmd="docker run --name gdal \
+      -h ${SERVER_NAME}-gdal-container \
+      --link pgsql-server:pgsql \
+      $gdal_env_vars \
+      $gdal_volumes \
+      $gdal_ports \
+      --restart=always \
+      -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}"
+  else
+    echo "Erzeuge und Starte container gdal im Netzwerk ${network_name}"
+    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d gdal"
+  fi
   echo $cmd
   $cmd
 }
 
 run_mysql_container() {
-  echo "Erzeuge und Starte container mysql im Netzwerk ${network_name}"
-  if [ ! -d "${USER_DIR}/networks/${network_name}/mysql/data/mysql" ] ; then
-    read -sp "Vergebe ein Passwort für MySQL-Nutzer root: " MYSQL_ROOT_PASSWORD
-    export MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    source $USER_DIR/etc/mysql/env_and_volumes
+
+    if [ -z "${START_MYSQL_WITH_DCM}" ] ; then
+      START_MYSQL_WITH_DCM="true"
+    fi
+
+    if [ "${START_MYSQL_WITH_DCM}" = "true" ] ; then
+      echo "Erzeuge und Starte container mysql"
+
+      cmd="docker run --name mysql-server \
+        -h ${SERVER_NAME}-mysql-container \
+        $mysql_env_vars \
+        $mysql_volumes \
+        $mysql_ports \
+        --restart=always \
+        -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}"
+    else
+      echo "Starten von mysql container wird ausgelassen weil START_MYSQL_WITH_DCM auf false steht."
+    fi
+  else
+    echo "Erzeuge und Starte container mysql im Netzwerk ${network_name}"
+    if [ ! -d "${USER_DIR}/networks/${network_name}/mysql/data/mysql" ] ; then
+      read -sp "Vergebe ein Passwort für MySQL-Nutzer root: " MYSQL_ROOT_PASSWORD
+      export MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+    fi
+    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d mysql"
   fi
-  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d mysql"
   echo $cmd
   $cmd
 }
 
 run_pgsql_container() {
-  echo "Starte container postgres im Netzwerk: ${network_name}"
-  if [ ! -d "${USER_DIR}/networks/${network_name}/pgsql/data/base" ] ; then
-    read -sp "Vergebe ein Passwort für Postgres-Nutzer postgres: " POSTGRES_PASSWORD
-    export POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    source $USER_DIR/etc/postgresql/env_and_volumes
+
+    if [ "${START_WITH_DCM}" = "true" ] ; then
+      echo "Erzeuge und Starte container pgsql"
+
+      if [ -z "$pgsql_ports" ] ; then
+        pgsql_ports="-p 5432:5432"
+      fi
+
+      if [ -z "${PGSQL_CONTAINER_NAME}" ] ; then
+        PGSQL_CONTAINER_NAME="pgsql-server"
+      fi
+
+      if [ -z "$pgsql_config" ] ; then
+        pgsql_config=""
+      fi
+
+      set_cargo_pgsql_links
+
+      cmd="docker run --name ${PGSQL_CONTAINER_NAME} \
+        -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
+        $CARGO_PGSQL_LINKS \
+        $pgsql_env_vars \
+        $pgsql_volumes \
+        $pgsql_ports \
+        --restart=always \
+        -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION} \
+        $pgsql_config"
+    else
+      echo "Starten von pgsql container wird ausgelassen weil START_WITH_DCM auf false steht."
+    fi
+  else
+    if [ ! -d "${USER_DIR}/networks/${network_name}/pgsql/data/base" ] ; then
+      read -sp "Vergebe ein Passwort für Postgres-Nutzer postgres: " POSTGRES_PASSWORD
+      export POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+    fi
+
+    echo "Starte container postgres im Netzwerk: ${network_name}"
+    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d pgsql"
   fi
-  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d pgsql"
   echo $cmd
   $cmd
 }
@@ -749,8 +847,8 @@ show_container_status() {
 
 start_all_container() {
   echo "Startet alle existierenden Container."
-  docker start mysql-server
-  docker start pgsql-server
+  start_mysql_container
+  start_pgsql_container
 
   # start_cargo_container
 
@@ -760,24 +858,48 @@ start_all_container() {
 }
 
 start_container() {
-  container=$1
-  if [ ! -z $container ] ; then
-    if [ "$(is_running $container)" == "true" ]; then
-      echo "Container $container läuft schon.";
-    else
-      if [ "$(is_stopped $container)" == "false" ]; then
-        run_${container}_container
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    echo "Starte container $1"
+    container=$1
+    if [ ! -z $container ] ; then
+      if [ "$(is_running $container)" == "true" ]; then
+        echo "Container $container läuft schon.";
       else
-        echo "Starte Container ${container} ..."
-        docker start $container
+        if [ "$(is_stopped $container)" == "false" ]; then
+          run_${container}_container
+        else
+          echo "Starte Container ${container} ..."
+          cmd="docker start $1"
+        fi
       fi
     fi
+  else
+    echo "Starte container $1 in Network: ${network_name}"
+    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml start $1"
   fi
+  echo $cmd
+  $cmd
 }
 
 start_gdal_container() {
   echo "Starte gdal Container."
   docker start gdal
+}
+
+start_mysql_container() {
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    start_container mysql-server
+  else
+    start_container mysql
+  fi
+}
+
+start_pgsql_container() {
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    start_container pgsql-server
+  else
+    start_container pgsql
+  fi
 }
 
 start_web_container() {
@@ -808,7 +930,7 @@ stop_container() {
 }
 
 stop_proxy_container() {
-  if [[ -n $(docker ps -a -f status=running -f name=proxy_nginx1 -q) ]] ; then
+  if [[ -n $(docker ps -a -f status=running -f name=proxy_nginx_1 -q) ]] ; then
     echo "Stoppe proxy Container. Bitte warten ..."
     cmd="docker-compose -f ${USER_DIR}/proxy/docker-compose.yaml stop nginx"
     echo $cmd
@@ -822,14 +944,24 @@ stop_gdal_container() {
 #  else
 #    echo "Container gdal kann nicht gestoppt werden, weil er nicht läuft."
 #  fi
+
+
 }
 
 stop_mysql_container() {
-  stop_container mysql-server
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    stop_container mysql-server
+  else
+    stop_container mysql
+  fi
 }
 
 stop_pgsql_container() {
-  stop_container pgsql-server
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    stop_container pgsql-server
+  else
+    stop_container pgsql
+  fi
 }
 
 stop_web_container() {
