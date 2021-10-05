@@ -259,6 +259,7 @@ install_docker-compose() {
 }
 
 install_kvwmap_network() {
+  fail_unless_root
   echo "Installiere Voraussetzungen für den Betrieb des Netzwerkes $network_name"
   if [ -d "$NETWORK_DIR" ]; then
     read -p "Netzwerk $network_name existiert bereits. Soll es gelöscht und neu angelegt werden (j/n)? " answer
@@ -277,8 +278,35 @@ install_kvwmap_network() {
     esac
   fi
   mkdir -p "$USER_DIR/networks"
-  cp -R -p "$USER_DIR/kvwmap-server/networks/$network_name" "$USER_DIR/networks"
+  cp -R -p "$USER_DIR/kvwmap-server/networks/kvwmap_prod" "$USER_DIR/networks/$network_name"
+  rm $USER_DIR/networks/${network_name}/pgsql/data/*
+  chown -R 999.gisadmin $USER_DIR/networks/${network_name}/pgsql
+  chmod -R g+w $USER_DIR/networks/${network_name}/pgsql/logs
+
+  compose_file="$USER_DIR/networks/${network_name}/docker-compose.yaml"
   echo "Verzeichnis $NETWORK_DIR neu angelgt."
+  # kvwmap_prod durch neuen Netzwerknamen austauschen
+  sed -i \
+      -e "s|kvwmap_prod|${network_name}|g" \
+      $compose_file
+
+  # Fragt den ip-range von docker-compose.yaml ab und addiert 10 zum C-Netz dazu
+  ip_range="\
+$(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $1}').\
+$(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $2}').\
+$(expr $(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $3}') + 10).\
+$(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $4}')\
+"
+  sed -i \
+      -e "s|$(yq e '.networks.kvwmap_test.ipam.config[0].subnet' ${compose_file})|${ip_range}|g" \
+      $compose_file
+  echo "IP-Range vom Netzwerk ${network_name} eingestellt auf: ${ip_range}. Bitte ggf. anpassen!"
+
+  # Zählt Port von pgsql um einen hoch
+  pgsql_port=$(yq e '.services.pgsql.ports[0]' $compose_file | awk -F: '{print $1}')
+  sed -i \
+      -e "s|${pgsql_port}:5432|$(expr ${pgsql_port} + 1):5432|g"
+      $compose_file
 
   if [ -d "$USER_DIR/proxy" ]; then
     read -p "Das proxy Verzeichnis existiert bereits. Soll es gelöscht und neu angelegt werden? (j/n)? " answer
@@ -297,6 +325,7 @@ install_kvwmap_network() {
   fi
   echo "fertig
   "
+  echo "Die Container im Netzwerk ${network_name} können jetzt gestartet werden mit dcm run all $3"
 }
 
 install_kvwmap_images() {
@@ -473,13 +502,6 @@ remove_all_container() {
   echo "Alle Container gelöscht."
 }
 
-remove_proxy_containers() {
-  echo "Stoppe und Lösche proxy Container"
-  cmd="$USER_DIR/proxy/docker-compose down"
-  echo $cmd
-  $cmd
-}
-
 remove_networks() {
   echo "Remove all unused networks"
   docker network prune -f
@@ -493,9 +515,10 @@ remove_network() {
 }
 
 remove_proxy_container() {
-  echo "Entferne proxy Container."
-  docker-compose -f $USER_DIR/proxy/docker-compose.yaml down
-  echo "fertig"
+  echo "Entferne proxy Container"
+  cmd="docker-compose -f ${USER_DIR}/proxy/docker-compose.yaml rm nginx"
+  echo $cmd
+  $cmd
 }
 
 remove_gdal_container() {
@@ -785,9 +808,12 @@ stop_container() {
 }
 
 stop_proxy_container() {
-  echo "Stoppe proxy Container. Bitte warten ..."
-  docker stop proxy
-  echo "fertig"
+  if [[ -n $(docker ps -a -f status=running -f name=proxy_nginx1 -q) ]] ; then
+    echo "Stoppe proxy Container. Bitte warten ..."
+    cmd="docker-compose -f ${USER_DIR}/proxy/docker-compose.yaml stop nginx"
+    echo $cmd
+    $cmd
+  fi
 }
 
 stop_gdal_container() {
@@ -856,6 +882,19 @@ uninstall_kvwmap() {
       echo "OK, nix passiert!"
     ;;
   esac
+}
+
+function uninstall_network() {
+  stop_all_container
+  remove_all_container
+  cmd="docker network rm ${network_name}"
+  echo "Lösche Netzwerk ${network_name}"
+  echo $cmd
+  $cmd
+  cmd="rm -R ${USER_DIR}/networks/${network_name}"
+  echo "Lösche Netzwerk Verzeichnis"
+  echo $cmd
+  $cmd
 }
 
 function exists_network(){
@@ -1006,7 +1045,7 @@ case "$1" in
 
       proxy)
         echo "Öffne ein Terminal im Container in dem der Proxy läuft..."
-        cmd="docker exec -it proxy_proxy_1 /bin/bash"
+        cmd="docker exec -it proxy_nginx_1 /bin/bash"
         echo $cmd
         $cmd
       ;;
@@ -1534,6 +1573,9 @@ case "$1" in
       ;;
       gdal)
         uninstall_gdal
+      ;;
+      network)
+        uninstall_network
       ;;
       kvwmap)
         uninstall_kvwmap
