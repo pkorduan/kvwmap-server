@@ -463,10 +463,14 @@ ps_container() {
 
 remove_all_container() {
   echo "Lösche alle Container ..."
-  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s"
-  echo $cmd
-  $cmd
-  echo "Alle Container im Netzwerk ${network_name} gelöscht."
+  remove_web_container
+  remove_mysql_container
+  remove_pgsql_container
+  remove_gdal_container
+#  cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s"
+#  echo $cmd
+#  $cmd
+  echo "Alle Container gelöscht."
 }
 
 remove_proxy_containers() {
@@ -499,11 +503,11 @@ remove_gdal_container() {
 }
 
 remove_mysql_container() {
-  remove_container mysql
+  remove_container mysql-server
 }
 
 remove_pgsql_container() {
-  remove_container pgsql
+  remove_container pgsql-server
 }
 
 remove_web_container() {
@@ -511,10 +515,11 @@ remove_web_container() {
 }
 
 remove_container() {
-  echo "Entferne Container $1 in Netzwerk ${network_name}"
   if [ "${network_name}" == "kvwmap_ohne" ]; then
+    echo "Entferne Container"
     cmd="docker rm $1"
   else
+    echo "Entferne Container $1 in Netzwerk ${network_name}"
     cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s $1"
   fi
   echo $cmd
@@ -759,15 +764,20 @@ start_web_container() {
 
 stop_all_container() {
   echo "Stoppe alle Container. Bitte warten ..."
-  docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s
+  stop_web_container
+  stop_mysql_container
+  stop_pgsql_container
+  stop_gdal_container
+#  docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s
   echo "Alle Container gestopped."
 }
 
 stop_container() {
-  echo "Stoppe container $1 in Network: ${network_name}"
   if [ "${network_name}" == "kvwmap_ohne" ]; then
+    echo "Stoppe container $1"
     cmd="docker stop $1"
   else
+    echo "Stoppe container $1 in Network: ${network_name}"
     cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml stop $1"
   fi
   echo $cmd
@@ -789,11 +799,11 @@ stop_gdal_container() {
 }
 
 stop_mysql_container() {
-  stop_container mysql
+  stop_container mysql-server
 }
 
 stop_pgsql_container() {
-  stop_container pgsql
+  stop_container pgsql-server
 }
 
 stop_web_container() {
