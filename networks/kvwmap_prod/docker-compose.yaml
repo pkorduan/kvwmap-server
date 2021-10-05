@@ -8,11 +8,8 @@ networks:
         - subnet: "172.0.10.0/24"
 services:
   web:
-    hostname: web-prod
-#    user: gisadmin
+    hostname: kvwmap_prod-web
     image: pkorduan/kvwmap-server:2.2.3
-#    ports:
-#      - 8091:80
     networks:
       kvwmap_prod:
         aliases:
@@ -23,8 +20,6 @@ services:
       - IP_EXTERN=$IP_EXTERN
       - DOMAIN_EXTERN=$DOMAIN_EXTERN
       - KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD
-      #- http_proxy
-      #- no_proxy=localhost
       - TERM=linux
       - COLUMNS=180
       - LINES=200
@@ -39,11 +34,10 @@ services:
       - "/home/gisadmin/networks/kvwmap_prod/proj/epsg:/usr/share/proj/epsg"
       - "/home/gisadmin/networks/kvwmap_prod/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb"
       - "/home/gisadmin/networks/kvwmap_prod/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb"
-#      - " /mnt/ftp_backup/81.169.183.177:/mnt/ftp_backup
       - "/home/gisadmin/networks/kvwmap_prod/web/www:/var/www"
 
   mysql:
-    hostname: mysql-prod
+    hostname: kvwmap_prod-mysql
     image: mysql:5.5
     networks:
       kvwmap_prod:
@@ -60,7 +54,7 @@ services:
       - "/home/gisadmin/networks/kvwmap_prod/mysql/logs:/var/logs/mysql"
 
   pgsql:
-    hostname: pgsql-prod
+    hostname: kvwmap_prod-pgsql
 #    user: postgres
     image: pkorduan/postgis:13.1-3.1
     networks:
@@ -89,7 +83,7 @@ services:
       - "/home/gisadmin/networks/kvwmap_prod/web/www:/var/www"
 
   gdal:
-    hostname: gdal-prod
+    hostname: kvwmap_prod-gdal
     image: pkorduan/gdal-http:0.2.0
     networks:
       kvwmap_prod:
