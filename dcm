@@ -283,6 +283,13 @@ install_kvwmap_network() {
   chown -R 999.gisadmin $USER_DIR/networks/${network_name}/mysql
   chown -R 999.gisadmin $USER_DIR/networks/${network_name}/pgsql
   chmod -R g+w $USER_DIR/networks/${network_name}/pgsql/logs
+  chown root.root $USER_DIR/networks/${network_name}/web/www/cron/crontab_root
+  chown gisadmin.gisadmin $USER_DIR/networks/${network_name}/web/www/cron/crontab_gisadmin
+  chmod 600 $USER_DIR/networks/${network_name}/web/www/cron/crontab_root $USER_DIR/networks/${network_name}/web/www/cron/crontab_gisadmin
+  chown root.root $USER_DIR/networks/${network_name}/pgsql/.pgpass
+  chown gisadmin.gisadmin $USER_DIR/networks/${network_name}/pgsql/.pgpass_gisadmin
+  chmod 600 $USER_DIR/networks/${network_name}/pgsql/.pgpass $USER_DIR/networks/${network_name}/pgsql/.pgpass_gisadmin
+
 
   compose_file="$USER_DIR/networks/${network_name}/docker-compose.yaml"
   echo "Verzeichnis $NETWORK_DIR neu angelgt."
@@ -332,22 +339,43 @@ $(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file} | awk
 }
 
 copy_directories() {
-  cp -Rp $USER_DIR/www/apps/* $USER_DIR/networks/$network_name/web/www/apps
-  cp -Rp $USER_DIR/www/cron/* $USER_DIR/networks/$network_name/web/www/cron
-  cp -Rp $USER_DIR/www/data/* $USER_DIR/networks/$network_name/web/www/data
+  dcm rm all ohne
+  rm -R $USER_DIR/networks/$network_name/web/www
+  mv $USER_DIR/docker/www $USER_DIR/networks/$network_name/web/www
+  ln -s $USER_DIR/networks/$network_name/web/www $USER_DIR/docker/www
 
-  cp -Rp $USER_DIR/etc/apache2/letsencrypt/live/* $USER_DIR/proxy/letsencrypt/live
-  cp -Rp $USER_DIR/etc/apache2/letsencrypt/csr $USER_DIR/proxy/letsencrypt
-  cp -Rp $USER_DIR/etc/apache2/letsencrypt/keys $USER_DIR/proxy/letsencrypt
+  mv $USER_DIR/db/mysql/* $USER_DIR/networks/$network_name/mysql/data
+  mv $USER_DIR/etc/mysql/my.cnf $USER_DIR/networks/$network_name/mysql/etc/my.cnf
+  mv $USER_DIR/etc/mysql/conf.d/* $USER_DIR/networks/$network_name/mysql/etc/conf.d/
+  mv $USER_DIR/www/logs/mysql/* $USER_DIR/networks/$network_name/mysql/logs
+  chown -R 999.gisadmin $USER_DIR/networks/$network_name/mysql
+  ln -s $USER_DIR/networks/$network_name/mysql/etc/my.cnf $USER_DIR/etc/mysql/my.cnf
 
-  cp -Rp $USER_DIR/db/mysql/* $USER_DIR/networks/$network_name/mysql/data
-  cp -Rp $USER_DIR/etc/mysql/* $USER_DIR/networks/$network_name/mysql/etc
-  cp -Rp $USER_DIR/www/logs/mysql/* $USER_DIR/networks/$network_name/mysql/logs
+  rm -d $USER_DIR/db/mysql/
+  ln -s $USER_DIR/networks/$network_name/mysql/data $USER_DIR/db/mysql
 
-  cp -Rp $USER_DIR/db/postgresql/data/* $USER_DIR/networks/$network_name/pgsql/data
-  cp -Rp $USER_DIR/etc/postgresql/.pgpass $USER_DIR/networks/$network_name/pgsql
-  cp -Rp $USER_DIR/www/logs/pgsql/* $USER_DIR/networks/$network_name/pgsql/logs
+  rm -R $USER_DIR/networks/$network_name/pgsql
+  mv $USER_DIR/db/postgresql/data $USER_DIR/networks/$network_name/pgsql
+  mv $USER_DIR/etc/postgresql/.pgpass $USER_DIR/networks/$network_name/pgsql/.pgpass
+  mv $USER_DIR/etc/postgresql/.pgpass_gisadmin $USER_DIR/networks/$network_name/pgsql/.pgpass_gisadmin
+  mv $USER_DIR/networks/$network_name/web/www/logs/pgsql/* $USER_DIR/networks/$network_name/pgsql/logs
+  rm -d $USER_DIR/networks/$network_name/web/www/logs/pgsql
 
+  rm -d $USER_DIR/db/postgresql
+  ln -s $USER_DIR/networks/kvwmap_prod/pgsql $USER_DIR/db/postgresql
+
+  rm -R $USER_DIR/proxy/letsencrypt/live
+  mv $USER_DIR/etc/apache2/letsencrypt/live $USER_DIR/proxy/letsencrypt
+  mv $USER_DIR/etc/apache2/letsencrypt/csr $USER_DIR/proxy/letsencrypt
+  mv $USER_DIR/etc/apache2/letsencrypt/keys $USER_DIR/proxy/letsencrypt
+  mv $USER_DIR/etc/apache2/letsencrypt/archive $USER_DIR/proxy/letsencrypt
+  
+  cp -Rp $USER_DIR/proxy/letsencrypt/live $USER_DIR/etc/apache2/letsencrypt/live
+  cp -Rp $USER_DIR/proxy/letsencrypt/keys/ $USER_DIR/etc/apache2/letsencrypt/keys
+  cp -Rp $USER_DIR/proxy/letsencrypt/csr/ $USER_DIR/etc/apache2/letsencrypt/csr
+  cp -Rp $USER_DIR/proxy/letsencrypt/archive/ $USER_DIR/etc/apache2/letsencrypt/archive
+
+  dcm run all ohne
 }
 
 install_kvwmap_images() {
