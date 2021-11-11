@@ -1,0 +1,305 @@
+#!/bin/bash
+#echo "Load variables in dcm deegree"
+CARGOS+=("deegree")
+deegree_enabled=true
+deegree_CONTAINER_NAME="deegree"
+deegree_DATA_DIR=$WWW_ROOT/data/deegree
+
+usage_deegree() {
+  echo "install deegree  Installiert ein deegree Image."
+  echo "rerun deegree    Stoppt, löscht, erzeugt und startet nur den Container deegree."
+  echo "run deegree      Erzeugt und startet nur den Container deegree."
+  echo "start deegree    Startet nur den Container deegree."
+  echo "status deegree   Zeigt den aktuellen Status des Container deegree an."
+  echo "stop deegree     Startet nur den Container deegree."
+  echo "rm deegree       Entfernt den Container deegree"
+  echo "uninsall deegree Deinstalliert das deegree image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+}
+
+install_deegree() {
+  echo "Installiere deegree ..."
+  
+  mkdir -p $deegree_DATA_DIR
+  chmod g+w $deegree_DATA_DIR
+
+  echo "
+Kopiere Apache Konfigurationsdatei für deegree."
+  echo "cp $USER_DIR/kvwmap-server/deegree/etc/apache2/sites-available/deegree.conf => $USER_DIR/etc/apache2/sites-available/deegree.conf"
+  cp $USER_DIR/kvwmap-server/deegree/etc/apache2/sites-available/deegree.conf $USER_DIR/etc/apache2/sites-available/deegree.conf
+  chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-available/deegree.conf
+  chmod g+w $USER_DIR/etc/apache2/sites-available/deegree.conf
+
+  echo "
+Enable deegree Web-Site in Apache Konfiguration."
+  echo "ln -s ../sites-available/deegree.conf $USER_DIR/etc/apache2/sites-enabled/deegree.conf"
+  ln -s ../sites-available/deegree.conf $USER_DIR/etc/apache2/sites-enabled/deegree.conf
+
+  echo "
+Kopiere Konfigurationsdatei für env_and_volumes"
+  echo "cp $USER_DIR/kvwmap-server/deegree/etc/deegree/env_and_volumes => $USER_DIR/etc/deegree/env_and_volumes"
+  mkdir -p $USER_DIR/etc/deegree
+  chown $OS_USER.$OS_USER $USER_DIR/etc/deegree
+  chmod g+w $USER_DIR/etc/deegree
+  cp $USER_DIR/kvwmap-server/deegree/etc/deegree/env_and_volumes $USER_DIR/etc/deegree/env_and_volumes
+  chown $OS_USER.$OS_USER $USER_DIR/etc/deegree/env_and_volumes
+  chmod g+w $USER_DIR/etc/deegree/env_and_volumes
+
+  echo "
+Kopiere Konfigurationsdatei für tomcat"
+  echo "cp $USER_DIR/kvwmap-server/deegree/etc/deegree/tomcat-users.xml => $USER_DIR/etc/deegree/tomcat-users.xml"
+  cp $USER_DIR/kvwmap-server/deegree/etc/deegree/tomcat-users.xml $USER_DIR/etc/deegree/tomcat-users.xml
+  chown $OS_USER.$OS_USER $USER_DIR/etc/deegree/tomcat-users.xml
+  chmod g+w $USER_DIR/etc/deegree/tomcat-users.xml
+
+  echo "
+Kopiere deegree Datenverzeichnis nach $deegree_DATA_DIR"
+
+  echo "cp -R $USER_DIR/kvwmap-server/deegree/data $deegree_DATA_DIR"
+  cp -R $USER_DIR/kvwmap-server/deegree/data/* $deegree_DATA_DIR
+  chown -R $OS_USER.$OS_USER $deegree_DATA_DIR
+  chmod -R 775 $deegree_DATA_DIR
+  
+  echo "
+  Ziehe Image $deegree_IMAGE von dockerhub"
+  docker pull $deegree_IMAGE
+
+  echo "Der deegree container kann nun gestartet werden mit dem Befehl:"
+  echo "dcm run deegree"
+  echo "Anschließend den web container neu starten mit dem Befehl:"
+  echo "dcm rerun web"
+}
+
+remove_deegree_container() {
+  stop_deegree_container
+
+  if [ "$(docker ps -a -q -f name=deegree -f status=exited)" ] ; then
+    echo "Lösche Container ..."
+    docker rm deegree
+  else
+    echo "Container deegree kann nicht gelöscht werden, weil er nicht existiert."
+  fi
+}
+
+remove_deegree_image() {
+  echo "Lösche deegree Image: $deegree_IMAGE"
+  docker rmi $deegree_IMAGE
+}
+
+run_deegree_container() {
+  if [ "${network_name}" == "kvwmap_ohne" ]; then
+    source $USER_DIR/etc/deegree/env_and_volumes
+    echo "Erzeuge und starte den deegree Container:"
+    cmd="docker run \
+      -h ${SERVER_NAME}-deegree-container \
+      --name deegree \
+      --restart=always \
+      --link pgsql-server:pgsql \
+      $deegree_volumes \
+      $deegree_env_vars \
+      -d $deegree_IMAGE \
+    "
+    echo $cmd
+    $cmd
+  else
+    echo "Starte container deegree im Netzwerk: ${network_name}"
+    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d deegree"
+  fi
+}
+
+set_deegree_web_link() {
+  echo "Setze deegree link zum Starten des web containers: --link deegree:deegree"
+  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link deegree:deegree"
+}
+
+show_status() {
+  echo "Status of container $COINTAINER_NAME"
+}
+
+start_deegree_container() {
+  echo "Starte deegree Container. Bitte warten ..."
+  docker start deegree
+}
+
+stop_deegree_container() {
+  if [ "$(docker ps -a -q -f name=deegree -f status=running)" ] ; then
+    echo "Stoppe Container. Bitte warten ..."
+    docker stop deegree
+  else
+    echo "Container deegree kann nicht gestoppt werden, weil er nicht läuft."
+  fi
+}
+
+uninstall_deegree() {
+  remove_deegree_container
+  
+  echo "Dieser Befehl deinstalliert das image $deegree_IMAGE und auf Nachfrage alle dazugehörigen auf diesem Host gespeicherten Daten, die deegree genutzt hat."
+  read -p "Wollen Sie das Image wirklich deinstallieren? (j/n)? " answer
+  case ${answer:0:1} in
+    j|J )
+      docker rmi $deegree_IMAGE
+      echo "Lösche deegree Datenverzeichnis $deegree_DATA_DIR"
+      ls -l $deegree_DATA_DIR
+      rm -RI $deegree_DATA_DIR
+
+      echo "Lösche deegree Konfiguration in Apache2."
+      rm $USER_DIR/etc/apache2/sites-enabled/deegree.conf
+      rm $USER_DIR/etc/apache2/sites-available/deegree.conf
+
+      echo "Lösche deegree env_and_volumes Konfiguration in etc."
+      rm -R $USER_DIR/etc/deegree
+
+      echo "So jetzt ist deegree weg."
+      echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
+      echo "$ dcm install deegree"
+      echo "$ dcm run deegree"
+      echo "$ dcm rerun web"
+      echo "Die Anwendung ist im Browser zu erreichen unter:"
+      echo "http://meineserverip/deegree/web/"
+      echo "Die initialen Zugangsdaten zur Admin GUI von deegree sind User: admin und Password: deegree"
+    ;;
+    * )
+      echo "OK, nix passiert!"
+    ;;
+  esac
+}
+
+cases_deegree() {
+  case_found=true
+  case "$1" in
+    console)
+      case $2 in
+        deegree)
+          echo "Öffne ein Terminal im Container in dem der deegree läuft ..."
+          docker exec -it deegree /bin/bash
+        ;;
+        *)
+          debug "No subcase $2 in deegree"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    install)
+      case $2 in
+        deegree)
+          install_deegree
+        ;;
+        *)
+          debug "No subcase $2 in deegree"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    ip)
+      case $2 in
+        deegree)
+          show_container_ip $2
+        ;;
+        * )
+          debug "No subcase $2 in deegree"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    uninstall)
+      debug "Case uninstall in deegree"
+      case $2 in
+        deegree)
+          #echo "Case deegree"
+          uninstall_deegree
+        ;;
+        *)
+          debug "No subcase $2 in deegree"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    rm)
+      debug "Case remove in deegree"
+      case $2 in
+        deegree)
+          remove_deegree_container
+        ;;
+        * )
+          debug "No subcase $2 in deegree"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    rerun)
+      debug "Case rerun in deegree"
+      case $2 in
+        deegree)
+          remove_deegree_container
+          run_deegree_container
+          docker ps
+        ;;
+        *)
+          debug "No subcase $2 in deegree"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    run)
+      debug "Case run in deegree"
+      case $2 in
+        deegree)
+          run_deegree_container
+        ;;
+        *)
+          debug "No subcase $2 in deegree"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    start)
+      debug "Case start in deegree"
+      case $2 in
+        deegree)
+          start_deegree_container
+        ;;
+        *)
+          debug "No subcase $2 in deegree"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    status)
+      case $2 in
+        deegree)
+          show_container_status "deegree"
+        ;;
+        *)
+          debug "No subcase $2 in deegree"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    stop)
+      debug "Case stop in deegree"
+      case $2 in
+        deegree)
+          stop_deegree_container
+        ;;
+        *)
+          debug "No subcase $2 in deegree"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    *)
+      #echo "No case found in dcm deegree"
+      case_found=false
+    ;;
+  esac
+  debug "Case found after cases deegree: $case_found"
+}

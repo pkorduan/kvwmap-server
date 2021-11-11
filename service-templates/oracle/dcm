@@ -1,0 +1,243 @@
+#!/bin/bash
+#echo "Load variables in dcm geoserver"
+CARGOS+=("oracle")
+oracle_enabled=true
+ORACLE_IMAGE="alexeiled/docker-oracle-xe-11g:latest"
+ORACLE_CONTAINER_NAME="oracle"
+ORACLE_DATA_DIR=$WWW_ROOT/data/oracle_data_dir
+
+usage_oracle() {
+  echo "install $ORACLE_CONTAINER_NAME     Installiert das Image ${ORACLE_IMAGE}."
+  echo "run $ORACLE_CONTAINER_NAME         Erzeugt und startet nur den Container $ORACLE_CONTAINER_NAME."
+  echo "start $ORACLE_CONTAINER_NAME       Startet nur den Container $ORACLE_CONTAINER_NAME."
+  echo "status $ORACLE_CONTAINER_NAME      Zeigt den aktuellen Status des Container $ORACLE_CONTAINER_NAME an."
+  echo "stop $ORACLE_CONTAINER_NAME        Startet nur den Container $ORACLE_CONTAINER_NAME."
+  echo "uninsall $ORACLE_CONTAINER_NAME    Deinstalliert das oracle image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+}
+
+install_oracle() {
+  echo "Installiere Oracle ..."
+  
+  mkdir -p $ORACLE_DATA_DIR
+
+  echo "Ziehe Image $ORACLE_IMAGE von dockerhub
+"
+  docker pull $ORACLE_IMAGE
+
+  echo "Der $ORACLE_CONTAINER_NAME Container kann nun gestartet werden mit dem Befehl:"
+  echo "dcm run $ORACLE_CONTAINER_NAME"
+  echo "Wenn der $ORACLE_CONTAINER_NAME conainer im pgsql Container genutzt werden soll, den pgsql container neu starten mit dem Befehl:"
+  echo "dcm rerun pgsql"
+  echo "Der $ORACLE_CONTAINER_NAME Container wird automatisch in den pgsql Container gelinkt."
+}
+
+remove_oracle_container() {
+  stop_oracle_container
+
+  if [ "$(docker ps -a -q -f name=$ORACLE_CONTAINER_NAME -f status=exited)" ] ; then
+    echo "Lösche Container ..."
+    docker rm $ORACLE_CONTAINER_NAME
+  else
+    echo "Container $ORACLE_CONTAINER_NAME kann nicht gelöscht werden, weil er nicht existiert."
+  fi
+}
+
+remove_oracle_image() {
+  echo "Lösche geoserver Image: $ORACLE_IMAGE"
+  docker rmi $ORACLE_IMAGE
+}
+
+run_oracle_container() {
+  echo "Erzeuge und starte den $ORACLE_CONTAINER_NAME Container ..."
+  docker run --name $ORACLE_CONTAINER_NAME \
+    -h ${SERVER_NAME}-$ORACLE_CONTAINER_NAME-container \
+    --shm-size=2g \
+    -v $ORACLE_DATA_DIR:/opt/oracle/data_dir \
+    -p 1521:1521 \
+    -p 8081:8081 \
+    -d $ORACLE_IMAGE
+}
+
+set_oracle_pgsql_link() {
+  echo "Setzte oracle link zum Starten des pgsql containers: --link oracle:oracle"
+  CARGO_PGSQL_LINKS=${CARGO_PGSQL_LINKS}" --link oracle:oracle"
+}
+
+set_oracle_web_link() {
+  echo "Setzte oracle link zum Starten des web containers: --link oracle:oracle"
+  CARGO_WEB_LINKS=${CARGO_WEB_LINKS}" --link oracle:oracle"
+}
+
+show_status() {
+  echo "Status of container $COINTAINER_NAME"
+}
+
+start_oracle_container() {
+  echo "Starte $ORACLE_CONTAINER_NAME Container. Bitte warten ..."
+  docker start $ORACLE_CONTAINER_NAME
+}
+
+stop_oracle_container() {
+  if [ "$(docker ps -a -q -f name=$ORACLE_CONTAINER_NAME -f status=running)" ] ; then
+    echo "Stoppe Container. Bitte warten ..."
+    docker stop $ORACLE_CONTAINER_NAME
+  else
+    echo "Container $ORACLE_CONTAINER_NAME kann nicht gestoppt werden, weil er nicht läuft."
+  fi
+}
+
+uninstall_oracle() {
+  remove_oracle_container
+  
+  echo "Dieser Befehl deinstalliert das image $ORACLE_IMAGE und auf Nachfrage alle dazugehörigen auf diesem Host gespeicherten Daten, die geoserver genutzt hat."
+  read -p "Wollen Sie das Image wirklich deinstallieren? (j/n)? " answer
+  case ${answer:0:1} in
+    j|J )
+      docker rmi $ORACLE_IMAGE
+      echo "Lösche $ORACLE_CONTAINER_NAME Datenverzeichnis $ORACLE_DATA_DIR"
+      ls -l $ORACLE_DATA_DIR
+      rm -RI $ORACLE_DATA_DIR
+
+      echo "So jetzt ist $ORACLE_CONTAINER_NAME weg."
+      echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
+      echo "$ dcm install $ORACLE_CONTAINER_NAME"
+      echo "Dann die Container entfernen, die vom Oracle Container abhängen. z.B"
+      echo "$ dcm remove web"
+      echo "oder"
+      echo "$ dcm remove pgsql"
+      echo "$ dcm run $ORACLE_CONTAINER_NAME"
+      echo "Und die davon abhängigen wieder starten z.B."
+      echo "$ dcm run pgsql"
+      echo "$ dcm run web"
+    ;;
+    * )
+      echo "OK, nix passiert!"
+    ;;
+  esac
+}
+
+cases_oracle() {
+  case_found=true
+  case "$1" in
+    console)
+      case $2 in
+        oracle)
+          echo "Öffne ein Terminal im Container in dem der $ORACLE_CONTAINER_NAME läuft ..."
+          docker exec -it $ORACLE_CONTAINER_NAME /bin/bash
+        ;;
+        *)
+          debug "No subcase $2 in $ORACLE_CONTAINER_NAME"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    install)
+      case $2 in
+        oracle)
+          install_oracle
+        ;;
+        *)
+          debug "No subcase $2 in $ORACLE_CONTAINER_NAME"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    ip)
+      case $2 in
+        oracle)
+          show_container_ip $2
+        ;;
+        * )
+          debug "No subcase $2 in $ORACLE_CONTAINER_NAME"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    uninstall)
+      debug "Case uninstall in $ORACLE_CONTAINER_NAME"
+      case $2 in
+        oracle)
+          #echo "Case geoserver"
+          uninstall_oracle
+        ;;
+        *)
+          debug "No subcase $2 in $ORACLE_CONTAINER_NAME"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    remove)
+      debug "Case remove in $ORACLE_CONTAINER_NAME"
+      case $2 in
+        oracle)
+          remove_oracle_container
+          remove_oracle_image
+        ;;
+        * )
+          debug "No subcase $2 in $ORACLE_CONTAINER_NAME"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    run)
+      debug "Case run in $ORACLE_CONTAINER_NAME"
+      case $2 in
+        oracle)
+          run_oracle_container
+        ;;
+        *)
+          debug "No subcase $2 in oracle"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    start)
+      debug "Case start in $ORACLE_CONTAINER_NAME"
+      case $2 in
+        oracle)
+          start_oracle_container
+        ;;
+        *)
+          debug "No subcase $2 in $ORACLE_CONTAINER_NAME"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    status)
+      case $2 in
+        oracle)
+          show_container_status $ORACLE_CONTAINER_NAME
+        ;;
+        *)
+          debug "No subcase $2 in $ORACLE_CONTAINER_NAME"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    stop)
+      debug "Case stop in $ORACLE_CONTAINER_NAME"
+      case $2 in
+        oracle)
+          stop_oracle_container
+        ;;
+        *)
+          debug "No subcase $2 in oracle"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    *)
+      case_found=false
+    ;;
+  esac
+  debug "Case found after cases $ORACLE_CONTAINER_NAME: $case_found"
+}

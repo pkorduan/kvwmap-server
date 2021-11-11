@@ -1,0 +1,18 @@
+version: "3.6"
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: mysql:5.5
+    networks:
+      ${NETWORK_NAME}:
+        aliases:
+          - ${SERVICE_NAME}
+    environment:
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+      - TERM=xterm
+      - COLUMNS=180
+      - LINES=200
+    volumes:
+      - ${USER_DIR}/networks/${NETWORK_NAME}/${SERVICE_NAME}/data:/var/lib/mysql
+      - ${USER_DIR}/networks/${NETWORK_NAME}/${SERVICE_NAME}/etc:/etc/mysql
+      - ${USER_DIR}/networks/${NETWORK_NAME}/${SERVICE_NAME}/logs:/var/logs/mysql

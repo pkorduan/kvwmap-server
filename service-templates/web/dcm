@@ -1,0 +1,17 @@
+#!/bin/bash
+
+install_web() {
+
+	echo "Installation von Service web in Netzwerk '${NETWORK_NAME}'"
+	echo "optional neuer Service-Name (Default 'web'): "
+	read SERVICE_NAME
+
+	if [ -z "$SERVICE_NAME" ]; then
+		SERVICE_NAME=web
+	fi
+
+	echo "Service-Name=${SERVICE_NAME}"
+
+	cp -r ${USER_DIR}/kvwmap-server/service-templates/web ${USER_DIR}/networks/${SERVICE_NAME}
+
+}

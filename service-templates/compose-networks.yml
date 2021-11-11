@@ -1,0 +1,15 @@
+version: "3.6"
+
+networks:
+  kvwmap_test:
+    name: kvwmap_test
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.0.20.0/24
+  kvwmap_prod:
+    name: kvwmap_prod
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.0.10.0/24

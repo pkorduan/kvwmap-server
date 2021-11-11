@@ -1,0 +1,307 @@
+#!/bin/bash
+#echo "Load variables in dcm geoserver"
+CARGOS+=("geoserver")
+
+usage_geoserver() {
+  echo "install geoserver  Installiert das geoserver Image."
+  echo "run geoserver      Erzeugt und startet nur den Container geoserver."
+  echo "rerun geoserver    Stoppt, Entfernt und Erzeugt und Startet einen neuen geoserver-Container."
+  echo "start geoserver    Startet nur den Container geoserver."
+  echo "status geoserver   Zeigt den aktuellen Status des Container geoserver an."
+  echo "stop geoserver     Startet nur den Container geoserver."
+  echo "uninsall geoserver Deinstalliert das geoserver image und die dazugehörigen lokalen Ressourcen auf dem Hostrechner."
+}
+
+install_geoserver() {
+  echo "Installiere geoserver ..."
+
+  source $USER_DIR/kvwmap-server/geoserver/etc/geoserver/env_and_volumes
+
+  echo "
+Kopiere Apache Konfigurationsdatei für geoserver."
+  echo "cp $USER_DIR/kvwmap-server/geoserver/etc/apache2/sites-available/geoserver.conf => $USER_DIR/etc/apache2/sites-available/geoserver.conf"
+  cp $USER_DIR/kvwmap-server/geoserver/etc/apache2/sites-available/geoserver.conf $USER_DIR/etc/apache2/sites-available/geoserver.conf
+  chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-available/geoserver.conf
+
+  echo "
+Enable geoserver Web-Site in Apache Konfiguration."
+  echo "ln -s ../sites-available/geoserver.conf $USER_DIR/etc/apache2/sites-enabled/geoserver.conf"
+  ln -s ../sites-available/geoserver.conf $USER_DIR/etc/apache2/sites-enabled/geoserver.conf
+  chown $OS_USER.$OS_USER $USER_DIR/etc/apache2/sites-enabled/geoserver.conf 
+
+  echo "
+Erzeuge geoserver Data-Verzeichnis: ${GEOSERVER_DATA_DIR}"
+  mkdir -p $GEOSERVER_DATA_DIR
+
+  echo "
+Kopiere geoserver Datenverzeichnis nach ${GEOSERVER_DATA_DIR}"
+  echo "cp -R $USER_DIR/kvwmap-server/geoserver/data ${GEOSERVER_DATA_DIR}"
+  cp -R $USER_DIR/kvwmap-server/geoserver/data/* $GEOSERVER_DATA_DIR
+  chown -R $OS_USER.$OS_USER $GEOSERVER_DATA_DIR
+  chmod -R a+w $GEOSERVER_DATA_DIR
+
+  echo "
+Kopiere geoserver Konfigurationsdatien nach $USER_DIR/etc/geoserver/"
+  echo "cp ${USER_DIR}/kvwmap-server/geoserver/etc/geoserver/env_and_volumes ${USER_DIR}/etc/geoserver/env_and_volumes"
+	mkdir ${USER_DIR}/etc/geoserver
+  cp ${USER_DIR}/kvwmap-server/geoserver/etc/geoserver/env_and_volumes ${USER_DIR}/etc/geoserver/env_and_volumes
+  chown -R $OS_USER.$OS_USER ${USER_DIR}/etc/geoserver
+  chmod -R a+w ${USER_DIR}/etc/geoserver
+
+  echo "
+  Ziehe Image ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION} von dockerhub"
+  docker pull ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}
+
+  echo "Der geoserver container kann nun gestartet werden mit dem Befehl:"
+  echo "dcm run geoserver"
+  echo "Anschließend den web container neu starten mit dem Befehl:"
+  echo "dcm rerun web"
+  echo "Dann kann auf die geoserver GUI mit folgender URL zugegriffen werden:"
+  echo "http://meineserverip/geoserver/web/"
+  echo "Die initialen Zugangsdaten zur Admin GUI von geoserver sind User: admin und Password: geoserver"
+  echo "Um die Dienste von geoserver nutzen zu können bitte in admin GUI unter Einstellungen => Global bei Proxy URL folgendes eintragen:"
+  echo "http://meineserverip/geoserver"
+}
+
+remove_geoserver_container() {
+  stop_geoserver_container $1
+
+  if [ "$(docker ps -a -q -f name=geoserver$1 -f status=exited)" ] ; then
+    echo "Lösche Container geoserver$1 ..."
+    docker rm geoserver$1
+  else
+    echo "Container geoserver kann nicht gelöscht werden, weil er nicht existiert."
+  fi
+}
+
+remove_geoserver_image() {
+  source $USER_DIR/etc/geoserver/env_and_volumes$1
+  echo "Lösche geoserver Image: ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}"
+  docker rmi ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}
+}
+
+#    -v /home/gisadmin/geoserver_data:/opt/geoserver/data_dir \
+#    -p 443:443 \
+#    --volumes-from wwwdata \
+#    --restart=always \
+#    -d $GEOSERVER_IMAGE:${GEOSERVER_IMAGE_VERSION}
+run_geoserver_container() {
+  source $USER_DIR/etc/geoserver/env_and_volumes$1
+
+  create_bridge_network
+
+  echo "Erzeuge und starte den geoserver Container:"
+  cmd="docker run\
+    --name ${GEOSERVER_CONTAINER_NAME}$1\
+    -h ${GEOSERVER_CONTAINER_NAME}-container\
+    --network=${network_name}\
+    --net-alias=geoserver$1\
+    $geoserver_volumes\
+    $geoserver_env_vars\
+    $geoserver_ports\
+    --restart=always\
+    -d ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}\
+  "
+  echo $cmd
+  $cmd
+}
+
+set_geoserver_web_link() {
+  source $USER_DIR/etc/geoserver/env_and_volumes
+  echo "Setzte geoserver link zum Starten des web containers: --link geoserver:geoserver"
+  if [ -z "${GEOSERVER_WEB_LINKS}" ] ; then
+    GEOSERVER_WEB_LINKS=" --link geoserver:geoserver"
+  fi
+
+  CARGO_WEB_LINKS="${CARGO_WEB_LINKS} ${GEOSERVER_WEB_LINKS}"
+}
+
+start_geoserver_container() {
+  echo "Starte geoserver Container geoserver${1}. Bitte warten ..."
+  docker start geoserver$1
+}
+
+stop_geoserver_container() {
+  if [ "$(docker ps -a -q -f name=geoserver$1 -f status=running)" ] ; then
+    echo "Stoppe Container geoserver$1. Bitte warten ..."
+    docker stop geoserver$1
+  else
+    echo "Container geoserver kann nicht gestoppt werden, weil er nicht läuft."
+  fi
+}
+
+uninstall_geoserver() {
+  source $USER_DIR/etc/geoserver/env_and_volumes$1
+  remove_geoserver_container $1
+  
+  echo "Dieser Befehl deinstalliert das image $GEOSERVER_IMAGE:$GEOSERVER_IMAGE_VERSION und auf Nachfrage alle dazugehörigen auf diesem Host gespeicherten Daten, die geoserver genutzt hat."
+  read -p "Wollen Sie das Image wirklich deinstallieren? (j/n)? " answer
+  case ${answer:0:1} in
+    j|J )
+      docker rmi ${GEOSERVER_IMAGE}:${GEOSERVER_IMAGE_VERSION}
+      echo "Lösche geoserver Datenverzeichnis $GEOSERVER_DATA_DIR$1"
+      ls -l $GEOSERVER_DATA_DIR$1
+      rm -RI $GEOSERVER_DATA_DIR$1
+      
+      echo "Lösche geoserver Konfiguration in Apache2."
+      rm $USER_DIR/etc/apache2/sites-available/geoserver.conf
+      rm $USER_DIR/etc/apache2/sites-enabled/geoserver.conf
+
+      echo "So jetzt ist geoserver weg."
+      echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
+      echo "$ dcm install geoserver"
+      echo "$ dcm remove web"
+      echo "$ dcm run geoserver"
+      echo "$ dcm run web"
+      echo "Die Anwendung ist im Browser zu erreichen unter:"
+      echo "http://meineserverip/geoserver/web/"
+      echo "Die initialen Zugangsdaten zur Admin GUI von geoserver sind User: admin und Password: geoserver"
+    ;;
+    * )
+      echo "OK, nix passiert!"
+    ;;
+  esac
+}
+
+cases_geoserver() {
+  case_found=true
+  case "$1" in
+    console)
+      case $2 in
+        geoserver)
+          echo "Öffne ein Terminal im Container geoserver$3 ..."
+          docker exec -it geoserver$3 /bin/bash
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    install)
+      case $2 in
+        geoserver)
+          install_geoserver
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    ip)
+      case $2 in
+        geoserver)
+          show_container_ip $2
+        ;;
+        * )
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    uninstall)
+      debug "Case uninstall in geoserver"
+      case $2 in
+        geoserver)
+          #echo "Case geoserver"
+          uninstall_geoserver $3
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    rm)
+      debug "Case remove in geoserver"
+      case $2 in
+        geoserver)
+          remove_geoserver_container $3
+          # Derzeit muss auch das dazugehörige Image gelöscht werden, weil sich geoserver container
+          # merkwürdigerweise nach dem ziehen eines Images immer nur einmal korrekt starten lassen.
+          #remove_geoserver_image
+        ;;
+        * )
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    rerun)
+      debug "Case rerun in geoserver"
+      case $2 in
+        geoserver)
+          remove_geoserver_container $3
+          run_geoserver_container $3
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    run)
+      debug "Case run in geoserver"
+      case $2 in
+        geoserver)
+          run_geoserver_container $3
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    start)
+      debug "Case start in geoserver"
+      case $2 in
+        geoserver)
+          start_geoserver_container $3
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    status)
+      case $2 in
+        geoserver)
+          show_container_status "geoserver"
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    stop)
+      debug "Case stop in geoserver"
+      case $2 in
+        geoserver)
+          stop_geoserver_container $3
+        ;;
+        *)
+          debug "No subcase $2 in geoserver"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    *)
+      #echo "No case found in dcm geoserver"
+      case_found=false
+    ;;
+  esac
+  debug "Case found after cases geoserver: $case_found"
+}
