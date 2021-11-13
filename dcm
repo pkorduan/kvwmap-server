@@ -2,20 +2,38 @@
 # Version 3.0.0
 
 usage() {
-  echo ""
-  echo "Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden wenn der Nutzer nicht zur Gruppe docker gehört.";
-  echo "Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos."
-  echo "Kontakt: peter.korduan@gdi-service.de"
-  echo ""
-  echo "Aufruf:";
-  echo "dcm command service|all [network|ohne]";
-  echo ""
-  echo "Varianten von command, service und network:"
-  echo "command gibt an was mit den Services gemacht werden soll."
-  echo "service gibt den Namen des Services an für den der Befehl ausgeführt werden soll. all führt den Befehl auf alle Services aus, die im docker-compose.yaml konfiguriert sind und die Cargo-Container."
-  echo "network gibt an welches Netzwerk gemeint ist. Wird kein Netzwerk angegeben wird der Befehl auf die Container im Netzwerk kvwmap_prod ausgeführt. Wird ohne angegeben werden die Befehle auf die Container angewendet, die noch nicht in einem Netzwerk sind. (Alte Variante der container)."
-  echo ""
-  echo "Je nach dem welche Erweiterungen in cargo-enabeld eingestellt sind gibt es weitere Befehle. Folgende sind derzeit aktiviert:"
+	echo ""
+	echo "Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden wenn der Nutzer nicht zur Gruppe docker gehört.";
+	echo "Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos."
+	echo "Kontakt: peter.korduan@gdi-service.de"
+	echo ""
+	echo "Netzwerke und Dienste erstellen:"
+	echo "dcm create network [network]"
+	echo "dcm create service [service] [network]"
+	echo "dcm remove network [network]"
+	echo "dcm remove service [service] [network]"
+	echo ""
+	echo "Dienst als Container starten:"
+	echo "dcm up [service] [network]"
+	echo "dcm up network [network]"
+	echo ""
+	echo "Dienst stoppen, Container löschen:"
+	echo "dcm down [service] [network]"
+	echo "dcm down network [network]"
+	echo ""
+	echo "Container starten, stoppen:"
+	echo "dcm start all"
+	echo "dcm start [service] [network]"
+	echo "dcm stop all"
+	echo "dcm stop [service] [network]"
+	echo ""
+	echo "dcm build"
+	echo "dcm clean"
+	echo "dcm config [service] [network]"
+	echo "dcm console [service] [network]"
+	echo "dcm inspect network [network]"
+	echo "dcm inspect service [service] [network]"
+	echo "dcm logs [service] [network]"
 }
 
 
@@ -44,371 +62,281 @@ build_gdal_image() {
   docker build -t pkorduan/gdal-sshd:$TAG .
 }
 
-# Bricht ab, wenn nutzer nicht root ist und nicht in docker gruppe
+# Bricht ab, wenn nutzer nicht root ist
 fail_unless_root() {
-  dcm_user=$(id -nu)
-  dcm_user_group=$(id -nG)
-  # Wenn ausführender Nutzer nicht root ist
-  if [ "${dcm_user}" != "root" ]; then
-    # Prüfe ob ausführende Nutzer in Gruppe docker ist
-    if [[ "$dcm_user_group" != *"docker"* ]] ; then
-      echo "Nutzer ${dcm_user} ist nicht berechtigt das Script dcm auszuführen."
-      echo "Führen Sie das Script als root aus oder fügen Sie den Nutzer ${dcm_user} mit dem Befehhl"
-      echo "/usr/sbin/usermod -a -G docker ${dcm_user}"
-      echo "zur Gruppe von docker hinzu."
-      exit 1
-#    else
-      #echo "${dcm_user} in gruppe ${dcm_user_group}"
-    fi
-  fi
+	dcm_user=$(id -nu)
+	dcm_user_group=$(id -nG)
+	# Wenn ausführender Nutzer nicht root ist
+	if [ "${dcm_user}" != "root" ]; then
+		echo "Aktion kann nur als User root ausgeführt werden."
+		exit 1
+	fi
 }
 
 list_services() {
+	while read SERVICE
+	do
+		echo $(basename $SERVICE)
+	done < <(find ${TEMPLATEPATH} -maxdepth 1 -mindepth 1 -type d)
+}
+
+##################################################
+## Service erstellen, Container verwalten
+##################################################
+
+function create_network() {
+	fail_unless_root
+	NETWORK_NAME=$1
+	NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
+	echo "Installiere Voraussetzungen für den Betrieb des Netzwerkes $network_name"
+	if [ -d "$NETWORK_DIR" ]; then
+		echo "Das Netzwerk existiert bereits! Abbruch."
+		return
+	fi
+
+	cp -vr ${USER_DIR}/kvwmap-server/kvwmap_template_network ${NETWORK_DIR}
+
+	# zufälliges Subnetz in die env vom Netzwerk schreiben
+	RANDOM=$(date +%s%N | cut -b10-19)
+	SUBNET=$(echo $(( $RANDOM % 250 + 11 ))) #zwischen 11 und 250
+	ip_range="172.0.${SUBNET}.0/24"
+	echo "NETWORK_SUBNET=${ip_range}" >> ${NETWORK_DIR}/env
+
+	echo "Netzwerke neu zusammenstellen..."
+	write_network_compose_file
+
+	echo "Netwerk erstellt. Mit dcm create service [service] ${NETWORK_NAME} können Dienste installiert werden."
+}
+
+function remove_network(){
+	fail_unless_root
+	NETWORK_NAME=$1
+	read -p "Es wird das Netzwerk $1 mit allen Services und Daten gelöscht! Fortfahren? [j|n]: " ANSWER
+	up_down_network ${NETWORK_NAME} "down"
+	rm -rvdf ${USER_DIR}/networks/${NETWORK_NAME}
+	echo "Netzwerk entfernt."
 
 }
 
-load_cargo() {
-  #echo "Load cargo source code."
-  #echo "Load Container Configurations in $CARGOPATH."
-  #echo "Consider that they will loaded in the alphanumeric order of the symbolic links in $CARGOPATH."
+function write_network_compose_file() {
 
-  dcmfiles=($(find -L $CARGOPATH -name dcm))
+	outfile=${USER_DIR}/networks/compose-networks.yml
 
-  dcmfiles=($(echo "${dcmfiles[@]}" | sed 's/ /\n/g' | sort))
+	echo "version: \"3.6\"" >  "$outfile"
+	echo ""                 >> "$outfile"
+	echo "networks:"      >> "$outfile"
 
-  for dcmfile in ${dcmfiles[@]}
-  do
-    echo "Load dcmfile: ${dcmfile}"
-    source $dcmfile
-  done
-  #echo "CARGOS: "
-  #printf '%s\n' "${CARGOS[@]}"
-  #echo ""
+	while read dir
+	do
+		NETWORK_NAME=$(basename $(echo $dir))
+		source "$dir"/env
+		export NETWORK_NAME
+		export NETWORK_SUBNET
+#		echo "  für Netzwerk: $NETWORK_NAME $NETWORK_SUBNET"
+		if [ -z "$NETWORK_SUBNET" ]; then
+			echo "Subnet fehlt! Abbruch!"
+			exit
+		fi
+
+		envsubst < ${USER_DIR}/kvwmap-server/service-templates/network-template.yml >> "$outfile"
+
+		NETWORK_NAME=""
+		NETWORK_SUBNET=""
+
+	done < <(find ${USER_DIR}/networks/ -maxdepth 1 -mindepth 1 -type d)
 }
 
-install_cargos() {
-  for cargo in "${CARGOS[@]}"
-  do :
-    install_$cargo
-  done
+function write_compose_file() {
+	SERVICE_NAME=$1
+	NETWORK_NAME=$2
+	echo "Compose-File erstellen"
+	echo "für Service $SERVICE_NAME im Netzwerk $NETWORK_NAME"
+	source ${USER_DIR}/networks/${NETWORK_NAME}/env
+
+	write_file=true
+	if [ -f ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml ]; then
+		read -p "Es existiert bereits ein docker-compose.yml für diesen Service. Soll der Service neu aus dem Template erstellt werden? [j/n] :" answer
+		case ${answer:0:1} in
+			j|J|y|Y )
+				write_file=true
+			;;
+			* )
+				write_file=false
+			;;
+		esac
+	fi
+
+	if [ "$write_file" = true ]; then
+		export NETWORK_NAME
+		export SERVICE_NAME
+		export NETWORK_SUBNET
+		export MYSQL_ROOT_PASSWORD
+		export POSTGRES_PASSWORD
+		export USER_DIR
+		envsubst < ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/compose-template.yml > ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
+
+		echo "Netzwerke neu zusammenstellen..."
+		write_network_compose_file
+	else
+		echo "Keine Änderung am Service."
+	fi
 }
 
-install_docker() {
-  echo "Install docker auf dem Hostrechner ..."
-  # Update debian repo
-  apt-get update && apt-get install -y \
-    apt-utils \
-    curl \
-    jq \
-    sendemail \
-    unzip \
-    wget
-
-  # install docker demon and client on host system if not exists already
-  case `docker --version` in
-    *Docker*)
-      echo 'Docker schon installiert!'
-      ;;
-    *)
-      echo 'Installiere docker ....'
-      curl -sSL https://get.docker.com/ | sh
-      mkdir $USER_DIR/docker/lib
-      systemctl stop docker
-      mv /var/lib/docker $USER_DIR/docker/lib
-      ln -s $USER_DIR/docker/lib/docker /var/lib/docker
-      systemctl start docker
-    ;;
-  esac
-
-  # enable memory and swap accounting. This prevent from
-  # WARNING: Your kernel does not support cgroup swap limit. and
-  # WARNING: Your kernel does not support swap limit capabilities. Limitation discarded.
-  # This setting affects only after rebooting the system
-  sed -i \
-    -e "s|GRUB_CMDLINE_LINUX=\"\"|GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"|g" \
-    /etc/default/grub
-  update-grub
+function service_exists(){
+	SERVICE_NAME=$1
+	NETWORK_NAME=$2
+	if [ ! -d ${USER_DIR}/networks/${NETWORK_NAME} ]; then
+		return 1
+	fi
+	if [ ! -f ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml ]; then
+		return 2
+	fi
+	return 0
 }
 
-install_docker-compose() {
-  echo "Installiere docker-compose"
-  curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
-  chmod +x /usr/bin/docker-compose
+function create_service() {
+	fail_unless_root
+	SERVICE_NAME=$1
+	NETWORK_NAME=$2
+	export SERVICE_NAME
+	export NETWORK_NAME
+	if [ ! -f ${TEMPLATEPATH}/${SERVICE_NAME}/dcm ]; then
+		echo "Keine dcm-Erweiterung gefunden. Abbruch."
+		return 1
+	fi
+	source ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
+	install_service
+
+	write_network_compose_file
+	write_compose_file ${1} ${2}
+	echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
 }
 
-install_kvwmap_network() {
-  fail_unless_root
-  echo "Installiere Voraussetzungen für den Betrieb des Netzwerkes $network_name"
-  if [ -d "$NETWORK_DIR" ]; then
-    read -p "Netzwerk $network_name existiert bereits. Soll es gelöscht und neu angelegt werden (j/n)? " answer
-    case ${answer:0:1} in
-      j|Y )
-        if [ ! "$(whoami)" == "root" ] ; then
-          echo "Die Funktion kann nur als root ausgeführt werden. Abbruch!"
-          return
-        fi
-        rm -R "$NETWORK_DIR"
-      ;;
-      * )
-        echo "OK, nix passiert!"
-        return
-      ;;
-    esac
-  fi
-  mkdir -p "$USER_DIR/networks"
-  cp -R -p "$USER_DIR/kvwmap-server/networks/kvwmap_prod" "$USER_DIR/networks/$network_name"
-  rm $USER_DIR/networks/${network_name}/pgsql/data/*
-  chown -R 999.gisadmin $USER_DIR/networks/${network_name}/mysql
-  chown -R 999.gisadmin $USER_DIR/networks/${network_name}/pgsql
-  chmod -R g+w $USER_DIR/networks/${network_name}/pgsql/logs
-  chown root.root $USER_DIR/networks/${network_name}/web/www/cron/crontab_root
-  chown gisadmin.gisadmin $USER_DIR/networks/${network_name}/web/www/cron/crontab_gisadmin
-  chmod 600 $USER_DIR/networks/${network_name}/web/www/cron/crontab_root $USER_DIR/networks/${network_name}/web/www/cron/crontab_gisadmin
-  chown root.root $USER_DIR/networks/${network_name}/pgsql/.pgpass
-  chown gisadmin.gisadmin $USER_DIR/networks/${network_name}/pgsql/.pgpass_gisadmin
-  chmod 600 $USER_DIR/networks/${network_name}/pgsql/.pgpass $USER_DIR/networks/${network_name}/pgsql/.pgpass_gisadmin
+function remove_service() {
+	fail_unless_root
+	SERVICE_NAME=$1
+	NETWORK_NAME=$2
+	read -p "Es wird der Service ${SERVICE_NAME} und alle Daten gelöscht! Fortfahren? [j|n]: " answer
+	case ${answer:0:1} in
+		j|J|y|Y )
+		;;
+		* )
+			return 1
+		;;
+	esac
 
-
-  compose_file="$USER_DIR/networks/${network_name}/docker-compose.yaml"
-  echo "Verzeichnis $NETWORK_DIR neu angelgt."
-  # kvwmap_prod durch neuen Netzwerknamen austauschen
-  sed -i \
-      -e "s|kvwmap_prod|${network_name}|g" \
-      $compose_file
-
-  # Fragt den ip-range von docker-compose.yaml ab und addiert 10 zum C-Netz dazu
-  ip_range="\
-$(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $1}').\
-$(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $2}').\
-$(expr $(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $3}') + 10).\
-$(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file} | awk -F. '{print $4}')\
-"
-
-  sed -i \
-      -e "s|$(yq e '.networks.'${network_name}'.ipam.config[0].subnet' ${compose_file})|${ip_range}|g" \
-      $compose_file
-  echo "IP-Range vom Netzwerk ${network_name} eingestellt auf: ${ip_range}. Bitte ggf. anpassen!"
-
-  # Zählt Port von pgsql um einen hoch
-  pgsql_port=$(yq e '.services.pgsql.ports[0]' $compose_file | awk -F: '{print $1}')
-  sed -i \
-      -e "s|${pgsql_port}:5432|$(expr ${pgsql_port} + 1):5432|g" \
-      $compose_file
-  echo "Port von pgsql Container nach außen auf $pgsql_port gesetzt. Bitte ggf. anpassen!"
-
-  if [ -d "$USER_DIR/proxy" ]; then
-    read -p "Das proxy Verzeichnis existiert bereits. Soll es gelöscht und neu angelegt werden? (j/n)? " answer
-    case ${answer:0:1} in
-      j|Y )
-        rm -R "$USER_DIR/proxy"
-        echo "Das proxy Verzeichnis wird angelegt."
-        cp -R -p "$USER_DIR/kvwmap-server/proxy" "$USER_DIR/proxy" 
-      ;;
-      * )
-        echo "OK, wir lassen das bestehende so wie es ist!"
-      ;;
-    esac
-  else
-    cp -R -p "$USER_DIR/kvwmap-server/proxy" "$USER_DIR/proxy" 
-  fi
-  echo "fertig
-  "
-  echo "Die Container im Netzwerk ${network_name} können jetzt gestartet werden mit dcm run all $3"
+	#Service beenden
+	up_down_service ${SERVICE_NAME} ${NETWORK_NAME} down
+	#Verzeichnisse löschen
+	rm -rdvf ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
 }
 
-copy_directories() {
-  dcm rm all ohne
-  rm -R $USER_DIR/networks/$network_name/web/www
-  mv $USER_DIR/docker/www $USER_DIR/networks/$network_name/web/www
-  ln -s $USER_DIR/networks/$network_name/web/www $USER_DIR/docker/www
-
-  mv $USER_DIR/db/mysql/* $USER_DIR/networks/$network_name/mysql/data
-  mv $USER_DIR/etc/mysql/my.cnf $USER_DIR/networks/$network_name/mysql/etc/my.cnf
-  mv $USER_DIR/etc/mysql/conf.d/* $USER_DIR/networks/$network_name/mysql/etc/conf.d/
-  mv $USER_DIR/www/logs/mysql/* $USER_DIR/networks/$network_name/mysql/logs
-  chown -R 999.gisadmin $USER_DIR/networks/$network_name/mysql
-  ln -s $USER_DIR/networks/$network_name/mysql/etc/my.cnf $USER_DIR/etc/mysql/my.cnf
-
-  rm -d $USER_DIR/db/mysql/
-  ln -s $USER_DIR/networks/$network_name/mysql/data $USER_DIR/db/mysql
-
-  rm -R $USER_DIR/networks/$network_name/pgsql
-  mv $USER_DIR/db/postgresql/data $USER_DIR/networks/$network_name/pgsql
-  mv $USER_DIR/etc/postgresql/.pgpass $USER_DIR/networks/$network_name/pgsql/.pgpass
-  mv $USER_DIR/etc/postgresql/.pgpass_gisadmin $USER_DIR/networks/$network_name/pgsql/.pgpass_gisadmin
-  mv $USER_DIR/networks/$network_name/web/www/logs/pgsql/* $USER_DIR/networks/$network_name/pgsql/logs
-  rm -d $USER_DIR/networks/$network_name/web/www/logs/pgsql
-
-  rm -d $USER_DIR/db/postgresql
-  ln -s $USER_DIR/networks/kvwmap_prod/pgsql $USER_DIR/db/postgresql
-
-  rm -R $USER_DIR/proxy/letsencrypt/live
-  mv $USER_DIR/etc/apache2/letsencrypt/live $USER_DIR/proxy/letsencrypt
-  mv $USER_DIR/etc/apache2/letsencrypt/csr $USER_DIR/proxy/letsencrypt
-  mv $USER_DIR/etc/apache2/letsencrypt/keys $USER_DIR/proxy/letsencrypt
-  mv $USER_DIR/etc/apache2/letsencrypt/archive $USER_DIR/proxy/letsencrypt
-  
-  cp -Rp $USER_DIR/proxy/letsencrypt/live $USER_DIR/etc/apache2/letsencrypt/live
-  cp -Rp $USER_DIR/proxy/letsencrypt/keys/ $USER_DIR/etc/apache2/letsencrypt/keys
-  cp -Rp $USER_DIR/proxy/letsencrypt/csr/ $USER_DIR/etc/apache2/letsencrypt/csr
-  cp -Rp $USER_DIR/proxy/letsencrypt/archive/ $USER_DIR/etc/apache2/letsencrypt/archive
-
-  dcm run all ohne
+function compose_call(){
+	cmd="docker-compose -f ${USER_DIR}/networks/compose-networks.yml -f ${SERVICE_PATH}/docker-compose.yml --env-file ${NETWORK_PATH}/env --project-name ${NETWORK_NAME} "
+	echo $cmd
 }
 
-install_kvwmap_images() {
-  echo "Installiere Voraussetzungen für den Betrieb von kvwmap ..."
-  if [ ! "$(whoami)" == "root" ] ; then
-    echo "Die Funktion kann nur als root ausgeführt werden. Abbruch!"
-    return
-  fi
+function up_down_service() {
+	SERVICE_NAME=$1
+	NETWORK_NAME=$2
+	UP_DOWN=$3
 
-  /usr/sbin/usermod -a -G docker $OS_USER
-
-  echo "
-  Setze bash Einstellungen für user: ${OS_USER} ..."
-  # set bash settings for web gis user
-  cp /etc/skel/.bashrc $USER_DIR/.bashrc
-  echo "
-  export PATH=\$PATH:${USER_DIR}/kvwmap-server" >> $USER_DIR/.bashrc
-  sed -i \
-    -e "s|#alias ll=|alias ll=|g" \
-    -e "s|alias rm=|#alias rm=|g" \
-    $USER_DIR/.bashrc
-  echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
-  echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
-  echo "set nocompatible" >> $USER_DIR/.vimrc
-
-  cp $USER_DIR/.bashrc ~/.bashrc
-  cp $USER_DIR/.vimrc ~/.vimrc
-
-  source ~/.bashrc
-
-  install_kvwmap_network
-
-  echo "
-  Erzeuge restliche Verzeichnisstruktur für die Datenbank und Web-Anwendungen von kvwmap ..."
-
-  ln -s "$NETWORK_DIR/web/www" "$USER_DIR/www"
-  mkdir -p "$USER_DIR/db"
-  ln -s "$NETWORK_DIR/mysql/data" "$USER_DIR/db/mysql"
-  ln -s "$NETWORK_DIR/pgsql/data" "$USER_DIR/db/postgresql"
-
-  echo "
-  Erzeuge Unterverzeichnis sites-enabled im Apache Konfigurationsverzeichnis..."
-  mkdir -p "$NETWORK_DIR/web/apache2/sites-enabled"
-
-  echo "
-  Clone kvwmap von github ins Web-Verzeichnis ..."
-  if [ ! -d "${USER_DIR}/networks/$network_name/web/www/apps/kvwmap" ]; then
-    # clone kvwmap repository into apps
-    git clone https://github.com/srahn/kvwmap.git "$NETWORK_DIR/web/www/apps/kvwmap"
-    cd "$NETWORK_DIR/web/www/apps/kvwmap"
-    git checkout develop
-  fi
-
-  echo "
-  Erzeuge kvwmap custom Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
-  mkdir -p $NETWORK_DIR/web/www/apps/kvwmap/custom/fonts \
-           $NETWORK_DIR/web/www/apps/kvwmap/custom/graphics \
-           $NETWORK_DIR/web/www/apps/kvwmap/custom/wappen \
-           $NETWORK_DIR/web/www/apps/kvwmap/custom/layouts \
-           $NETWORK_DIR/web/www/apps/kvwmap/custom/layouts/snippets \
-           $NETWORK_DIR/web/www/apps/kvwmap/custom/symbols
-
-  touch $NETWORK_DIR/web/www/apps/kvwmap/custom/layouts/custom.css
-
-  wget -O $NETWORK_DIR/web/www/apps/kvwmap/custom/wappen/Logo_GDI-Service_200x47.png https://gdi-service.de/public/kvwmap_resources/Logo_GDI-Service_200x47.png
-
-  echo "#geo_name_search_field {
-    width: 100%;
-  }
-
-  #search_div {
-    display: none;
-  }" >> $NETWORK_DIR/web/www/apps/kvwmap/custom/layouts/custom.css
-
-  cd $NETWORK_DIR/web/www/apps
-
-  echo "
-  Setze Rechte auf kvwmap Datenverzeichnisse ..."
-  chown -R $OS_USER.$OS_USER $USER_DIR $NETWORK_DIR/web/www
-  chmod -R g+w $NETWORK_DIR/web/www
-
-  echo "
-  Setze Rechte auf Datenbankverzeichnisse ..."
-  chown -R 999.$OS_USER $NETWORK_DIR/mysql $NETWORK_DIR/pgsql
-  chmod 700 $NETWORK_DIR/pgsql
-
-  echo "
-  Setze Rechte auf logs Verzeichnisse ..."
-  chmod g+rw $NETWORK_DIR/pgsql/logs; chmod g+r $NETWORK_DIR/mysql/logs $NETWORK_DIR/web/www/logs
-
-  echo "
-  Setze Rechte 600 auf .pgpass ..."
-  chown root.root $NETWORK_DIR/pgsql/.pgpass
-  chmod 600 $NETWORK_DIR/pgsql/.pgpass
-  chown $OS_USER.$OS_USER $NETWORK_DIR/pgsql/.pgpass_gisadmin
-  chmod 600 $NETWORK_DIR/pgsql/.pgpass_gisadmin
-
-  echo "Initialisiere das Postgres Datenbank-Cluster"
-  run_pgsql_container
-  stop_pgsql_container
-  remove_pgsql_container
-
-  cp $USER_DIR/kvwmap-server/pgsql/pg_hba.conf $NETWORK_DIR/pgsql/data/
-  chown 999.docker $NETWORK_DIR/pgsql/data/pg_hba.conf
-  cp $USER_DIR/kvwmap-server/pgsql/allowip $NETWORK_DIR/pgsql/data/
-  chown 999.docker $NETWORK_DIR/pgsql/data/allowip
-  sed -i -e "s|#log_destination = 'stderr'|log_destination = 'csvlog'|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  sed -i -e "s|#logging_collector = off|logging_collector = on|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  sed -i -e "s|#log_directory = 'pg_log'|log_directory = '/var/log/postgresql'|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  sed -i -e "s|#log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'|log_filename = 'pgsql-%Y-%m-%d.log'|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  sed -i -e "s|#log_file_mode = 0600|log_file_mode = 0640|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  sed -i -e "s|#log_truncate_on_rotation = off|log_truncate_on_rotation = on|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  sed -i -e "s|#log_rotation_age = 1d|log_rotation_age = 1d|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  sed -i -e "s|#log_rotation_size = 10MB|log_rotation_size = 0|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  sed -i -e "s|#log_line_prefix = ''|log_line_prefix = '%t:%r:%u@%d:[%p]: '|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  sed -i -e "s|#log_statement = 'none'|log_statement = 'mod'|g" $NETWORK_DIR/pgsql/data/postgresql.conf
-  chown 999.docker $NETWORK_DIR/pgsql/data/postgresql.conf
-
-  read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
-  echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> $NETWORK_DIR/pgsql/data/pg_hba.conf
-  echo "host    kvwmapsp        kvwmap          217.160.173.232/32             md5 # GDI-Service Server" >> $NETWORK_DIR/pgsql/data/pg_hba.conf
-  echo "host    kvwmapsp        kvwmap          90.187.125.49/32               md5 # GDI-Service Buero" >> $NETWORK_DIR/pgsql/data/pg_hba.conf
-
-  echo "
-  Installation abgeschlossen. Die Container können gestartet werden mit dcm run all"
+	service_exists ${SERVICE_NAME} ${NETWORK_NAME}
+	if [ "$?" -eq 0 ]; then
+		NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
+		SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
+		export NETWORK_PATH
+		export SERVICE_PATH
+		cmd="$(compose_call)"
+		case "$UP_DOWN" in
+			up)
+				cmd="${cmd} up -d"
+			;;
+			down)
+				cmd="${cmd} down"
+			;;
+			*)
+				cmd=""
+			;;
+		esac
+		echo $cmd
+		$cmd
+	else
+		echo "Service existiert nicht!"
+		return 1
+	fi
+	return 0
 }
 
-is_stopped() {
-  if [ "$(docker ps -a -q -f name=$1 -f status=exited)" ] ; then
-    echo 'true'
-  else
-    echo 'false'
-  fi;
+function start_service() {
+	SERVICE_NAME=$1
+	NETWORK_NAME=$2
+	docker start ${NETWORK_NAME}_${SERVICE_NAME}
 }
 
-is_running() {
-  if [ "$(docker inspect --format="{{ .State.Running }}" $1 2> /dev/null)" == "true" ] ; then
-    echo 'true';
-  else
-    echo 'false';
-  fi;
+function stop_service() {
+	SERVICE_NAME=$1
+	NETWORK_NAME=$2
+	docker stop ${NETWORK_NAME}_${SERVICE_NAME}
 }
 
-migrate_to_mariadb() {
-  echo "Migrate MySQL image to MariaDB..."
-  # backup mysql-Databases
-  stop_all_container
-  remove_all_container
-  # backup env_and_volume
-  # overwrite env_and_volume from kvwmap-server
-  run_all_container
-  # restore mysql-Databases
+function start_all_services() {
+	docker ps --format {{.Names}} --filter status=exited | xargs -i docker start {}
 }
 
-ps_container() {
+function stop_all_services() {
+	docker ps --format {{.Names}} --filter status=running | xargs -i docker stop {}
+}
+
+function list_services_by_network(){
+	echo "todo"
+}
+
+function up_down_network() {
+	NETWORK_NAME=$1
+	UP_DOWN=$2
+	echo "Alle Services im Netzwerk ${NETWORK_NAME} werden in den Status $UP_DOWN gebracht..."
+
+	# alle Services im Netzwerk runterfahren
+	# bei letztem Service wird das Netzwerk selbst entfernt
+	while read SERVICE_NAME
+	do
+		up_down_service ${SERVICE_NAME} ${NETWORK_NAME} "$UP_DOWN"
+	done < <(find ${USER_DIR}/networks/${NETWORK_NAME}/ -maxdepth 3 -mindepth 3 -type f -name docker-compose.yml | xargs -i dirname {} | xargs -i basename {} )
+}
+
+##################################################
+## Werkzeuge
+##################################################
+
+function service_config() {
+	echo "Service-Config ausgeben:"
+	SERVICE_NAME=$1
+	NETWORK_NAME=$2
+	NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
+	SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
+	export NETWORK_PATH
+	export SERVICE_PATH
+	cmd="$(compose_call)"
+	cmd="${cmd} config"
+	echo $cmd
+	$cmd
+}
+
+function service_console() {
+	docker exec -it ${2}_${1} bash
+}
+
+
+function inspect_network() {
+	docker network inspect $1
+}
+
+function inspect_container() {
+	docker inspect $2_$1
+}
+
+function ps_container() {
   if [ -z $1 ] ; then
     echo "Liste alle Container"
     docker ps -a
@@ -418,26 +346,9 @@ ps_container() {
   fi
 }
 
-remove_all_container() {
-  echo "Lösche alle Container ..."
-  remove_web_container
-  remove_mysql_container
-  remove_pgsql_container
-  remove_gdal_container
-  echo "Alle Container gelöscht."
-}
-
-remove_networks() {
-  echo "Remove all unused networks"
-  docker network prune -f
-}
-
-remove_network() {
-  echo "Remove network ${network_name}"
-  cmd="docker network rm ${network_name}"
-  echo $cmd
-  $cmd
-}
+##################################################
+## Proxy
+##################################################
 
 remove_proxy_container() {
   echo "Entferne proxy Container"
@@ -446,244 +357,15 @@ remove_proxy_container() {
   $cmd
 }
 
-remove_gdal_container() {
-  remove_container gdal
-}
-
-remove_mysql_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    remove_container mysql-server
-  else
-    remove_container mysql
+stop_proxy_container() {
+  if [[ -n $(docker ps -a -f status=running -f name=proxy_nginx_1 -q) ]] ; then
+    echo "Stoppe proxy Container. Bitte warten ..."
+    cmd="docker-compose -f ${USER_DIR}/proxy/docker-compose.yaml stop nginx"
+    echo $cmd
+    $cmd
   fi
 }
 
-remove_pgsql_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    remove_container pgsql-server
-  else
-    remove_container pgsql
-  fi
-}
-
-remove_web_container() {
-  remove_container web
-}
-
-remove_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    echo "Entferne Container $1"
-    cmd="docker rm $1"
-  else
-    echo "Entferne Container $1 in Netzwerk ${network_name}"
-    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s $1"
-  fi
-  echo $cmd
-  $cmd
-}
-
-remove_all_images() {
-  echo "Lösche alle Images ..."
-  docker rmi $(docker images | awk "{print $3}")
-  echo "Alle Images gelöscht."
-}
-
-run_all_container() {
-  echo "Erzeuge und Starte alle Container ..."
-  run_mysql_container
-  if type -t run_oracle_container | grep -q "^function$" ; then
-    run_oracle_container
-  fi
-  run_pgsql_container
-  run_gdal_container
-  if type -t run_geoserver_container | grep -q "^function$" ; then
-    run_geoserver_container
-  fi
-  if type -t run_tomcat_container | grep -q "^function$" ; then
-    run_tomcat_container
-  fi
-  if type -t run_pydio_container | grep -q "^function$" ; then
-    run_pydio_container
-  fi
-  if type -t run_owncloud_container | grep -q "^function$" ; then
-    run_owncloud_container
-  fi
-  if type -t run_owncloud_10.0.10_container | grep -q "^function$" ; then
-    run_owncloud_10.0.10_container
-  fi
-  if type -t run_deegree_container | grep -q "^function$" ; then
-    run_deegree_container
-  fi
-  if type -t run_osm2po_container | grep -q "^function$" ; then
-    run_osm2po_container
-  fi
-  if type -t run_bucardo_container | grep -q "^function$" ; then
-    run_bucardo_container
-  fi
-  if type -t run_ftpserver_container | grep -q "^function$" ; then
-    run_ftpserver_container
-  fi
-  run_web_container
-  if [ "${network_name}" != "kvwmap_ohne" ]; then
-    if [ $( docker ps -a | grep proxy_nginx_1 | wc -l ) -gt 0 ]; then
-      echo "Proxy Container existiert bereits."
-    else
-      echo "Proxy Container existiert noch nicht."
-      run_proxy_container
-    fi
-  fi
-}
-
-run_cargo_containers() {
-  for cargo in "${CARGOS[@]}"
-  do
-    run_${cargo}_container
-  done
-}
-
-run_gdal_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    echo "Erzeuge und Starte container gdal"
-    source $USER_DIR/etc/gdal/env_and_volumes
-    echo  ${SERVER_NAME}-gdal-container 
-    cmd="docker run --name gdal \
-      -h ${SERVER_NAME}-gdal-container \
-      --link pgsql-server:pgsql \
-      $gdal_env_vars \
-      $gdal_volumes \
-      $gdal_ports \
-      --restart=always \
-      -d ${GDAL_IMAGE}:${GDAL_IMAGE_VERSION}"
-  else
-    echo "Erzeuge und Starte container gdal im Netzwerk ${network_name}"
-    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d gdal"
-  fi
-  echo $cmd
-  $cmd
-}
-
-run_mysql_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    source $USER_DIR/etc/mysql/env_and_volumes
-
-    if [ -z "${START_MYSQL_WITH_DCM}" ] ; then
-      START_MYSQL_WITH_DCM="true"
-    fi
-
-    if [ "${START_MYSQL_WITH_DCM}" = "true" ] ; then
-      echo "Erzeuge und Starte container mysql"
-
-      cmd="docker run --name mysql-server \
-        -h ${SERVER_NAME}-mysql-container \
-        $mysql_env_vars \
-        $mysql_volumes \
-        $mysql_ports \
-        --restart=always \
-        -d ${MYSQL_IMAGE}:${MYSQL_IMAGE_VERSION}"
-    else
-      echo "Starten von mysql container wird ausgelassen weil START_MYSQL_WITH_DCM auf false steht."
-    fi
-  else
-    echo "Erzeuge und Starte container mysql im Netzwerk ${network_name}"
-    if [ ! -d "${USER_DIR}/networks/${network_name}/mysql/data/mysql" ] ; then
-      read -sp "Vergebe ein Passwort für MySQL-Nutzer root: " MYSQL_ROOT_PASSWORD
-      export MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
-    fi
-    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d mysql"
-  fi
-  echo $cmd
-  $cmd
-}
-
-run_pgsql_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    source $USER_DIR/etc/postgresql/env_and_volumes
-
-    if [ "${START_WITH_DCM}" = "true" ] ; then
-      echo "Erzeuge und Starte container pgsql"
-
-      if [ -z "$pgsql_ports" ] ; then
-        pgsql_ports="-p 5432:5432"
-      fi
-
-      if [ -z "${PGSQL_CONTAINER_NAME}" ] ; then
-        PGSQL_CONTAINER_NAME="pgsql-server"
-      fi
-
-      if [ -z "$pgsql_config" ] ; then
-        pgsql_config=""
-      fi
-
-      set_cargo_pgsql_links
-
-      cmd="docker run --name ${PGSQL_CONTAINER_NAME} \
-        -h ${SERVER_NAME}-${PGSQL_CONTAINER_NAME} \
-        $CARGO_PGSQL_LINKS \
-        $pgsql_env_vars \
-        $pgsql_volumes \
-        $pgsql_ports \
-        --restart=always \
-        -d ${PGSQL_IMAGE}:${PGSQL_IMAGE_VERSION} \
-        $pgsql_config"
-    else
-      echo "Starten von pgsql container wird ausgelassen weil START_WITH_DCM auf false steht."
-    fi
-  else
-    if [ ! -d "${USER_DIR}/networks/${network_name}/pgsql/data/base" ] ; then
-      read -sp "Vergebe ein Passwort für Postgres-Nutzer postgres: " POSTGRES_PASSWORD
-      export POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-    fi
-
-    echo "Starte container postgres im Netzwerk: ${network_name}"
-    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d pgsql"
-  fi
-  echo $cmd
-  $cmd
-}
-
-run_web_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    source $USER_DIR/etc/web/env_and_volumes
-
-    if [ -z "${web_hosts}" ]; then
-      web_hosts="--add-host=$DOMAIN_NAME:${IP_EXTERN} \
-                 --add-host=$SERVER_NAME:${IP_EXTERN}"
-    fi
-
-    if [ -z "${web_ports}" ]; then
-      web_ports="-p 80:80 \
-                 -p 443:443"
-    fi
-
-    set_cargo_web_links
-
-    cmd="docker run --name web \
-      -h ${SERVER_NAME}-web-container \
-      --link mysql-server:mysql \
-      --link pgsql-server:pgsql \
-      --link gdal:gdal \
-      $CARGO_WEB_LINKS \
-      $web_env_vars \
-      $web_volumes \
-      $web_hosts \
-      $web_ports \
-      --restart=always \
-      -d ${KVWMAP_IMAGE}:${KVWMAP_IMAGE_VERSION} \
-    "
-    echo "Starte web Container:"
-  else
-    create_bridge_network
-    echo "Starte container web im Netzwerk: ${network_name}"
-    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml up -d web"
-  fi
-  echo $cmd
-  $cmd
-}
-
-run_proxy_container() {
-  echo "Starte proxy Container"
-  docker-compose -f $USER_DIR/proxy/docker-compose.yaml up -d nginx
-}
 
 reload_pgsql_container() {
   cmd="docker exec --user postgres kvwmap_prod_pgsql_1 /usr/lib/postgresql/13/bin/pg_ctl reload"
@@ -704,22 +386,6 @@ test_proxy_container() {
   echo "Teste proxy Container:"
   echo $cmd
   $cmd
-}
-
-set_cargo_web_links() {
-  for cargo in "${CARGOS[@]}"
-  do :
-    set_${cargo}_web_link
-  done
-}
-
-set_cargo_pgsql_links() {
-  for cargo in "${CARGOS[@]}"
-  do :
-    if type -t set_${cargo}_pgsql_link | grep -q "^function$" ; then
-      set_${cargo}_pgsql_link
-    fi
-  done
 }
 
 show_all_container_ips() {
@@ -749,141 +415,6 @@ show_container_status() {
   NETWORK=$(docker inspect --format="{{ .NetworkSettings.IPAddress }}" $CONTAINER)
 
   echo "OK - $CONTAINER is running. IP: $NETWORK, StartedAt: $STARTED"
-}
-
-start_all_container() {
-  echo "Startet alle existierenden Container."
-  start_mysql_container
-  start_pgsql_container
-
-  # start_cargo_container
-
-  start_gdal_container
-  start_web_container
-  docker ps
-}
-
-start_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    echo "Starte container $1"
-    container=$1
-    if [ ! -z $container ] ; then
-      if [ "$(is_running $container)" == "true" ]; then
-        echo "Container $container läuft schon.";
-      else
-        if [ "$(is_stopped $container)" == "false" ]; then
-          run_${container}_container
-        else
-          echo "Starte Container ${container} ..."
-          cmd="docker start $1"
-        fi
-      fi
-    fi
-  else
-    echo "Starte container $1 in Network: ${network_name}"
-    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml start $1"
-  fi
-  echo $cmd
-  $cmd
-}
-
-start_gdal_container() {
-  echo "Starte gdal Container."
-  docker start gdal
-}
-
-start_mysql_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    start_container mysql-server
-  else
-    start_container mysql
-  fi
-}
-
-start_pgsql_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    start_container pgsql-server
-  else
-    start_container pgsql
-  fi
-}
-
-start_web_container() {
-  echo "Starte web Container."
-  docker start web
-}
-
-stop_all_container() {
-  echo "Stoppe alle Container. Bitte warten ..."
-  stop_web_container
-  stop_mysql_container
-  stop_pgsql_container
-  stop_gdal_container
-#  docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml rm -s
-  echo "Alle Container gestopped."
-}
-
-stop_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    echo "Stoppe container $1"
-    cmd="docker stop $1"
-  else
-    echo "Stoppe container $1 in Network: ${network_name}"
-    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml stop $1"
-  fi
-  echo $cmd
-  $cmd
-}
-
-stop_proxy_container() {
-  if [[ -n $(docker ps -a -f status=running -f name=proxy_nginx_1 -q) ]] ; then
-    echo "Stoppe proxy Container. Bitte warten ..."
-    cmd="docker-compose -f ${USER_DIR}/proxy/docker-compose.yaml stop nginx"
-    echo $cmd
-    $cmd
-  fi
-}
-
-stop_gdal_container() {
-#  if [ "$(docker ps -a -q -f name=gdal -f status=running)" ] ; then
-  stop_container gdal
-#  else
-#    echo "Container gdal kann nicht gestoppt werden, weil er nicht läuft."
-#  fi
-
-
-}
-
-stop_mysql_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    stop_container mysql-server
-  else
-    stop_container mysql
-  fi
-}
-
-stop_pgsql_container() {
-  if [ "${network_name}" == "kvwmap_ohne" ]; then
-    stop_container pgsql-server
-  else
-    stop_container pgsql
-  fi
-}
-
-stop_web_container() {
-  stop_container web
-}
-
-uninstall_cargos() {
-  for cargo in "${CARGOS[@]}"
-  do :
-    uninstall_$cargo
-  done
-}
-
-uninstall_gdal() {
-  echo "Deinstalliere das gdal image ..."
-  echo "Funktion ist noch nicht implementiert!!!"
 }
 
 uninstall_kvwmap() {
@@ -922,47 +453,6 @@ uninstall_kvwmap() {
   esac
 }
 
-function uninstall_network() {
-  stop_all_container
-  remove_all_container
-  cmd="docker network rm ${network_name}"
-  echo "Lösche Netzwerk ${network_name}"
-  echo $cmd
-  $cmd
-  cmd="rm -R ${USER_DIR}/networks/${network_name}"
-  echo "Lösche Netzwerk Verzeichnis"
-  echo $cmd
-  $cmd
-}
-
-function exists_network(){
-  while read nw
-  do
-    if [ "$nw" = "$1" ]; then
-      echo 1
-      exit
-    fi
-  done < <(docker network ls --format {{.Name}})
-  echo 0
-}
-
-function create_bridge_network() {
-  if [ $(exists_network $network_name) -eq 0 ]; then
-    echo "Erzeuge Docker Netzwerk ${network_name}:"
-    cmd="\
-      docker network create \
-        --driver=bridge \
-        --ip-range=$NETWORK_IP_RANGE \
-        --subnet=$NETWORK_SUBNET \
-      $network_name \
-    "
-    echo $cmd
-    $cmd
-  else
-    echo "Docker Netzwerk ${network_name} existiert bereits"
-  fi
-}
-
 #----------------------------------------------
 #load settings
 CONFIG_FILE=$( dirname "${BASH_SOURCE[0]}" )
@@ -976,314 +466,82 @@ fi
 echo "Load config file ${CONFIG_FILE}"
 source $CONFIG_FILE
 
-container_version=$3
-# Ab Version 3.0.0
-if [ -z $3 ] ; then
-  network_name="kvwmap_prod"
-else
-  network_name="kvwmap_$3"
-fi
-export network_name=$network_name
-
-NETWORK_DIR="${USER_DIR}/networks/$network_name"
-
 fail_unless_root
 
-load_cargo
-
-core_case_found=true
-
-#echo "Führe Befehl aus mit Command: $1, Container: $2, Netzwerk: $3"
-
 case "$1" in
-  build)
-    case $2 in
-      gdal)
-        build_gdal_image 'latest'
-      ;;
-      kvwmap)
-        echo "Build the image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}"
-        build_kvwmap_server $KVWMAP_IMAGE_VERSION
-      ;;
-      *)
-        echo "Gebe das Image an das gebaut werden soll. gdal oder kvwmap"
-      ;;
-    esac
-  ;;
 
-  cd)
-    case $2 in
-      apps)
-        dir="web/www/apps/"
-      ;;
-      data)
-        dir="web/www/data/"
-      ;;
-      apache)
-        dir="web/apache2/sites-enabled/"
-      ;;
-      *)
-        dir=""
-      ;;
-    esac
-    echo "Wechsel in das Verzeichnis $dir von Netzwerk ${network_name}"
-    cmd="cd ${USER_DIR}/networks/${network_name}/${dir}"
-    echo $cmd
-    $cmd
-  ;;
+	build)
+		case $2 in
+			gdal)
+				build_gdal_image 'latest'
+			;;
+			kvwmap)
+				echo "Build the image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}"
+				build_kvwmap_server $KVWMAP_IMAGE_VERSION
+			;;
+			*)
+				echo "Gebe das Image an das gebaut werden soll. gdal oder kvwmap"
+			;;
+		esac
+	;;
+	clean)
+		echo "Lösche alle nicht genutzten Container."
+		docker rm $(docker ps -q -f status=exited)
+		echo "Lösche alle Images mit Namen <none>."
+		docker rmi $(docker images -a | grep "^<none>" | awk '{print $3}')
+		echo "Lösche alle nicht benutzten Netzwerke"
+		docker network prune -f
+	;;
 
-  clean)
-    echo "Lösche alle nicht genutzten Container."
-    docker rm $(docker ps -q -f status=exited)
+	config)
+		service_config $2 $3
+	;;
 
-    echo "Lösche alle Images mit Namen <none>."
-    docker rmi $(docker images -a | grep "^<none>" | awk '{print $3}')
-  ;;
+	console)
+		"Öffnet eine Bash-Shell im Container:"
+		service_console $2 $3
+	;;
 
-  config)
-    export network_name="kvwmap_$2"
-    echo "Validiere und zeige docker-compose.yaml von Netzwerk ${network_name}"
-    cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml config"
-    echo $cmd
-    $cmd
-  ;;
+	inspect)
+		case $2 in
+			network)
+				inspect_network $3
+			;;
+			service)
+				inspect_container $3 $4
+			;;
+		esac
+	;;
 
-  console)
-    case $2 in
-      gdal)
-        echo "Öffne ein Terminal im Container in dem gdal mit ogr2ogr läuft..."
-        if [ "${network_name}" == "kvwmap_ohne" ]; then
-          cmd="docker exec -it gdal /bin/bash"
-        else
-          cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml exec gdal /bin/bash"
-        fi
-        echo $cmd
-        $cmd
-      ;;
-      mysql)
-        echo "Öffne ein Terminal im Container in dem der MySQL-Server läuft..."
-        if [ "${network_name}" == "kvwmap_ohne" ]; then
-          cmd="docker exec -it mysql-server /bin/bash"
-        else
-          cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml exec mysql /bin/bash"
-        fi
-        echo $cmd
-        $cmd
-      ;;
-      pgsql)
-        echo "Öffne ein Terminal im Container in dem der PostgreSQL-Server läuft..."
-        if [ "${network_name}" == "kvwmap_ohne" ]; then
-          cmd="docker exec -it pgsql-server /bin/bash"
-        else
-          cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml exec pgsql /bin/bash"
-        fi
-        echo $cmd
-        $cmd
-      ;;
+	logs)
+		service_logs $2 $3
+	;;
 
-      proxy)
-        echo "Öffne ein Terminal im Container in dem der Proxy läuft..."
-        cmd="docker exec -it proxy_nginx_1 /bin/bash"
-        echo $cmd
-        $cmd
-      ;;
+	ip)
+		case $2 in
+			all)
+				show_all_container_ips
+			;;
+			* )
+				show_service_ip $2 $3
+			;;
+		esac
+	;;
 
-      web)
-        echo "Öffne ein Terminal zum web container"
-        if [ "${network_name}" == "kvwmap_ohne" ]; then
-          cmd="docker exec -it web /bin/bash"
-        else
-          cmd="docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml exec web /bin/bash"
-        fi
-        echo $cmd
-        $cmd
-      ;;
+	status)
+		case $2 in
+			all)
+				docker ps -a
+			;;
+			*)
+				docker ps -a
+			;;
+		esac
+	;;
 
-      *)
-        core_sub_cases="gdal, mysql, pgsql, web"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-  ;;
-
-  create)
-    case $2 in
-      network)
-        create_bridge_network
-        docker network ls
-      ;;
-      *)
-        usage
-      ;;
-    esac
-  ;;
-
-  inspect)
-    if [[ "$2" == "network" ]] ; then
-      echo "Informationen über das Netzwerk $3"
-      cmd="network ${network_name}"
-    else
-      echo "Informationen über Container ${network_name}_$2_1 in Netz ${network_name}"
-      cmd="${network_name}_$2_1"
-    fi
-    cmd="docker inspect $cmd"
-    $cmd
-    echo "Ausgeführt mit Commando: $cmd"
-    ps_container
-  ;;
-
-  install)
-    if ! id "${OS_USER}" >/dev/null 2>&1; then
-      echo "
-      Erzeuge user: ${OS_USER} ..."
-      # create user for web gis anwendung if not exists
-      $OS_USER_EXISTS || adduser $OS_USER
-      /usr/sbin/usermod -u 17000 $OS_USER
-      /usr/sbin/groupmod -g 1700 $OS_USER
-    fi
-
-    if [ ! -f /usr/bin/docker ]; then
-      install_docker
-    fi
-
-    if [ ! -f /usr/bin/docker-compose ]; then
-      install_docker-compose
-    fi
-
-    case $2 in
-      all)
-        install_kvwmap_images
-        install_cargos
-      ;;
-      network)
-        if [ "$network_name" == "kvwmap_ohne" ] ; then
-          echo "Das Netzwerk $network_name wird nicht unterstützt."
-        else
-          install_kvwmap_network
-        fi
-      ;;
-      kvwmap)
-        git config --global user.email "peter.korduan@gdi-service.de"
-        git config --global user.name "Peter Korduan"
-        install_kvwmap_images
-      ;;
-      *)
-        core_sub_cases="all, gdal, kvwmap"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-  ;;
-
-  log)
-    case $2 in
-      pgsql)
-        # Logging settings to postgresql
-        sed -i \
-          -e "s|#logging_collector = off|logging_collector = on|g" \
-          -e "s|#log_directory = 'pg_log'|log_directory = 'pg_log'|g" \
-          -e "s|#log_truncate_on_rotation = off|log_truncate_on_rotation = off|g" \
-          -e "s|#log_rotation_age = 1d|log_rotation_age = 1d|g" \
-          -e "s|#checkpoint_segments = 3|checkpoint_segments = 30|g" \
-          -e "s|#checkpoint_timeout = 5min|checkpoint_timeout = 10min|g" \
-          $DB_ROOT/postgresql/data/postgresql.conf
-      ;;
-      *)
-        echo "Gib nach log einen der folgenden Parameter ein: pgsql."
-      ;;
-    esac
-  ;;
-
-  logs)
-    case $2 in
-      proxy)
-        docker logs proxy
-      ;;
-      *)
-        docker-compose -f /home/gisadmin/networks/${network_name}/docker-compose.yaml logs -f $2
-      ;;
-    esac
-  ;;
-
-  mysql)
-    case $2 in
-      client)
-        MYSQL_TCP_ADD=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql-server`
-        MYSQL_ROOT_PASSWORD=`docker inspect --format '{{index .Config.Env 0}}' mysql-server | cut -d \= -f 2`
-        docker exec -it mysql-server mysql -h ${MYSQL_TCP_ADD} -u root --password=${MYSQL_ROOT_PASSWORD} mysql
-      ;;
-      start)
-        docker start mysql-server
-        docker ps
-      ;;
-      status)
-        show_container_status "mysql-server"
-      ;;
-      stop)
-        docker stop mysql-server
-        docker ps -a | sort -k 2
-      ;;
-      remove)
-        docker rm mysql-server
-        docker ps -a | sort -k 2
-      ;;
-      tomariadb)
-        migrate_to_mariadb
-      ;;
-      run)
-        run_mysql_container
-      ;;
-      *)
-        echo "Gib nach mysql einen der folgenden Parameter ein: client, start, status, stop, remove oder run."
-      ;;
-    esac
-  ;;
-
-  pgsql)
-    case $2 in
-      client)
-        POSTGRESQL_TCP_ADD=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' pgsql-server`
-        PGPASSWORD=`docker inspect --format '{{index .Config.Env 0}}' pgsql-server | cut -d \= -f 2`
-        docker exec -it pgsql-server psql -h ${POSTGRESQL_TCP_ADD} -U postgres postgres
-      ;;
-      start)
-        docker start pgsql-server
-        docker ps
-      ;;
-      status)
-        show_container_status "pgsql-server"
-      ;;
-      stop)
-        docker stop pgsql-server
-        docker ps -a | sort -k 2
-      ;;
-      remove)
-        docker rm pgsql-server
-        docker ps -a | sort -k 2
-      ;;
-      run)
-        run_pgsql_container
-      ;;
-      allowip)
-        docker exec pgsql-server /var/lib/postgresql/data/allowip $3
-      ;;
-      *)
-        echo "Gib nach pgsql einen der folgenden Parameter ein: client, start, status, stop, remove oder run."
-      ;;
-    esac
-  ;;
-
-  ps)
-    if [[ -z $2 ]] ; then
-      network_name=""
-    else
-      if [[ "$2" == kvwmap_* ]] ; then
-        network_name=$2
-      else
-        network_name="kvwmap_$2"
-      fi
-    fi
-    ps_container $network_name
-  ;;
+	ps)
+		ps_container $2
+	;;
 
   rebuild)
     case $2 in
@@ -1343,302 +601,149 @@ case "$1" in
     esac
   ;;
 
-  rm)
-    case $2 in
-      all)
-        stop_all_container
-        remove_all_container
-        docker ps -a | sort -k 2
-      ;;
-      proxy)
-        stop_proxy_container
-        remove_proxy_container
-        docker ps -a | sort -k 2
-      ;;
-      gdal)
-        stop_gdal_container
-        remove_gdal_container
-        docker ps -a | sort -k 2
-      ;;
-      mysql)
-        stop_mysql_container
-        remove_mysql_container
-        docker ps -a | sort -k 2
-      ;;
-      pgsql)
-        stop_pgsql_container
-        remove_pgsql_container
-        docker ps -a | sort -k 2
-      ;;
-      network)
-        remove_network
-        docker network ls
-      ;;
-      web)
-        stop_web_container
-        remove_web_container
-        docker ps -a | sort -k 2
-      ;;
-      * )
-        core_sub_cases="all, gdal, mysql, pgsql, web"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-  ;;
+	install)
+		if ! id "${OS_USER}" >/dev/null 2>&1; then
+			echo "
+			Erzeuge user: ${OS_USER} ..."
+			# create user for web gis anwendung if not exists
+			$OS_USER_EXISTS || adduser $OS_USER
+			/usr/sbin/usermod -u 17000 $OS_USER
+			/usr/sbin/groupmod -g 1700 $OS_USER
+		fi
 
-  rerun)
-    case $2 in
-      all)
-        stop_all_container
-        remove_all_container
-        run_all_container
-      ;;
-      gdal)
-        stop_gdal_container
-        remove_gdal_container
-        run_gdal_container
-      ;;
-      pgsql)
-        stop_pgsql_container
-        remove_pgsql_container
-        run_pgsql_container
-      ;;
-      mysql)
-        stop_mysql_container
-        remove_mysql_container
-        run_mysql_container
-      ;;
-      proxy)
-        stop_proxy_container
-        remove_proxy_container
-        run_proxy_container
-      ;;
-      web)
-        stop_web_container
-        remove_web_container
-        run_web_container
-      ;;
-      * )
-        core_sub_cases="all, gdal, web"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-    docker ps
-  ;;
+		if [ ! -f /usr/bin/docker ]; then
+			install_docker
+		fi
 
-  restart)
-    case $2 in
-      all)
-        stop_all_container
-        start_all_container
-      ;;
-      web)
-        stop_web_container
-        start_web_container
-      ;;
-      *)
-        core_sub_cases="all, web"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-    docker ps
-  ;;
+		if [ ! -f /usr/bin/docker-compose ]; then
+			install_docker-compose
+		fi
 
-  run)
-    case $2 in
-      all)
-        run_all_container
-      ;;
-      proxy)
-        run_proxy_container
-      ;;
-      gdal)
-        run_gdal_container
-      ;;
-      kvwmap)
-        run_mysql_container
-        run_pgsql_container
-        run_gdal_container
-        run_web_container
-      ;;
-      mysql)
-        run_mysql_container
-      ;;
-      pgsql)
-        run_pgsql_container
-      ;;
-      web)
-        run_web_container
-      ;;
-      * )
-        core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-    docker ps
-  ;;
+		case $2 in
+			all)
+				install_kvwmap_images
+			;;
+			kvwmap)
+				git config --global user.email "peter.korduan@gdi-service.de"
+				git config --global user.name "Peter Korduan"
+				install_kvwmap_images
+			;;
+		esac
+	;;
 
-  ip)
-    case $2 in
-      all)
-        show_all_container_ips
-      ;;
-      gdal)
-        show_container_ip $2
-      ;;
-      mysql)
-        show_container_ip $2
-      ;;
-      pgsql)
-        show_container_ip $2
-      ;;
-      web)
-        show_container_ip $2
-      ;;
-      * )
-        core_sub_cases="all, gdal, mysql, pgsql, web"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-  ;;
+###############################################################
+## Container erstellen, starten, stoppen, entfernen
+###############################################################
 
-  start)
-    case $2 in
-      all)
-        start_all_container
-      ;;
-      mysql)
-        docker start mysql-server
-      ;;
-      pgsql)
-        docker start pgsql-server
-      ;;
-      web)
-        start_container $2
-      ;;
-      * )
-        core_sub_cases="all, gdal, kvwmap, mysql, pgsql, web"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-    docker ps -a | sort -k 2
-  ;;
+	create)
+		case $2 in
+			network)
+				create_network $3
+			;;
+			service)
+				create_service $3 $4
+			;;
+			compose)
+				write_compose_file $3 $4
+			;;
+		esac
+	;;
+	remove)
+		case $2 in
+			network)
+				remove_network $3
+			;;
+			service)
+				remove_service $3 $4
+			;;
+			*)
+				usage
+			;;
+		esac
+	;;
+	up)	#das alte run, instanziiert einen Service als Container
+		case $2 in
+			network)
+				up_down_network $3 "up"
+			;;
+			*)
+				up_down_service $2 $3 "up"
+		;;
+		esac
+		docker ps
+	;;
+	down)
+		case $2 in
+			network)
+				up_down_network $3 "down"
+			;;
+			*)
+				up_down_service $2 $3 "down"
+			;;
+		esac
+	;;
 
-  status)
-    case $2 in
-      all)
-        show_container_status "mysql-server"
-        show_container_status "pgsql-server"
-        show_container_status "web"
-        show_container_status "gdal"
-        if type -t run_geoserver_container | grep -q "^function$" ; then
-          show_container_status "geoserver"
-        fi
-      ;;
-      gdal)
-        show_container_status "gdal"
-      ;;
-      mysql)
-        show_container_status "mysql-server"
-      ;;
-      pgsql)
-        if [ -n "${container_version}" ] ; then
-          show_container_status "pgsql-server${container_version}" /bin/bash
-        else
-          show_container_status "pgsql-server"
-        fi
-      ;;
-      web)
-        show_container_status "web"
-      ;;
-      *)
-        core_sub_cases="all, gdal, mysql, pgsql, web"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-  ;;
+	start)
+		case $2 in
+			all)
+				start_all_container
+			;;
+			*)
+				start_service $2 $3
+			;;
+		esac
+		docker ps -a | sort -k 2
+	;;
 
-  stop)
-    case $2 in
-      all)
-        stop_all_container
-      ;;
-      proxy)
-        stop_proxy_container
-      ;;
-      gdal)
-        stop_gdal_container
-      ;;
-      mysql)
-        stop_mysql_container
-      ;;
-      kvwmap)
-        stop_web_container
-        stop_pgsql_container
-        stop_mysql_container
-      ;;
-      pgsql)
-        stop_pgsql_container
-      ;;
-      web)
-        stop_web_container
-      ;;
-      *)
-        core_sub_cases="all, gdal, mysql, kvwmap, pgsql, web"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-    docker ps -a | sort -k 2
-  ;;
+	stop)
+		case $2 in
+			all)
+				stop_all_container
+			;;
+			*)
+				stop_service $2 $3
+			;;
+		esac
+		docker ps -a | sort -k 2
+	;;
 
-  test)
-    case $2 in
-      proxy)
-        test_proxy_container
-      ;;
-      *)
-        echo "Derzeit können nur folgende Container getestet werden: proxy"
-      ;;
-    esac
-  ;;
+	restart)
+		case $2 in
+			all)
+				stop_services
+				start_services
+			;;
+			*)
+				stop_service $2 $3
+				start_service $2 $3
+			;;
+		esac
+	;;
 
-  uninstall)
-    case $2 in
-      all)
-        uninstall_gdal
-        uninstall_kvwmap
-        uninstall_cargos
-      ;;
-      gdal)
-        uninstall_gdal
-      ;;
-      network)
-        uninstall_network
-      ;;
-      kvwmap)
-        uninstall_kvwmap
-      ;;
-      *)
-        core_sub_cases="all, gdal, kvwmap"
-        call_cargo_cases $1 $2 $3
-      ;;
-    esac
-  ;;
+	test)
+		case $2 in
+		proxy)
+			test_proxy_container
+			;;
+		*)
+			echo "Derzeit können nur folgende Container getestet werden: proxy"
+			;;
+		esac
+	;;
 
-  update)
-    case $2 in
-      cron)
-        docker exec web /etc/cron.hourly/kvwmap
-        echo "Crontab für Nutzer gisadmin im Web-Container geschrieben."
-      ;;
-      *)
-        usage
-      ;;
-    esac
-  ;;
-
-  *)
-    usage
-    exit 1
-  ;;
+	update)
+		case $2 in
+			cron)
+				docker exec web /etc/cron.hourly/kvwmap
+				echo "Crontab für Nutzer gisadmin im Web-Container geschrieben."
+			;;
+			*)
+				usage
+			;;
+		esac
+	;;
+	*)
+		usage
+		exit 1
+	;;
 esac

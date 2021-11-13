@@ -1,0 +1,16 @@
+version: "3.6"
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: pkorduan/gdal-http:0.2.1
+    networks:
+      ${NETWORK_NAME}:
+        aliases:
+          - gdalcmdserver
+    environment:
+      - PGSQL_PASSFILE=/home/gisadmin/.pgpass
+      - TERM=xterm
+    volumes:
+      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/.pgpass:/root/.pgpass
+      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/.pgpass_gisadmin:/home/gisadmin/.pgpass
+      - ${USER_DIR}/networks/${NETWORK_NAME}/services/web/www:/var/www

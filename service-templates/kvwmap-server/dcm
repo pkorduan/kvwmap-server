@@ -1,0 +1,10 @@
+#!/bin/bash
+
+function install_service() {
+	#$SERVICE_NAME und $NETWORK_NAME können verwendet werden
+	dcm create network ${NETWORK_NAME}
+	dcm create service web ${NETWORK_NAME}
+	dcm create service mysql ${NETWORK_NAME}
+	dcm create service pgsql ${NETWORK_NAME}
+	dcm create service gdal ${NETWORK_NAME}
+}

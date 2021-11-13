@@ -1,0 +1,7 @@
+#!/bin/bash
+# Initialize kvwmap-server
+OS_USER=gisadmin
+USER_DIR=/home/${OS_USER}
+CURRENT_DIR=$(pwd)
+
+# run this scirpt:
