@@ -152,24 +152,9 @@ install_docker-compose
 # kvwmap-Instanz einrichten und starten
 #############################
 
-#dcm install kvwmap
+dcm create service kvwmap-service kvwmap_prod
 
-#cd $CURRENT_DIR
 
-#dcm run all
-
-#echo "Ersetze die Platzhalter für den Servernamen durch ${HOSTNAME} in der nginx Konfiguration."
-#sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" $USER_DIR/proxy/init-letsencrypt.sh
-#sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" $USER_DIR/proxy/nginx/default.conf
-#sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" $USER_DIR/proxy/nginx/default-ssl.conf
-
-#cd $USER_DIR/proxy
-#./init-letsencrypt.sh
-
-#echo "Stelle auf HTTPS um in der nginx Konfiguration."
-#sed -i '/default.conf;/a\    include /etc/nginx/default-ssl.conf;' $USER_DIR/proxy/nginx/nginx.conf
-
-#dcm reload proxy
 
 #read -p "Initscript löschen? (j/n) " answer
 #case ${answer:0:1} in

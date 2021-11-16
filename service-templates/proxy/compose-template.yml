@@ -1,19 +1,11 @@
 version: '3'
-networks:
-  kvwmap_prod:
-    name: kvwmap_prod
-    ipam:
-      driver: default
-      config:
-        - subnet: "172.0.10.0/24"
 services:
-  nginx:
-    hostname: nginx
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     image: nginx:stable
-    container_name: proxy
+    container_name: ${SERVICE_NAME}
     networks:
-      - default
-      - kvwmap_prod
+      - ${NETWORK_NAME}
 #     - all Networks defined
     ports:
       - "80:80"
@@ -26,8 +18,9 @@ services:
 
   certbot:
     image: certbot/certbot
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}_certbot
     networks:
-      - default
+      - ${NETWORK_NAME}
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 24h & wait $${!}; done;'"
     volumes:
       - ./letsencrypt:/etc/letsencrypt

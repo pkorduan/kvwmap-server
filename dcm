@@ -7,7 +7,7 @@ usage() {
 	echo "Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos."
 	echo "Kontakt: peter.korduan@gdi-service.de"
 	echo ""
-	echo "Netzwerke und Dienste erstellen:"
+	echo "Netzwerke und Dienste erstellen und entfernen:"
 	echo "dcm create network [network]"
 	echo "dcm create service [service] [network]"
 	echo "dcm remove network [network]"
@@ -27,6 +27,16 @@ usage() {
 	echo "dcm stop all"
 	echo "dcm stop [service] [network]"
 	echo ""
+	echo "Für networks wird das compose-networks.yml aktualisiert. Für service wird aus dem Template ein neues docker-compose.yml erstellt."
+	echo "dcm compose networks"
+	echo "dcm compose service [service] [network]"
+	echo ""
+	echo "Proxy-Server einrichten:"
+	echo "dcm proxy create"
+	echo "dcm proxy up"
+	echo "dcm proxy down"
+	echo ""
+	echo "dcm ls networks"
 	echo "dcm build"
 	echo "dcm clean"
 	echo "dcm config [service] [network]"
@@ -80,6 +90,10 @@ list_services() {
 	done < <(find ${TEMPLATEPATH} -maxdepth 1 -mindepth 1 -type d)
 }
 
+function list_networks() {
+	find ${USER_DIR}/networks/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -f {}/env && echo $(basename {})' \;
+}
+
 ##################################################
 ## Service erstellen, Container verwalten
 ##################################################
@@ -119,12 +133,20 @@ function remove_network(){
 }
 
 function write_network_compose_file() {
-
+	CURRENT_NETWORK_NAME=$NETWORK_NAME
 	outfile=${USER_DIR}/networks/compose-networks.yml
+	outfile2=${USER_DIR}/networks/networks.txt
+
+	if [ -f $outfile ]; then
+		rm ${outfile}
+	fi
+	if [ -f $outfile2 ]; then
+		rm ${outfile2}
+	fi
 
 	echo "version: \"3.6\"" >  "$outfile"
 	echo ""                 >> "$outfile"
-	echo "networks:"      >> "$outfile"
+	echo "networks:"        >> "$outfile"
 
 	while read dir
 	do
@@ -140,9 +162,12 @@ function write_network_compose_file() {
 
 		envsubst < ${USER_DIR}/kvwmap-server/service-templates/network-template.yml >> "$outfile"
 
-		NETWORK_NAME=""
+		echo "${NETWORK_NAME}" >> "$outfile2"
+
+		NETWORK_NAME=${CURRENT_NETWORK_NAME}
 		NETWORK_SUBNET=""
 
+	find /home/gisadmin/networks/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -f {}/env && echo $(basename {})' \;
 	done < <(find ${USER_DIR}/networks/ -maxdepth 1 -mindepth 1 -type d)
 }
 
@@ -152,6 +177,9 @@ function write_compose_file() {
 	echo "Compose-File erstellen"
 	echo "für Service $SERVICE_NAME im Netzwerk $NETWORK_NAME"
 	source ${USER_DIR}/networks/${NETWORK_NAME}/env
+
+	echo "Netzwerke neu zusammenstellen..."
+	write_network_compose_file
 
 	write_file=true
 	if [ -f ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml ]; then
@@ -167,6 +195,9 @@ function write_compose_file() {
 	fi
 
 	if [ "$write_file" = true ]; then
+	# ===
+	# === >> export der Variablen aus der Netzwerk env-Datei, gewünschte hinzufügen
+	# ===
 		export NETWORK_NAME
 		export SERVICE_NAME
 		export NETWORK_SUBNET
@@ -175,8 +206,11 @@ function write_compose_file() {
 		export USER_DIR
 		envsubst < ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/compose-template.yml > ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 
-		echo "Netzwerke neu zusammenstellen..."
-		write_network_compose_file
+		if [ "$SERVICE_NAME" = "proxy" ] && [ "$NETWORK_NAME" = "proxy" ]; then
+			echo "Netzwerke für Proxy-Netzwerk ersetzen..."
+			yq e -i '.services.*.networks = "'"$(< ${USER_DIR}/networks/networks.txt)"'"' ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
+		fi
+
 	else
 		echo "Keine Änderung am Service."
 	fi
@@ -198,6 +232,7 @@ function create_service() {
 	fail_unless_root
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
+
 	export SERVICE_NAME
 	export NETWORK_NAME
 	if [ ! -f ${TEMPLATEPATH}/${SERVICE_NAME}/dcm ]; then
@@ -207,13 +242,13 @@ function create_service() {
 	source ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
 	install_service
 
-	write_network_compose_file
 	write_compose_file ${1} ${2}
 	echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
 }
 
 function remove_service() {
 	fail_unless_root
+
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
 	read -p "Es wird der Service ${SERVICE_NAME} und alle Daten gelöscht! Fortfahren? [j|n]: " answer
@@ -232,7 +267,7 @@ function remove_service() {
 }
 
 function compose_call(){
-	cmd="docker-compose -f ${USER_DIR}/networks/compose-networks.yml -f ${SERVICE_PATH}/docker-compose.yml --env-file ${NETWORK_PATH}/env --project-name ${NETWORK_NAME} "
+	cmd="docker-compose -f ./docker-compose.yml -f ${USER_DIR}/networks/compose-networks.yml --env-file ./../../env --project-name ${NETWORK_NAME} "
 	echo $cmd
 }
 
@@ -240,11 +275,13 @@ function up_down_service() {
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
 	UP_DOWN=$3
+	CURRENT_PWD=$(pwd)
 
 	service_exists ${SERVICE_NAME} ${NETWORK_NAME}
 	if [ "$?" -eq 0 ]; then
 		NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
 		SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
+		cd ${SERVICE_PATH}
 		export NETWORK_PATH
 		export SERVICE_PATH
 		cmd="$(compose_call)"
@@ -263,8 +300,10 @@ function up_down_service() {
 		$cmd
 	else
 		echo "Service existiert nicht!"
+		cd $CURRENT_PWD
 		return 1
 	fi
+	cd $CURRENT_PWD
 	return 0
 }
 
@@ -463,7 +502,6 @@ else
   CONFIG_FILE=$CONFIG_FILE/config/config-default
 fi
 
-echo "Load config file ${CONFIG_FILE}"
 source $CONFIG_FILE
 
 fail_unless_root
@@ -719,7 +757,20 @@ case "$1" in
 			;;
 		esac
 	;;
-
+	compose)
+		case $2 in
+			networks)
+				write_network_compose_file
+				echo "Erledigt."
+			;;
+			service)
+				write_compose_file $3 $4
+			;;
+			*)
+				usage
+			;;
+		esac
+	;;
 	test)
 		case $2 in
 		proxy)
@@ -736,6 +787,29 @@ case "$1" in
 			cron)
 				docker exec web /etc/cron.hourly/kvwmap
 				echo "Crontab für Nutzer gisadmin im Web-Container geschrieben."
+			;;
+			*)
+				usage
+			;;
+		esac
+	;;
+	proxy)
+		case $2 in
+			create)
+				create_service proxy proxy
+			;;
+			up)
+				up_down_service proxy proxy "up"
+			;;
+			down)
+				up_down_service proxy proxy "down"
+			;;
+		esac
+	;;
+	ls)
+		case $2 in
+			networks)
+				list_networks
 			;;
 			*)
 				usage

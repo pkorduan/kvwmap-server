@@ -22,11 +22,11 @@ services:
       - COLUMNS=180
       - LINES=200
     volumes:
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/config/.pgpass:/root/.pgpass
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/config/.pgpass_gisadmin:/home/gisadmin/.pgpass
-#      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/config/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/data:/var/lib/postgresql/data
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/logs:/var/log/postgresql
+      - ./config/.pgpass:/root/.pgpass
+      - ./config/.pgpass_gisadmin:/home/gisadmin/.pgpass
+#      -./config/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./data:/var/lib/postgresql/data
+      - ./logs:/var/log/postgresql
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/proj/epsg:/usr/share/proj/epsg
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb

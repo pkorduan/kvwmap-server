@@ -18,13 +18,10 @@ services:
       - COLUMNS=180
       - LINES=200
     volumes:
-      - vol_pgpass:/root/.pgpass
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/proj:/ust/share/proj/
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/apache2/sites-available:/etc/apache2/sites-available
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/apache2/sites-enabled:/etc/apache2/sites-enabled
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/cron/load_cron_files:/etc/cron.hourl/load_cron_files
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/php/7.3:/etc/php/7.3
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/www:/var/www
-volumes:
-  vol_pgpass:
+      - ./apache2/sites-available:/etc/apache2/sites-available
+      - ./apache2/sites-enabled:/etc/apache2/sites-enabled
+      - ./cron/load_cron_files:/etc/cron.hourl/load_cron_files
+      - ./php/7.3:/etc/php/7.3
+      - ./phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php
+      - ./www:/var/www

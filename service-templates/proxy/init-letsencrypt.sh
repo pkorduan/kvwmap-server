@@ -5,6 +5,8 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
+
+
 domains=(platzhalterkvwmapserverdomainname)
 rsa_key_size=4096
 data_path="./letsencrypt"
@@ -17,6 +19,15 @@ if [ -d "$data_path" ]; then
     exit
   fi
 fi
+
+
+echo "Ersetze die Platzhalter für den Servernamen durch ${HOSTNAME} in der nginx Konfiguration."
+sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" ${SERVICE_PATH}/proxy/init-letsencrypt.sh
+sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" ${SERVICE_PATH}/proxy/nginx/default.conf
+sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" ${SERVICE_PATH}/proxy/nginx/default-ssl.conf
+
+echo "Stelle auf HTTPS um in der nginx Konfiguration."
+sed -i '/default.conf;/a\    include /etc/nginx/default-ssl.conf;' $USER_DIR/proxy/nginx/nginx.conf
 
 
 if [ ! -e "$data_path/options-ssl-nginx.conf" ] || [ ! -e "$data_path/ssl-dhparams.pem" ]; then

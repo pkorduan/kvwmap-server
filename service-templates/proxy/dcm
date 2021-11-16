@@ -1,0 +1,33 @@
+#!/bin/bash
+
+install_service() {
+
+	echo "Installation von Service proxy in Netzwerk 'proxy'"
+	echo "optional neuer Service-Name (Default 'proxy'): "
+	read SERVICE_NAME
+
+	if [ -z "$SERVICE_NAME" ]; then
+		SERVICE_NAME=proxy
+	fi
+
+	echo "Service-Name: ${SERVICE_NAME}"
+
+	NETWORK_NAME=proxy
+	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+
+	dcm create network proxy
+
+	if [ -d "$SERVICE_PATH" ]; then
+		echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+		return 1
+	fi
+
+	mkdir ${SERVICE_PATH}
+	cp -vr ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
+	cp -v   ${USER_DIR}/kvwmap-server/service-templates/proxy/compose-template.yml ${SERVICE_PATH}/
+	cp -v   ${USER_DIR}/kvwmap-server/service-templates/proxy/init-letsencrypt.sh ${SERVICE_PATH}/
+
+#	dcm up proxy proxy
+
+	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet. Starten sie den Service mit dcm proxy up"
+}
