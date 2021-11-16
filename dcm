@@ -504,8 +504,6 @@ fi
 
 source $CONFIG_FILE
 
-fail_unless_root
-
 case "$1" in
 
 	build)
