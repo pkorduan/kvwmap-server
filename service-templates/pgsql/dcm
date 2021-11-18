@@ -24,12 +24,14 @@ install_service() {
 	cp    ${USER_DIR}/kvwmap-server/service-templates/pgsql/compose-template.yml ${SERVICE_PATH}/
 
 	chown -R 999.gisadmin ${SERVICE_PATH}/
-	chown root.root ${SERVICE_PATH}/.pgpass
-	chown gisadmin.gisadmin ${SERVICE_PATH}/.pgpass_gisadmin
-	chmod 600 ${SERVICE_PATH}/.pgpass*
+	chown root.root ${SERVICE_PATH}/config/.pgpass
+	chown gisadmin.gisadmin ${SERVICE_PATH}/config/.pgpass_gisadmin
+	chmod 600 ${SERVICE_PATH}/config/.pgpass*
 
 #	read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
 #	echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> ${SERVICE_PATH}/config/pg_hba.conf
+
+	export SERVICE_NAME
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }

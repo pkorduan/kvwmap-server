@@ -242,7 +242,7 @@ function create_service() {
 	source ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
 	install_service
 
-	write_compose_file ${1} ${2}
+	write_compose_file ${SERVICE_NAME} ${NETWORK_NAME}
 	echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
 }
 
@@ -534,7 +534,7 @@ case "$1" in
 	;;
 
 	console)
-		"Öffnet eine Bash-Shell im Container:"
+		echo "Öffnet eine Bash-Shell im Container:"
 		service_console $2 $3
 	;;
 
