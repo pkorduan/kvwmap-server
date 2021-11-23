@@ -1,0 +1,29 @@
+#!/bin/bash
+
+install_service() {
+
+	echo "Installation von Service pg_receivewal in Netzwerk '${NETWORK_NAME}'"
+	echo "optional neuer Service-Name (Default 'pg_receivewal'): "
+	read SERVICE_NAME
+
+	if [ -z "$SERVICE_NAME" ]; then
+		SERVICE_NAME=pg_receivewal
+	fi
+
+	echo "Service-Name=${SERVICE_NAME}"
+
+	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+
+	if [ -d "$SERVICE_PATH" ]; then
+		echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+		return 1
+	fi
+
+	mkdir ${SERVICE_PATH}
+	cp    ${USER_DIR}/kvwmap-server/service-templates/pg_receivewal/compose-template.yml ${SERVICE_PATH}/
+	mkdir ${SERVICE_PATH}/wal_archive
+	chown 70.70 ${SERVICE_PATH}/wal_archive
+
+	echo "Passen Sie die Umgebungsvariable CONNSTR im Compose-File an."
+	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+}
