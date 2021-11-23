@@ -25,3 +25,4 @@ services:
       - ./php/7.3:/etc/php/7.3
       - ./phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php
       - ./www:/var/www
+      - ./logs:/var/www/logs/apache2

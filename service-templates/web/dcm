@@ -16,6 +16,7 @@ install_service() {
 
 	if [ -d "$SERVICE_PATH" ]; then
 		echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+		echo "${SERVICE_PATH} ist bereits vorhanden!"
 		return 1
 	fi
 
