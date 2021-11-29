@@ -1,0 +1,15 @@
+version: "3.6"
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: pkorduan/geoserver_inspire:2.16.1
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    networks:
+      ${NETWORK_NAME}:
+        aliases:
+          - ${SERVICE_NAME}
+    ports:
+      - 8080-8100:8080
+    volumes:
+      - ./data_dir:/opt/geoserver/data_dir
+      - ./web.xml:/usr/local/tomcat/webapps/geoserver/WEB-INF/web.xml
