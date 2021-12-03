@@ -10,7 +10,7 @@ services:
         aliases:
           - ${SERVICE_NAME}
     ports:
-      - 5432:5432
+      - 5432-5500:5432
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
       - PGSQL_DB=postgres
@@ -24,9 +24,8 @@ services:
     volumes:
       - ./config/.pgpass:/root/.pgpass
       - ./config/.pgpass_gisadmin:/home/gisadmin/.pgpass
-#      -./config/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
       - ./data:/var/lib/postgresql/data
-      - ./wal_archive:/var/lib/postgresql/wal_archive
+#      - ./pg_receivewal/wal_archive:/var/lib/postgresql/wal_archive
       - ./logs:/var/log/postgresql
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/proj/epsg:/usr/share/proj/epsg
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
