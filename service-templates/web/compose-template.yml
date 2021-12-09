@@ -18,7 +18,7 @@ services:
       - COLUMNS=180
       - LINES=200
     volumes:
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/proj:/usr/share/proj/
+      - ${USER_DIR}/networks/${NETWORK_NAME}/volumes/proj:/usr/share/proj/
       - ./apache2/sites-available:/etc/apache2/sites-available
       - ./apache2/sites-enabled:/etc/apache2/sites-enabled
       - ./cron/load_cron_files:/etc/cron.hourl/load_cron_files

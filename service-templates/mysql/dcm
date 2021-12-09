@@ -9,8 +9,10 @@ install_service() {
 	if [ -z "$SERVICE_NAME" ]; then
 		SERVICE_NAME=mysql
 	fi
-
 	echo "Service-Name=${SERVICE_NAME}"
+
+	read -p "mysql Root Passwort:" -s MYSQLROOTPW
+	echo "MYSQL_ROOT_PASSWORD=${MYSQLROOTPW}" >> ${USER_DIR}/networks/env
 
 	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
 
