@@ -541,15 +541,13 @@ uninstall_kvwmap() {
 
 #----------------------------------------------
 #load settings
-CONFIG_FILE=$( dirname "${BASH_SOURCE[0]}" )
-if [ -f $CONFIG_FILE/config/config ] ; then
-  CONFIG_FILE=$CONFIG_FILE/config/config
+if [ -f ../config/config ] ; then
+  echo "Config file exists"
 else
-  cp $CONFIG_FILE/config/config-default $CONFIG_FILE/config/config
-  CONFIG_FILE=$CONFIG_FILE/config/config-default
+	echo "Create config file from config/config-default"
+  cp ../config/config-default ../config/config
 fi
-
-source $CONFIG_FILE
+source ../config/config
 
 case "$1" in
 

@@ -52,5 +52,10 @@ install_service() {
 
 	chown -R ${OS_USER}.${OS_USER} ${SERVICE_PATH}/www/apps
 	chmod -R g+w ${SERVICE_PATH}/www
+
+	cp "${USER_DIR}/kvwmap-server/service-templates/web/proxy/kvwmap.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available"
+	sed -i -e "s|kvwmap_prod_web|kvwmap_prod_${SERVICE_NAME}|g" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
+	ln -s "../sites-enabled/${SERVICE_NAME}.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-enabled/${SERVICE_NAME}.conf"
+
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }

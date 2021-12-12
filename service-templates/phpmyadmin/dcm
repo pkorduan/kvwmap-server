@@ -1,0 +1,36 @@
+#!/bin/bash
+
+install_service() {
+	echo "Installation von Service phpmyadmin in Netzwerk '${NETWORK_NAME}'"
+	echo "optional neuer Service-Name (Default 'phpmyadmin'): "
+	read SERVICE_NAME
+
+	if [ -z "$SERVICE_NAME" ]; then
+		SERVICE_NAME=phpmyadmin
+	fi
+	echo "Service-Name=${SERVICE_NAME}"
+
+	read -p "mysql Root Passwort:" -s MYSQL_ROOT_PASSWORD
+	echo "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}" >> ${USER_DIR}/networks/env
+	read -p "mysql User Name:" -s MYSQL_USER
+	echo "MYSQL_USER=${MYSQL_USER}" >> ${USER_DIR}/networks/env
+	read -p "mysql User Passwort:" -s MYSQL_PASSWORD
+	echo "MYSQL_PASSWORD=${MYSQL_PASSWORD}" >> ${USER_DIR}/networks/env
+
+	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+
+	if [ -d "$SERVICE_PATH" ]; then
+		echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+		return 1
+	fi
+
+	mkdir ${SERVICE_PATH}
+	cp -r ${USER_DIR}/kvwmap-server/service-templates/phpmyadmin/directory_template/* ${SERVICE_PATH}
+	cp    ${USER_DIR}/kvwmap-server/service-templates/phpmyadmin/compose-template.yml ${SERVICE_PATH}/
+
+	chown -R 999.gisadmin ${SERVICE_PATH}/
+
+	cp "${USER_DIR}/kvwmap-server/service-templates/phpmyadmin/proxy/phpmyadmin.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available"
+	ln -s ../sites-enabled/phpmyadmin.conf "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-enabled/phpmyadmin.conf"
+	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+}

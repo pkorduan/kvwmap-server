@@ -19,3 +19,6 @@ TEMPLATEPATH="$SCRIPTPATH/service-templates"
 
 KVWMAP_SERVER_VERSION=2.3.0
 PROD_APP="kvwmap"
+
+# we have to define the service name of proxy because it will be used in dcm install_service functions of other services which have to be set in proxy configuration.
+PROXY_SERVICE="proxy" # the default
