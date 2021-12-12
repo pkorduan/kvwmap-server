@@ -1,0 +1,28 @@
+version: "3.6"
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: pkorduan/kvwmap-server:2.2.4
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    networks:
+      ${NETWORK_NAME}:
+        aliases:
+          - ${SERVICE_NAME}
+    environment:
+      # Environment variables with only a key are resolved to their values on the ma>
+      - OS_USER=gisadmin
+      - IP_EXTERN=$IP_EXTERN
+      - DOMAIN_EXTERN=$DOMAIN_EXTERN
+      - KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD
+      - TERM=linux
+      - COLUMNS=180
+      - LINES=200
+    volumes:
+      - ${USER_DIR}/networks/${NETWORK_NAME}/volumes/proj:/usr/share/proj/
+      - ./apache2/sites-available:/etc/apache2/sites-available
+      - ./apache2/sites-enabled:/etc/apache2/sites-enabled
+      - ./cron/load_cron_files:/etc/cron.hourly/load_cron_files
+      - ./php/7.3:/etc/php/7.3
+      - ./phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php
+      - ./www:/var/www
+      - ./logs:/var/www/logs/apache2

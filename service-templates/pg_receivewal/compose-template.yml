@@ -1,0 +1,15 @@
+version: "3.6"
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}   
+    image: gkaemmert/pg_receivewal:13
+    networks:
+      ${NETWORK_NAME}:
+        aliases:
+          - ${SERVICE_NAME}
+    environment:
+      - SLOTNAME=service_replication
+      - CONNSTR=postgresql://postgres:postgres@ :5432
+    volumes:
+      - ./wal_archive:/wal_archive

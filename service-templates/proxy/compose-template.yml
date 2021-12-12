@@ -1,0 +1,37 @@
+version: '3'
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: nginx:stable
+    container_name: ${SERVICE_NAME}
+    networks:
+      - ${NETWORK_NAME}
+#     - all Networks defined
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx
+      - ./letsencrypt:/etc/letsencrypt
+      - ./www:/var/www/html
+      - ./log:/var/log/nginx
+
+  certbot:
+    image: certbot/certbot
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}_certbot
+    networks:
+      - ${NETWORK_NAME}
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 24h & wait $${!}; done;'"
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+      - ./www:/var/www
+      - ./log:/var/log/letsencrypt
+
+# When it not work with
+# docker-compose run certbot
+# run
+# docker run -it --rm --name certbot \
+#            -v "/home/gisadmin/proxy/www:/var/www" \
+#            -v "/home/gisadmin/proxy/letsencrypt:/etc/letsencrypt" \
+#            -v "/home/gisadmin/proxy/log:/var/log/letsencrypt" \
+#            certbot/certbot certonly

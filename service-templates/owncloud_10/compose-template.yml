@@ -1,0 +1,20 @@
+version: "3.6"
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: owncloud:10
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    networks:
+      ${NETWORK_NAME}:
+        aliases:
+          - ${SERVICE_NAME}
+    environment:
+      - TERM=linux
+      - COLUMNS=180
+      - LINES=200
+    volumes:
+      - ./config:/var/www/html/config
+      - ./data:/var/www/html/data
+      - ./cron:/etc/cron.hourly/owncloud
+      - ./logs:/var/log/apache2
+      - ./apps:/var/www/html/apps

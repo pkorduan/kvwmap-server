@@ -1,0 +1,1 @@
+#NETWORK_SUBNET="172.0.10.0/24" wird von dcm create network [netzwerk] geschrieben

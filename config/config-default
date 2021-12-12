@@ -15,28 +15,7 @@ export DOMAIN_NAME=$(hostname)
 echo "Folgenden Domainname ermittelt: $DOMAIN_NAME"
 export IP_EXTERN=$(hostname -I | awk '{print $1}')
 echo "Folgende IP ermittelt: $IP_EXTERN"
-CARGOPATH="$SCRIPTPATH/cargo-enabled"
-CARGOS=()
-CARGO_WEB_LINKS=
-CARGO_PGSQL_LINKS=
-KVWMAP_SERVER_VERSION=2.2.3
+TEMPLATEPATH="$SCRIPTPATH/service-templates"
+
+KVWMAP_SERVER_VERSION=2.3.0
 PROD_APP="kvwmap"
-
-# Network settings
-case "$network_name" in
-  kvwmap_prod)
-    NETWORK_IP_RANGE="172.0.10.0/24"
-  ;;
-  kvwmap_dev)
-    NETWORK_IP_RANGE="172.0.20.0/24"
-  ;;
-  kvwmap_test)
-    NETWORK_IP_RANGE="172.0.30.0/24"
-  ;;
-  *)
-#    usage
-#    exit
-  ;;
-esac
-
-NETWORK_SUBNET=$NETWORK_IP_RANGE
