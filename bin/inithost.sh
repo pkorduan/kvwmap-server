@@ -41,7 +41,7 @@ install_docker() {
   sed -i \
     -e "s|GRUB_CMDLINE_LINUX=\"\"|GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"|g" \
     /etc/default/grub
-  update-grub
+  su - root update-grub
 }
 
 install_docker-compose() {
@@ -102,6 +102,9 @@ fi
 
 echo 'Clone kvwmap-server repository to ./kvwmap-server.'
 git clone https://github.com/pkorduan/kvwmap-server.git
+cd kvwmap-server
+git checkout develop
+
 
 #############################
 # Hostnamen setzen
@@ -133,13 +136,14 @@ sed -i \
     -e "s|alias rm=|#alias rm=|g" \
     $USER_DIR/.bashrc
 echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
-echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[>
+echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
 echo "set nocompatible" >> $USER_DIR/.vimrc
 
 cp $USER_DIR/.bashrc ~/.bashrc
 cp $USER_DIR/.vimrc ~/.vimrc
 
-PATH=$PATH:/home/gisadmin/kvwmap-server
+source ~/.bashrc
+source ~/.vimrc
 
 #############################
 # Docker

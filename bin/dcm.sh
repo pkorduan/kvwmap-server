@@ -340,8 +340,15 @@ function up_down_network() {
 	NETWORK_NAME=$1
 	UP_DOWN=$2
 	echo "Alle Services im Netzwerk ${NETWORK_NAME} werden in den Status $UP_DOWN gebracht..."
+  dcm run all ohne
+	# alle Services im Netzwerk runterfahren
+	# bei letztem Service wird das Netzwerk selbst entfernt
+	while read SERVICE_NAME
+	do
+		up_down_service ${SERVICE_NAME} ${NETWORK_NAME} "$UP_DOWN"
+	done < <(find ${USER_DIR}/networks/${NETWORK_NAME}/ -maxdepth 3 -mindepth 3 -type f -name docker-compose.yml | xargs -i dirname {} | xargs -i basename {} )
+}
 
-<<<<<<< HEAD
 copy_directories() {
   dcm rm all ohne
   rm -R $USER_DIR/networks/$network_name/web/www
@@ -382,16 +389,6 @@ copy_directories() {
   cp -Rp $USER_DIR/proxy/letsencrypt/keys/ $USER_DIR/etc/apache2/letsencrypt/keys
   cp -Rp $USER_DIR/proxy/letsencrypt/csr/ $USER_DIR/etc/apache2/letsencrypt/csr
   cp -Rp $USER_DIR/proxy/letsencrypt/archive/ $USER_DIR/etc/apache2/letsencrypt/archive
-
-  dcm run all ohne
-=======
-	# alle Services im Netzwerk runterfahren
-	# bei letztem Service wird das Netzwerk selbst entfernt
-	while read SERVICE_NAME
-	do
-		up_down_service ${SERVICE_NAME} ${NETWORK_NAME} "$UP_DOWN"
-	done < <(find ${USER_DIR}/networks/${NETWORK_NAME}/ -maxdepth 3 -mindepth 3 -type f -name docker-compose.yml | xargs -i dirname {} | xargs -i basename {} )
->>>>>>> e6373183a423ce41cbafc50a477cc98d352d59a4
 }
 
 ##################################################
