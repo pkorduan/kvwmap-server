@@ -148,6 +148,12 @@ RUN mkdir -p $USER_DIR/.ssh && \
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
+RUN sed -i \
+        -e "s|HISTCONTROL=ignoreboth|HISTCONTROL=ignoredups|g" \
+        -e "s|HISTFILESIZE=2000|HISTFILESIZE=|g" "/home/gisadmin/.bashrc"
+
+RUN if grep -q "HISTTIMEFORMAT" "/home/gisadmin/.bashrc" ; then echo "do nothing"; else echo "HISTTIMEFORMAT=\"%F %T "\" >> /home/gisadmin/.bashrc; fi
+
 USER $OS_USER
 
 #RUN composer update

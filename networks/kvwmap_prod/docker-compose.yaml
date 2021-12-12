@@ -28,7 +28,7 @@ services:
       - "/home/gisadmin/networks/kvwmap_prod/pgsql/.pgpass_gisadmin:/home/gisadmin/.pgpass"
       - "/home/gisadmin/networks/kvwmap_prod/web/apache2/sites-available:/etc/apache2/sites-available"
       - "/home/gisadmin/networks/kvwmap_prod/web/apache2/sites-enabled:/etc/apache2/sites-enabled"
-      - "/home/gisadmin/networks/kvwmap_prod/web/cron/load_cron_files:/etc/cron.hourl/load_cron_files"
+      - "/home/gisadmin/networks/kvwmap_prod/web/cron/load_cron_files:/etc/cron.hourly/load_cron_files"
       - "/home/gisadmin/networks/kvwmap_prod/web/php/7.3:/etc/php/7.3"
       - "/home/gisadmin/networks/kvwmap_prod/web/phpmyadmin/config.inc.php:/srv/www/phpmyadmin/config.inc.php"
       - "/home/gisadmin/networks/kvwmap_prod/proj/epsg:/usr/share/proj/epsg"

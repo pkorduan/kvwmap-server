@@ -344,6 +344,10 @@ copy_directories() {
   mv $USER_DIR/docker/www $USER_DIR/networks/$network_name/web/www
   ln -s $USER_DIR/networks/$network_name/web/www $USER_DIR/docker/www
 
+  rm -R $USER_DIR/networks/$network_name/web/apache2/sites-available
+  cp -Rp $USER_DIR/etc/apache2/sites-available $USER_DIR/networks/$network_name/web/apache2
+  cp -Rp $USER_DIR/etc/apache2/sites-enabled   $USER_DIR/networks/$network_name/web/apache2
+
   mv $USER_DIR/db/mysql/* $USER_DIR/networks/$network_name/mysql/data
   mv $USER_DIR/etc/mysql/my.cnf $USER_DIR/networks/$network_name/mysql/etc/my.cnf
   mv $USER_DIR/etc/mysql/conf.d/* $USER_DIR/networks/$network_name/mysql/etc/conf.d/
@@ -369,7 +373,7 @@ copy_directories() {
   mv $USER_DIR/etc/apache2/letsencrypt/csr $USER_DIR/proxy/letsencrypt
   mv $USER_DIR/etc/apache2/letsencrypt/keys $USER_DIR/proxy/letsencrypt
   mv $USER_DIR/etc/apache2/letsencrypt/archive $USER_DIR/proxy/letsencrypt
-  
+
   cp -Rp $USER_DIR/proxy/letsencrypt/live $USER_DIR/etc/apache2/letsencrypt/live
   cp -Rp $USER_DIR/proxy/letsencrypt/keys/ $USER_DIR/etc/apache2/letsencrypt/keys
   cp -Rp $USER_DIR/proxy/letsencrypt/csr/ $USER_DIR/etc/apache2/letsencrypt/csr
