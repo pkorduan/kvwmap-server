@@ -1,7 +1,7 @@
 #!/bin/bash
 # Version 3.0.0
 
-usage() {
+function usage() {
 	echo ""
 	echo "Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden wenn der Nutzer nicht zur Gruppe docker gehört.";
 	echo "Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos."
@@ -51,13 +51,13 @@ usage() {
 }
 
 
-debug() {
+function debug() {
   if $DEBUG ; then
     echo $1
   fi
 }
 
-build_kvwmap_server() {
+function build_kvwmap_server() {
   TAG=$1
   if [ -z "$TAG" ] ; then
     TAG=$KVWMAP_IMAGE_VERSION
@@ -66,7 +66,7 @@ build_kvwmap_server() {
   docker build -t pkorduan/kvwmap-server:${TAG} .
 }
 
-build_gdal_image() {
+function build_gdal_image() {
   TAG=$1
   if [ -z "$TAG" ] ; then
     TAG="latest"
@@ -77,7 +77,7 @@ build_gdal_image() {
 }
 
 # Bricht ab, wenn nutzer nicht root ist
-fail_unless_root() {
+function fail_unless_root() {
 	dcm_user=$(id -nu)
 	dcm_user_group=$(id -nG)
 	# Wenn ausführender Nutzer nicht root ist
@@ -87,7 +87,7 @@ fail_unless_root() {
 	fi
 }
 
-list_services() {
+function list_services() {
 	while read SERVICE
 	do
 		echo $(basename $SERVICE)
@@ -108,22 +108,37 @@ function create_network() {
 	NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
 	echo "Installiere Voraussetzungen für den Betrieb des Netzwerkes $network_name"
 	if [ -d "$NETWORK_DIR" ]; then
-		echo "Das Netzwerk existiert bereits! Abbruch."
+		echo "Das Netzwerk ${NETWORK_NAME} existiert bereits! Abbruch."
 		return
 	fi
 
- 	mkdir -p ${NETWORK_DIR}
-	cp -vr ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
+	if [ ! -d "${USER_DIR}/networks" ]; then
+		echo "Erzeuge das Verzeichnis für networks ${USER_DIR}/networks"
+		mkdir ${USER_DIR}/networks
+		chown ${OS_USER}.${OS_USER} ${USER_DIR}/networks
+		chmod g+w ${USER_DIR}/networks
+	fi
+
+	echo "Erzeuge Netzwerk Verzeichnis ${NETWORK_DIR}"
+	mkdir -p ${NETWORK_DIR}
+	if [ "$NETWORK_NAME" != "proxy" ]; then
+		cp -vr ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
+		chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}
+		chmod g+w ${NETWORK_DIR}
+	fi
 
 	# zufälliges Subnetz in die env vom Netzwerk schreiben
 	RANDOM=$(date +%s%N | cut -b10-19)
 	SUBNET=$(echo $(( $RANDOM % 250 + 11 ))) #zwischen 11 und 250
 	ip_range="172.0.${SUBNET}.0/24"
+	echo "SUBNET_NUMBER=${SUBNET}" >> ${NETWORK_DIR}/env
 	echo "NETWORK_SUBNET=${ip_range}" >> ${NETWORK_DIR}/env
 
 	echo "Netzwerke neu zusammenstellen..."
 	write_network_compose_file
 
+	chown ${OS_USER}.${OS_USER} ${USER_DIR}/networks/compose-networks.yml ${USER_DIR}/networks/networks.txt ${USER_DIR}/networks/env
+	docker network create $NETWORK_NAME
 	echo "Netwerk erstellt. Mit dcm create service [service] ${NETWORK_NAME} können Dienste installiert werden."
 }
 
@@ -133,8 +148,8 @@ function remove_network(){
 	read -p "Es wird das Netzwerk $1 mit allen Services und Daten gelöscht! Fortfahren? [j|n]: " ANSWER
 	up_down_network ${NETWORK_NAME} "down"
 	rm -rvdf ${USER_DIR}/networks/${NETWORK_NAME}
+	docker network remove $NETWORK_NAME
 	echo "Netzwerk entfernt."
-
 }
 
 function write_network_compose_file() {
@@ -237,9 +252,17 @@ function create_service() {
 	fail_unless_root
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
+	NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
 
 	export SERVICE_NAME
 	export NETWORK_NAME
+
+	if [ ! -d "$NETWORK_DIR" ]; then
+		echo "Netzwerk ${NETWORK_NAME} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
+		dcm create network $NETWORK_NAME
+	fi
+
+	echo "Lade ${TEMPLATEPATH}/${SERVICE_NAME}/dcm"
 	if [ ! -f ${TEMPLATEPATH}/${SERVICE_NAME}/dcm ]; then
 		echo "Keine dcm-Erweiterung gefunden. Abbruch."
 		return 1
@@ -247,8 +270,10 @@ function create_service() {
 	source ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
 	install_service
 
-	write_compose_file ${SERVICE_NAME} ${NETWORK_NAME}
-	echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
+	if [ "${SERVICE_NAME}" != "kvwmap-server" ]; then
+		write_compose_file ${SERVICE_NAME} ${NETWORK_NAME}
+		echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
+	fi
 }
 
 function remove_service() {
@@ -340,9 +365,6 @@ function up_down_network() {
 	NETWORK_NAME=$1
 	UP_DOWN=$2
 	echo "Alle Services im Netzwerk ${NETWORK_NAME} werden in den Status $UP_DOWN gebracht..."
-  dcm run all ohne
-	# alle Services im Netzwerk runterfahren
-	# bei letztem Service wird das Netzwerk selbst entfernt
 	while read SERVICE_NAME
 	do
 		up_down_service ${SERVICE_NAME} ${NETWORK_NAME} "$UP_DOWN"
@@ -435,54 +457,53 @@ function ps_container() {
 ##################################################
 ## Proxy
 ##################################################
-
-remove_proxy_container() {
+function remove_proxy_container() {
   echo "Entferne proxy Container"
-  cmd="docker-compose -f ${USER_DIR}/proxy/docker-compose.yaml rm nginx"
+  cmd="docker-compose -f ${USER_DIR}/networks/proxy/services/proxy/docker-compose.yaml rm nginx"
   echo $cmd
   $cmd
 }
 
-stop_proxy_container() {
+function stop_proxy_container() {
   if [[ -n $(docker ps -a -f status=running -f name=proxy_nginx_1 -q) ]] ; then
     echo "Stoppe proxy Container. Bitte warten ..."
-    cmd="docker-compose -f ${USER_DIR}/proxy/docker-compose.yaml stop nginx"
+    cmd="docker-compose -f ${USER_DIR}/networks/proxy/services/proxy/docker-compose.yaml stop nginx"
     echo $cmd
     $cmd
   fi
 }
 
 
-reload_pgsql_container() {
+function reload_pgsql_container() {
   cmd="docker exec --user postgres kvwmap_prod_pgsql_1 /usr/lib/postgresql/13/bin/pg_ctl reload"
   echo "Reload PostgreSQL-Konfiguration im pgsql-Container:"
   echo $cmd
   $cmd
 }
 
-reload_proxy_container() {
-  cmd="docker exec proxy_nginx_1 nginx -s reload"
+function reload_proxy_container() {
+  cmd="docker exec proxy_nginx nginx -s reload"
   echo "Reload Konfiguration des proxy Containers:"
   echo $cmd
   $cmd
 }
 
-test_proxy_container() {
-  cmd="docker exec proxy nginx -t"
+function test_proxy_container() {
+  cmd="docker exec proxy_nginx nginx -t"
   echo "Teste proxy Container:"
   echo $cmd
   $cmd
 }
 
-show_all_container_ips() {
+function show_all_container_ips() {
   docker inspect -f="Container {{.Name}} IP: {{ .NetworkSettings.Networks.${network_name}.IPAddress }}" $(docker ps -aq)
 }
 
-show_container_ip() {
+function show_container_ip() {
   docker inspect -f="Container {{.Name}} IP: {{ .NetworkSettings.Networks.${network_name}.IPAddress }}" $1
 }
 
-show_container_status() {
+function show_container_status() {
   CONTAINER=$1
   echo "Status des Containers $CONTAINER:"
   RUNNING=$(docker inspect --format="{{ .State.Running }}" $CONTAINER 2> /dev/null)
@@ -503,7 +524,7 @@ show_container_status() {
   echo "OK - $CONTAINER is running. IP: $NETWORK, StartedAt: $STARTED"
 }
 
-uninstall_kvwmap() {
+function uninstall_kvwmap() {
   echo "Deinstalliere das kvwmap und dazugehörige images."
   fail_unless_root
   read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (y/n)? " answer
@@ -515,11 +536,9 @@ uninstall_kvwmap() {
 
       if [ ! -z "$USER_DIR" ] ; then
         echo "Lösche Verzeichnisse networks und proxy"
-        rm -RI $USER_DIR/networks $USER_DIR/proxy
+        rm -RI $USER_DIR/networks
         echo "Lösche Verzeichniss kvwmap-server"
-        rm -RI $USER_DIR/kvwmap-server
-        rm -RI $USER_DIR/db
-        rm $USER_DIR/www
+        #rm -RI $USER_DIR/kvwmap-server
       fi
       
       echo "Entferne alle erzeugten Netzwerke"
@@ -528,8 +547,8 @@ uninstall_kvwmap() {
       echo " docker images purge' ausführen."
       echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
       echo " git clone https://github.com/pkorduan/kvwmap-server.git"
-      echo " kvwmap-server/dcm install kvwmap"
-      echo " dcm run all"
+      echo " kvwmap-server/dcm create service kvwmap-server"
+      echo " dcm up network kvwmap_prod"
       echo "und im Browser:"
       echo " http://meineserverip/kvwmap/install.php"
     ;;
@@ -541,13 +560,17 @@ uninstall_kvwmap() {
 
 #----------------------------------------------
 #load settings
-if [ -f ../config/config ] ; then
-  echo "Config file exists"
+CONFIG_DIR=$( dirname "${BASH_SOURCE[0]}" );
+if [ -f $CONFIG_DIR/config/config ] ; then
+  echo "Config file ${CONFIG_DIR}/config/config exists"
 else
 	echo "Create config file from config/config-default"
-  cp ../config/config-default ../config/config
+	cp $CONFIG_DIR/config/config-default $CONFIG_DIR/config/config
+	chown gisadmin.gisadmin $CONFIG_DIR/config/config
+	chmod g+w $CONFIG_DIR/config/config
 fi
-source ../config/config
+source $CONFIG_DIR/config/config
+#echo "Load config file: ${CONFIG_DIR}/config/config"
 
 case "$1" in
 
