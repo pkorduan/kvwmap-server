@@ -13,7 +13,7 @@ install_service() {
 	echo "Service-Name=${SERVICE_NAME}"
 
 	read -p "Passwort für User postgres:" -s POSTGRESPW
-	echo "POSTGRES_PASSWORD=${POSTGRESPW}" >> ${USER_DIR}/networks/env
+	echo "POSTGRES_PASSWORD=${POSTGRESPW}" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
 
 	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
 

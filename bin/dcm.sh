@@ -242,6 +242,7 @@ function create_service() {
 	export NETWORK_NAME
 	if [ ! -f ${TEMPLATEPATH}/${SERVICE_NAME}/dcm ]; then
 		echo "Keine dcm-Erweiterung gefunden. Abbruch."
+		echo ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
 		return 1
 	fi
 	source ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
@@ -340,7 +341,7 @@ function up_down_network() {
 	NETWORK_NAME=$1
 	UP_DOWN=$2
 	echo "Alle Services im Netzwerk ${NETWORK_NAME} werden in den Status $UP_DOWN gebracht..."
-  dcm run all ohne
+
 	# alle Services im Netzwerk runterfahren
 	# bei letztem Service wird das Netzwerk selbst entfernt
 	while read SERVICE_NAME
@@ -541,13 +542,13 @@ uninstall_kvwmap() {
 
 #----------------------------------------------
 #load settings
-if [ -f ../config/config ] ; then
+if [ -f /home/gisadmin/kvwmap-server/config/config ] ; then
   echo "Config file exists"
 else
 	echo "Create config file from config/config-default"
   cp ../config/config-default ../config/config
 fi
-source ../config/config
+source /home/gisadmin/kvwmap-server/config/config
 
 case "$1" in
 
