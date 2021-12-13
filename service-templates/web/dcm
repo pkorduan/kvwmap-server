@@ -20,7 +20,7 @@ install_service() {
 		return 1
 	fi
 
-	mkdir ${SERVICE_PATH}
+	mkdir -p ${SERVICE_PATH}
 	cp -r ${USER_DIR}/kvwmap-server/service-templates/web/directory_template/* ${SERVICE_PATH}
 	cp    ${USER_DIR}/kvwmap-server/service-templates/web/compose-template.yml ${SERVICE_PATH}/
 	chown root.root ${SERVICE_PATH}/www/cron/crontab_root

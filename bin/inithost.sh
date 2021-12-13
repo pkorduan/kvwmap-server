@@ -46,7 +46,7 @@ install_docker() {
 
 install_docker-compose() {
   echo "Installiere docker-compose"
-  curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
+  curl -L "https://github.com/docker/compose/releases/download/2.2.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
   chmod +x /usr/bin/docker-compose
 }
 
@@ -104,7 +104,8 @@ echo 'Clone kvwmap-server repository to ./kvwmap-server.'
 git clone https://github.com/pkorduan/kvwmap-server.git
 cd kvwmap-server
 git checkout develop
-
+chown -R gisadmin.gisadmin/*
+chmod -R g+w *
 
 #############################
 # Hostnamen setzen
@@ -155,10 +156,8 @@ install_docker-compose
 #############################
 # kvwmap-Instanz einrichten und starten
 #############################
-
-dcm create service kvwmap-service kvwmap_prod
-
-
+dcm create network kvwmap_prod
+dcm create service kvwmap-server kvwmap_prod
 
 #read -p "Initscript löschen? (j/n) " answer
 #case ${answer:0:1} in

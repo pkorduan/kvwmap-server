@@ -2,6 +2,10 @@
 
 function install_service() {
 	#$SERVICE_NAME und $NETWORK_NAME können verwendet werden
+	if [ ! -d "$USER_DIR/networks/proxy/services/$PROXY_SERVICE" ]; then
+		echo "Der Proxy fehlt! Wird installiert."
+		dcm proxy create
+	fi
 	dcm create network ${NETWORK_NAME}
 	dcm create service web ${NETWORK_NAME}
 	dcm create service mariadb ${NETWORK_NAME}

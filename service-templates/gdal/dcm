@@ -19,7 +19,7 @@ install_service() {
 		return 1
 	fi
 
-	mkdir ${SERVICE_PATH}
+	mkdir -p ${SERVICE_PATH}
 	cp    ${USER_DIR}/kvwmap-server/service-templates/gdal/compose-template.yml ${SERVICE_PATH}/
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
