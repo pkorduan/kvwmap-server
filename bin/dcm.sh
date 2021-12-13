@@ -112,8 +112,9 @@ function create_network() {
 		return
 	fi
 
- 	mkdir -p ${NETWORK_DIR}
-	cp -vr ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
+	mkdir -p ${NETWORK_DIR}
+	cp -vr ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}/
+
 
 	# zufälliges Subnetz in die env vom Netzwerk schreiben
 	RANDOM=$(date +%s%N | cut -b10-19)

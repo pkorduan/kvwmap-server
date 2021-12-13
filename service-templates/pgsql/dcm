@@ -22,7 +22,7 @@ install_service() {
 		return 1
 	fi
 
-	mkdir ${SERVICE_PATH}
+	mkdir -p ${SERVICE_PATH}
 	cp -r ${USER_DIR}/kvwmap-server/service-templates/pgsql/directory_template/* ${SERVICE_PATH}
 	cp    ${USER_DIR}/kvwmap-server/service-templates/pgsql/compose-template.yml ${SERVICE_PATH}/
 
