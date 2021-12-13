@@ -112,6 +112,7 @@ function create_network() {
 		return
 	fi
 
+<<<<<<< HEAD
 	if [ ! -d "${USER_DIR}/networks" ]; then
 		echo "Erzeuge das Verzeichnis für networks ${USER_DIR}/networks"
 		mkdir ${USER_DIR}/networks
@@ -126,6 +127,11 @@ function create_network() {
 		chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}
 		chmod g+w ${NETWORK_DIR}
 	fi
+=======
+	mkdir -p ${NETWORK_DIR}
+	cp -vr ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}/
+
+>>>>>>> 4cd59aaed10459dbcdaa386b7b51e6aa2ead8c45
 
 	# zufälliges Subnetz in die env vom Netzwerk schreiben
 	RANDOM=$(date +%s%N | cut -b10-19)
