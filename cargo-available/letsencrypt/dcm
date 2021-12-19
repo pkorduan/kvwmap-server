@@ -1,0 +1,173 @@
+#!/bin/bash
+#echo "Load variables in dcm letsencrypt"
+CARGOS+=("letsencrypt")
+LETSENCRYPT_enabled=true
+LETSENCRYPT_CONTAINER_NAME="letsencrypt"
+
+usage_letsencrypt() {
+  echo "run letsencrypt      Erzeugt und startet nur den Container letsencrypt."
+  echo "start letsencrypt    Startet nur den Container letsencrypt."
+  echo "status letsencrypt   Zeigt den aktuellen Status des Container letsencrypt an."
+  echo "stop letsencrypt     Startet nur den Container letsencrypt."
+}
+
+remove_letsencrypt_container() {
+  stop_letsencrypt_container
+
+  if [ "$(docker ps -a -q -f name=letsencrypt -f status=exited)" ] ; then
+    echo "Lösche Container ..."
+    docker rm letsencrypt
+  else
+    echo "Container letsencrypt kann nicht gelöscht werden, weil er nicht existiert."
+  fi
+}
+
+remove_letsencrypt_image() {
+  source $USER_DIR/etc/letsencrypt/env_and_volumes
+  echo "Lösche letsencrypt Image: ${LETSENCRYPT_IMAGE}:${LETSENCRYPT_IMAGE_VERSION}"
+  docker rmi ${LETSENCRYPT_IMAGE}:${LETSENCRYPT_IMAGE_VERSION}
+}
+
+#    -v /home/gisadmin/letsencrypt_data:/opt/letsencrypt/data_dir \
+  #    -p 443:443 \
+#    --volumes-from wwwdata \
+#    --restart=always \
+#    -d $LETSENCRYPT_IMAGE:${LETSENCRYPT_IMAGE_VERSION}
+run_letsencrypt_container() {
+  source $USER_DIR/etc/letsencrypt/env_and_volumes
+  echo "Erzeuge und starte den letsencrypt Container"
+  echo "mit volumes: ${letsencrypt_volumes}"
+  echo "mit environment: ${letsencrypt_env_vars}"
+  docker run --name ${LETSENCRYPT_CONTAINER_NAME} \
+    --cap-add=NET_ADMIN \
+    -h ${SERVER_NAME}-${LETSENCRYPT_CONTAINER_NAME}-container \
+    -p 8081:80 -p 4433:443
+    $letsencrypt_volumes \
+    $letsencrypt_env_vars \
+    --restart=always \
+    -d ${LETSENCRYPT_IMAGE}:${LETSENCRYPT_IMAGE_VERSION}
+}
+
+set_letsencrypt_web_link() {
+}
+
+show_status() {
+  echo "Status of container $COINTAINER_NAME"
+}
+
+start_letsencrypt_container() {
+  echo "Starte letsencrypt Container. Bitte warten ..."
+  docker start letsencrypt
+}
+
+stop_letsencrypt_container() {
+  if [ "$(docker ps -a -q -f name=letsencrypt -f status=running)" ] ; then
+    echo "Stoppe Container. Bitte warten ..."
+    docker stop letsencrypt
+  else
+    echo "Container letsencrypt kann nicht gestoppt werden, weil er nicht läuft."
+  fi
+}
+
+cases_letsencrypt() {
+  case_found=true
+  case "$1" in
+    console)
+      case $2 in
+        letsencrypt)
+          echo "Öffne ein Terminal im Container in dem der letsencrypt läuft ..."
+          docker exec -it letsencrypt /bin/bash
+        ;;
+        *)
+          debug "No subcase $2 in letsencrypt"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    ip)
+      case $2 in
+        letsencrypt)
+          show_container_ip $2
+        ;;
+        * )
+          debug "No subcase $2 in letsencrypt"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    remove)
+      debug "Case remove in letsencrypt"
+      case $2 in
+        letsencrypt)
+          remove_letsencrypt_container
+          # Derzeit muss auch das dazugehörige Image gelöscht werden, weil sich letsencrypt container
+          # merkwürdigerweise nach dem ziehen eines Images immer nur einmal korrekt starten lassen.
+          remove_letsencrypt_image
+        ;;
+        * )
+          debug "No subcase $2 in letsencrypt"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    run)
+      debug "Case run in letsencrypt"
+      case $2 in
+        letsencrypt)
+          run_letsencrypt_container
+        ;;
+        *)
+          debug "No subcase $2 in letsencrypt"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    start)
+      debug "Case start in letsencrypt"
+      case $2 in
+        letsencrypt)
+          start_letsencrypt_container
+        ;;
+        *)
+          debug "No subcase $2 in letsencrypt"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    status)
+      case $2 in
+        letsencrypt)
+          show_container_status "letsencrypt"
+        ;;
+        *)
+          debug "No subcase $2 in letsencrypt"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    stop)
+      debug "Case stop in letsencrypt"
+      case $2 in
+        letsencrypt)
+          stop_letsencrypt_container
+        ;;
+        *)
+          debug "No subcase $2 in letsencrypt"
+          case_found=false
+        ;;
+      esac
+    ;;
+
+    *)
+      #echo "No case found in dcm letsencrypt"
+      case_found=false
+    ;;
+  esac
+  debug "Case found after cases letsencrypt: $case_found"
+}
