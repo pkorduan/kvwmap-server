@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 
 install_service() {
 
@@ -12,7 +12,7 @@ install_service() {
 	echo "Service-Name=${SERVICE_NAME}"
 
 	read -p "mysql Root Passwort:" -s MYSQLROOTPW
-	echo "MYSQL_ROOT_PASSWORD=${MYSQLROOTPW}" >> ${USER_DIR}/networks/env
+	echo "MYSQL_ROOT_PASSWORD=${MYSQLROOTPW}" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
 
 	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
 
@@ -22,8 +22,8 @@ install_service() {
 	fi
 
 	mkdir -p ${SERVICE_PATH}
-	cp -r ${USER_DIR}/kvwmap-server/service-templates/mysql_5.5/directory_template/* ${SERVICE_PATH}
-	cp    ${USER_DIR}/kvwmap-server/service-templates/mysql_5.5/compose-template.yml ${SERVICE_PATH}/
+	cp -r ${USER_DIR}/kvwmap-server/service-templates/mysql/directory_template/* ${SERVICE_PATH}
+	cp    ${USER_DIR}/kvwmap-server/service-templates/mysql/compose-template.yml ${SERVICE_PATH}/
 
 	chown -R 999.gisadmin ${SERVICE_PATH}/
 

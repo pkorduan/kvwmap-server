@@ -22,7 +22,7 @@ install_service() {
 		return 1
 	fi
 
-	mkdir ${SERVICE_PATH}
+	mkdir -p ${SERVICE_PATH}
 	cp -vr ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
 	cp -v   ${USER_DIR}/kvwmap-server/service-templates/proxy/compose-template.yml ${SERVICE_PATH}/
 	cp -v   ${USER_DIR}/kvwmap-server/service-templates/proxy/init-letsencrypt.sh ${SERVICE_PATH}/

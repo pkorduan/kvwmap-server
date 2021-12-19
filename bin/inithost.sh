@@ -104,7 +104,8 @@ echo 'Clone kvwmap-server repository to ./kvwmap-server.'
 git clone https://github.com/pkorduan/kvwmap-server.git
 cd kvwmap-server
 git checkout develop
-
+chown -R gisadmin.gisadmin/*
+chmod -R g+w *
 
 #############################
 # Hostnamen setzen
@@ -136,6 +137,7 @@ sed -i \
     -e "s|alias rm=|#alias rm=|g" \
     $USER_DIR/.bashrc
 echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
+echo "alias dcm='/home/gisadmin/kvwmap-server/bin/dcm.sh'" >> $USER_DIR/.bashrc
 echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
 echo "set nocompatible" >> $USER_DIR/.vimrc
 
@@ -155,10 +157,8 @@ install_docker-compose
 #############################
 # kvwmap-Instanz einrichten und starten
 #############################
-
-dcm create service kvwmap-service kvwmap_prod
-
-
+dcm create network kvwmap_prod
+dcm create service kvwmap-server kvwmap_prod
 
 #read -p "Initscript löschen? (j/n) " answer
 #case ${answer:0:1} in

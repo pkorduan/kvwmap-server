@@ -12,7 +12,7 @@ install_service() {
 
 	read -p "mysql Root Passwort:" -s MYSQL_ROOT_PASSWORD
 	echo "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}" >> ${USER_DIR}/networks/env
-	read -p "mysql User Name:" -s MYSQL_USER
+	read -p "mysql User Name:" MYSQL_USER
 	echo "MYSQL_USER=${MYSQL_USER}" >> ${USER_DIR}/networks/env
 	read -p "mysql User Passwort:" -s MYSQL_PASSWORD
 	echo "MYSQL_PASSWORD=${MYSQL_PASSWORD}" >> ${USER_DIR}/networks/env
