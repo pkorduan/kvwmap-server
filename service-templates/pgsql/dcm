@@ -3,17 +3,12 @@
 install_service() {
 
 	echo "Installation von Service pgsql in Netzwerk '${NETWORK_NAME}'"
-	echo "optional neuer Service-Name (Default 'pgsql'): "
-	read SERVICE_NAME
-
-	if [ -z "$SERVICE_NAME" ]; then
-		SERVICE_NAME=pgsql
-	fi
+	SERVICE_NAME=pgsql
 
 	echo "Service-Name=${SERVICE_NAME}"
 
-	read -p "Passwort für User postgres:" -s POSTGRESPW
-	echo "POSTGRES_PASSWORD=${POSTGRESPW}" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
+	read -p "Passwort für User postgres: " -s POSTGRESPW
+	echo "POSTGRES_PASSWORD=\"${POSTGRESPW}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
 
 	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
 
@@ -25,6 +20,9 @@ install_service() {
 	mkdir -p ${SERVICE_PATH}
 	cp -r ${USER_DIR}/kvwmap-server/service-templates/pgsql/directory_template/* ${SERVICE_PATH}
 	cp    ${USER_DIR}/kvwmap-server/service-templates/pgsql/compose-template.yml ${SERVICE_PATH}/
+
+	debug "Ersetze NETWORK_SUBNET in ${SERVICE_PATH}/config/pg_hba.conf durch: ${NETWORK_SUBNET}"
+	sed -i -e "s|NETWORK_SUBNET|${NETWORK_SUBNET}|g" "${SERVICE_PATH}/config/pg_hba.conf"
 
 	chown -R 999.gisadmin ${SERVICE_PATH}/
 	chown root.root ${SERVICE_PATH}/config/.pgpass
