@@ -104,7 +104,7 @@ echo 'Clone kvwmap-server repository to ./kvwmap-server.'
 git clone https://github.com/pkorduan/kvwmap-server.git
 cd kvwmap-server
 git checkout develop
-chown -R gisadmin.gisadmin/*
+chown -R gisadmin.gisadmin *
 chmod -R g+w *
 
 #############################
