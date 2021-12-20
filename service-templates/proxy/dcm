@@ -1,15 +1,10 @@
 #!/bin/bash
+# ToDos replace servername in nginx configs and
+# fix error in phpmyadmin nginx conf.
 
 install_service() {
-
 	echo "Installation von Service proxy in Netzwerk 'proxy'"
-	echo "optional neuer Service-Name (Default 'proxy'): "
-	read SERVICE_NAME
-
-	if [ -z "$SERVICE_NAME" ]; then
-		SERVICE_NAME=proxy
-	fi
-
+	SERVICE_NAME=proxy
 	echo "Service-Name: ${SERVICE_NAME}"
 
 	NETWORK_NAME=proxy
@@ -23,9 +18,18 @@ install_service() {
 	fi
 
 	mkdir -p ${SERVICE_PATH}
-	cp -vr ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
-	cp -v   ${USER_DIR}/kvwmap-server/service-templates/proxy/compose-template.yml ${SERVICE_PATH}/
-	cp -v   ${USER_DIR}/kvwmap-server/service-templates/proxy/init-letsencrypt.sh ${SERVICE_PATH}/
+	if $DEBUG ; then
+		cp -vr ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
+	else
+		cp -r ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
+	fi
+	cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/compose-template.yml ${SERVICE_PATH}/
+	cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/init-letsencrypt.sh ${SERVICE_PATH}/
+
+	chown -R www-data.gisadmin ${SERVICE_PATH}
+	chmod -R g+w ${SERVICE_PATH}
+	chown root.root ${SERVICE_PATH}/init-letsencrypt.sh
+	chmod 700 ${SERVICE_PATH}/init-letsencrypt.sh
 
 #	dcm up proxy proxy
 

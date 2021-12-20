@@ -1,15 +1,8 @@
 #!/bin/bash
 
 install_service() {
-
 	echo "Installation von Service gdal in Netzwerk '${NETWORK_NAME}'"
-	echo "optional neuer Service-Name (Default 'gdal'): "
-	read SERVICE_NAME
-
-	if [ -z "$SERVICE_NAME" ]; then
-		SERVICE_NAME=gdal
-	fi
-
+	SERVICE_NAME=gdal
 	echo "Service-Name=${SERVICE_NAME}"
 
 	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}

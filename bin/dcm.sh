@@ -50,7 +50,6 @@ function usage() {
 	echo "dcm logs [service] [network]"
 }
 
-
 function debug() {
   if $DEBUG ; then
     echo $1
@@ -122,7 +121,11 @@ function create_network() {
 	echo "Erzeuge Netzwerk Verzeichnis ${NETWORK_DIR}"
 	mkdir -p ${NETWORK_DIR}
 	if [ "$NETWORK_NAME" != "proxy" ]; then
-		cp -vr ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
+		if $DEBUG ; then
+			cp -vr ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
+		else
+			cp -r ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
+		fi
 		chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}
 		chmod g+w ${NETWORK_DIR}
 	fi
@@ -137,9 +140,12 @@ function create_network() {
 	echo "Netzwerke neu zusammenstellen..."
 	write_network_compose_file
 
-	chown ${OS_USER}.${OS_USER} ${USER_DIR}/networks/compose-networks.yml ${USER_DIR}/networks/networks.txt ${USER_DIR}/networks/env
+	chown ${OS_USER}.${OS_USER} ${USER_DIR}/networks/compose-networks.yml ${USER_DIR}/networks/networks.txt ${NETWORK_DIR}/env
+	if [ "$NETWORK_NAME" != "proxy" ]; then
+		chown -R ${OS_USER}.${OS_USER} ${NETWORK_DIR}/volumes
+	fi
 	docker network create $NETWORK_NAME
-	echo "Netwerk erstellt. Mit dcm create service [service] ${NETWORK_NAME} können Dienste installiert werden."
+	echo "Netwerk erstellt. Mit dcm create service [service] ${NETWORK_NAME} können jetzt die dazugehörigen Dienste installiert werden."
 }
 
 function remove_network(){
@@ -170,8 +176,11 @@ function write_network_compose_file() {
 
 	while read dir
 	do
+		debug " - Behandle Netzwerkverzeichnis ${dir}"
 		NETWORK_NAME=$(basename $(echo $dir))
+		echo "Lese env Datei ${dir}/env"
 		source "$dir"/env
+		debug " - exportiere NETWORK_NAME=${NETWORK_NAME} NETWORK_SUBNET=${NETWORK_SUBNET}"
 		export NETWORK_NAME
 		export NETWORK_SUBNET
 #		echo "  für Netzwerk: $NETWORK_NAME $NETWORK_SUBNET"
@@ -180,12 +189,14 @@ function write_network_compose_file() {
 			exit
 		fi
 
+		debug " - envsubstituion von service-templates/network-template.yml nach ${outfile}"
 		envsubst < ${USER_DIR}/kvwmap-server/service-templates/network-template.yml >> "$outfile"
 
 		echo "${NETWORK_NAME}" >> "$outfile2"
 
 		NETWORK_NAME=${CURRENT_NETWORK_NAME}
 		NETWORK_SUBNET=""
+		debug " - NETWORK_NAME und SUBNET zurückgesetzt"
 
 #	find /home/gisadmin/networks/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -f {}/env && echo $(basename {})' \;
 	done < <(find ${USER_DIR}/networks/ -maxdepth 1 -mindepth 1 -type d)
@@ -231,6 +242,9 @@ function write_compose_file() {
 			yq e -i '.services.*.networks = "'"$(< ${USER_DIR}/networks/networks.txt)"'"' ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 		fi
 
+		chown gisadmin.gisadmin ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
+		chmod g+w ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
+
 	else
 		echo "Keine Änderung am Service."
 	fi
@@ -269,6 +283,7 @@ function create_service() {
 		return 1
 	fi
 	source ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
+	source ${USER_DIR}/networks/${NETWORK_NAME}/env
 	install_service
 
 	if [ "${SERVICE_NAME}" != "kvwmap-server" ]; then
