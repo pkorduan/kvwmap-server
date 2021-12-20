@@ -1,7 +1,8 @@
 #!/bin/bash
+# ToDos replace servername in nginx configs and
+# fix error in phpmyadmin nginx conf.
 
 install_service() {
-
 	echo "Installation von Service proxy in Netzwerk 'proxy'"
 	SERVICE_NAME=proxy
 	echo "Service-Name: ${SERVICE_NAME}"
