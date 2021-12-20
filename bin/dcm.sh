@@ -564,14 +564,13 @@ function uninstall_kvwmap() {
 
 #----------------------------------------------
 #load settings
-SCRIPT_DIR=$( dirname "${BASH_SOURCE[0]}" );
-CONFIG_KVWMAP_SERVER=${SCRIPT_DIR}/../config
+CONFIG_KVWMAP_SERVER=/home/gisadmin/kvwmap-server/config
 if [ -f ${CONFIG_KVWMAP_SERVER}/config ] ; then
 	source ${CONFIG_KVWMAP_SERVER}/config
 else
 	echo "Create config file from config/config-default"
 	cp ${CONFIG_KVWMAP_SERVER}/config-default ${CONFIG_KVWMAP_SERVER}/config
-	chown gisadmin.gisadmin $${CONFIG_KVWMAP_SERVER}/config
+	chown gisadmin.gisadmin ${CONFIG_KVWMAP_SERVER}/config
 	chmod g+w ${CONFIG_KVWMAP_SERVER}/config
 fi
 
