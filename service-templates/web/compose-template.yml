@@ -28,3 +28,5 @@ services:
       - ./php/7.3:/etc/php/7.3
       - ./www:/var/www
       - ./logs:/var/www/logs/apache2
+      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass:/root/.pgpass
+      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass_gisadmin:/home/gisadmin/.pgpass
