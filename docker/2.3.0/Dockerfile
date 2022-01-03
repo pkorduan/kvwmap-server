@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM debian:latest
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
 LABEL version="2.3.0"
 
@@ -123,28 +123,6 @@ RUN git clone --branch 7.0.11-5 --depth 1 https://github.com/ImageMagick/ImageMa
     sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /usr/local/etc/ImageMagick-7/delegates.xml && \
     echo '<policy domain="coder" rights="read | write" pattern="PDF" />' >> /usr/local/etc/ImageMagick-7/q.xml
 
-# Install phpMyAdmin
-WORKDIR /usr/local
-
-RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.4/phpMyAdmin-5.0.4-english.tar.gz && \
-    tar xvfz phpMyAdmin-5.0.4-english.tar.gz && \
-    mv phpMyAdmin-5.0.4-english phpmyadmin && \
-    rm phpMyAdmin-5.0.4-english.tar.gz && \
-    mkdir -p /srv/www/ && \
-    mv phpmyadmin /srv/www
-
-WORKDIR /srv/www/phpmyadmin
-RUN groupadd -g 1700 ${OS_USER} && \
-    useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
-    usermod -G ${OS_USER} www-data && \
-    chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin && \
-    chmod -R g+w /srv/www/phpmyadmin && \
-    echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git && \
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
-    mkdir -p $USER_DIR/.ssh && \
-    ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
-    chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
-
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 USER $OS_USER
@@ -153,9 +131,6 @@ RUN git config --global user.name "Peter Korduan" && \
     git config --global user.email "peter.korduan@gdi-service.de"
 
 USER root
-
-# Cronjob einrichten
-RUN mv /usr/local/bin/delete_old_logs_cron /etc/cron.d/
 
 EXPOSE 80
 EXPOSE 443

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-LOGDIR=/var/www/logs/apache2/
-
-find ${LOGDIR} -mtime +180 -exec rm {} \;
