@@ -23,6 +23,7 @@ install_service() {
 	else
 		cp -r ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
 	fi
+  echo "Kopiere compose-template.yml nach ${SERVICE_PATH}"
 	cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/compose-template.yml ${SERVICE_PATH}/
 	cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/init-letsencrypt.sh ${SERVICE_PATH}/
 

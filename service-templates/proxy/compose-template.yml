@@ -18,7 +18,7 @@ services:
 
   certbot:
     image: certbot/certbot
-    container_name: ${NETWORK_NAME}_${SERVICE_NAME}_certbot
+    container_name: ${NETWORK_NAME}_certbot
     networks:
       - ${NETWORK_NAME}
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 24h & wait $${!}; done;'"

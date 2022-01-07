@@ -235,11 +235,20 @@ function write_compose_file() {
 		export MYSQL_ROOT_PASSWORD
 		export POSTGRES_PASSWORD
 		export USER_DIR
+
+		echo " - Substituiere Umgebungsvariablen in compose-template.yml und schreibe sie nach docker-compose.yml"
 		envsubst < ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/compose-template.yml > ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 
 		if [ "$SERVICE_NAME" = "proxy" ] && [ "$NETWORK_NAME" = "proxy" ]; then
 			echo "Netzwerke für Proxy-Netzwerk ersetzen..."
-			yq e -i '.services.*.networks = "'"$(< ${USER_DIR}/networks/networks.txt)"'"' ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
+			NETWORK_NAMES=()
+			for item in $(cat ${USER_DIR}/networks/networks.txt)
+			do
+				NETWORK_NAMES+=("\"$item\"")
+			done
+			NETWORK_LIST="${NETWORK_NAMES[@]}"
+			echo ${NETWORK_LIST// /,}
+			yq e -i '.services.proxy.networks = ['${NETWORK_LIST// /,}']' ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 		fi
 
 		chown gisadmin.gisadmin ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
@@ -451,7 +460,19 @@ function service_config() {
 }
 
 function service_console() {
-	docker exec -it ${2}_${1} bash
+	param_service=$1
+	param_network=$2
+
+	if [ -z "${param_network}" ] ; then
+		param_network='kvwmap_prod'
+	fi
+
+	if [ "${param_service}" = "proxy" ] ; then
+		container_name='proxy'
+	else
+		container_name="${param_network}_${param_service}"
+	fi
+	cmd="docker exec -it ${container_name} bash"; echo $cmd; $cmd
 }
 
 
@@ -501,7 +522,7 @@ function reload_pgsql_container() {
 }
 
 function reload_proxy_container() {
-  cmd="docker exec proxy_nginx nginx -s reload"
+  cmd="docker exec proxy nginx -s reload"
   echo "Reload Konfiguration des proxy Containers:"
   echo $cmd
   $cmd
@@ -842,14 +863,19 @@ case "$1" in
 	;;
 
 	rerun)
+		if [ -z "$3" ] ; then
+			param_service='kvwmap_prod'
+		else
+			param_service=$3
+		fi
 		case $2 in
 			all)
-				up_down_network $3 "down"
-				up_down_network $3 "up"
+				up_down_network $param_service "down"
+				up_down_network $param_service "up"
 			;;
 			*)
-				up_down_service $2 $3 "down"
-				up_down_service $2 $3 "up"
+				up_down_service $2 $param_service "down"
+				up_down_service $2 $param_service "up"
 			;;
 		esac
 	;;

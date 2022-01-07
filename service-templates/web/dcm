@@ -3,6 +3,7 @@
 # ToDo replace Env Vars correct in docker-compose.yaml
 install_service() {
 	echo "Installation von Service web in Netzwerk '${NETWORK_NAME}'"
+	PROXY_SERVICE="proxy"
 
 	SERVICE_NAME=web
 	echo "Service-Name: ${SERVICE_NAME}"
@@ -47,10 +48,12 @@ install_service() {
 	chown -R www-data.${OS_USER} ${SERVICE_PATH}/*
 	chmod -R g+w ${SERVICE_PATH}/*
 
-	cp "${USER_DIR}/kvwmap-server/service-templates/web/proxy/kvwmap.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
 	sed -i -e "s|kvwmap_prod_web|kvwmap_prod_${SERVICE_NAME}|g" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
 	sed -i -e "s|kvwmap_prod_web|${NETWORK_NAME}_${SERVICE_NAME}|g" "${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/apache2/sites-available/000-default.conf"
-	ln -s "../sites-enabled/${SERVICE_NAME}.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-enabled/${SERVICE_NAME}.conf"
+
+	cp "${USER_DIR}/kvwmap-server/service-templates/web/proxy/${SERVICE_NAME}.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
+	sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
+	ln -s "../sites-available/${SERVICE_NAME}.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-enabled/${SERVICE_NAME}.conf"
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }

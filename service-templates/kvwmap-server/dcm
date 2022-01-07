@@ -2,11 +2,12 @@
 
 function install_service() {
 	#$SERVICE_NAME und $NETWORK_NAME können verwendet werden
-	if [ ! -d "$USER_DIR/networks/proxy/services/$PROXY_SERVICE" ]; then
+	dcm create network ${NETWORK_NAME}
+
+	if [ ! -d "$USER_DIR/networks/proxy/services/proxy" ]; then
 		echo "Der Proxy fehlt! Wird installiert."
 		dcm proxy create
 	fi
-	dcm create network ${NETWORK_NAME}
 
 	echo "Zur Einrichtung des MySQL und phpMyAdmin Containers müssen Passwörter vergeben werden!"
 	if [ -z "$MYSQL_ROOT_PASSWORD" ]; then

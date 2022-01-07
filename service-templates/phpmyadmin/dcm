@@ -39,7 +39,8 @@ install_service() {
 
 	chown -R 999.gisadmin ${SERVICE_PATH}/
 
-	cp "${USER_DIR}/kvwmap-server/service-templates/phpmyadmin/proxy/phpmyadmin.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available"
-	ln -s ../sites-enabled/phpmyadmin.conf "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-enabled/phpmyadmin.conf"
+	cp "${USER_DIR}/kvwmap-server/service-templates/phpmyadmin/proxy/phpmyadmin.conf" "${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available"
+	sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g" "${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/phpmyadmin.conf"
+	ln -s "../sites-available/phpmyadmin.conf" "${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled/phpmyadmin.conf"
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }
