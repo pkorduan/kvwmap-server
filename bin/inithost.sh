@@ -102,10 +102,10 @@ fi
 
 echo 'Clone kvwmap-server repository to ./kvwmap-server.'
 git clone https://github.com/pkorduan/kvwmap-server.git
+chown -R gisadmin.gisadmin kvwmap-server/* kvwmap-server/.*
+chmod -R g+w kvwmap-server/* kvwmap-server/.*
 cd kvwmap-server
 git checkout develop
-chown -R gisadmin.gisadmin *
-chmod -R g+w *
 
 #############################
 # Hostnamen setzen
