@@ -130,9 +130,8 @@ function create_network() {
 		chmod g+w ${NETWORK_DIR}
 	fi
 
-	# zufälliges Subnetz in die env vom Netzwerk schreiben
-	RANDOM=$(date +%s%N | cut -b10-19)
-	SUBNET=$(echo $(( $RANDOM % 250 + 11 ))) #zwischen 11 und 250
+	read -p "Gib ein Subnetznummer für das Netzwerk an, z.B. 10 für das Subnetz 172.0.10.0/24: " ANSWER
+	SUBNET=$ANSWER
 	ip_range="172.0.${SUBNET}.0/24"
 	echo "SUBNET_NUMBER=${SUBNET}" >> ${NETWORK_DIR}/env
 	echo "NETWORK_SUBNET=${ip_range}" >> ${NETWORK_DIR}/env
@@ -152,13 +151,21 @@ function remove_network(){
 	fail_unless_root
 	NETWORK_NAME=$1
 	read -p "Es wird das Netzwerk $1 mit allen Services und Daten gelöscht! Fortfahren? [j|n]: " ANSWER
-	up_down_network ${NETWORK_NAME} "down"
-	rm -rvdf ${USER_DIR}/networks/${NETWORK_NAME}
-	docker network remove $NETWORK_NAME
-	echo "Netzwerk entfernt."
+	case ${ANSWER:0:1} in
+		j|J|y|Y )
+			up_down_network ${NETWORK_NAME} "down"
+			rm -rvdf ${USER_DIR}/networks/${NETWORK_NAME}
+			docker network remove $NETWORK_NAME
+			echo "Netzwerk entfernt."
+		;;
+		* )
+			echo "OK, nix passiert"
+		;;
+	esac
 }
 
 function write_network_compose_file() {
+	echo "dcm write_network_compose_file CURRENT_NETWORK=${NETWORK_NAME}";
 	CURRENT_NETWORK_NAME=$NETWORK_NAME
 	outfile=${USER_DIR}/networks/compose-networks.yml
 	outfile2=${USER_DIR}/networks/networks.txt
@@ -195,8 +202,7 @@ function write_network_compose_file() {
 		echo "${NETWORK_NAME}" >> "$outfile2"
 
 		NETWORK_NAME=${CURRENT_NETWORK_NAME}
-		NETWORK_SUBNET=""
-		debug " - NETWORK_NAME und SUBNET zurückgesetzt"
+		NETWORK_SUBNET=$NETWORK_SUBNET
 
 #	find /home/gisadmin/networks/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -f {}/env && echo $(basename {})' \;
 	done < <(find ${USER_DIR}/networks/ -maxdepth 1 -mindepth 1 -type d)
@@ -276,6 +282,7 @@ function create_service() {
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
 	NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
+	echo "dcm create_service mit SERVICE_NAME: ${SERVICE_NAME} NETWORK_NAME: ${NETWORK_NAME}"
 
 	export SERVICE_NAME
 	export NETWORK_NAME
@@ -481,7 +488,13 @@ function inspect_network() {
 }
 
 function inspect_container() {
-	docker inspect $2_$1
+        if [ -z $3 ] ; then
+		echo "docker inspect ${2}_${1} $3"
+		docker inspect $2_$1
+        else
+		echo "docker inspect ${2}_${1}  --format \"{{json .${3}}}\" | jq"
+		docker inspect $2_$1 --format "{{json .${3}}}" | jq
+	fi
 }
 
 function ps_container() {
@@ -650,7 +663,7 @@ case "$1" in
 				inspect_network $3
 			;;
 			service)
-				inspect_container $3 $4
+				inspect_container $3 $4 $5
 			;;
 		esac
 	;;

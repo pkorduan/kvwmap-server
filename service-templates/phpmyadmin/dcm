@@ -43,4 +43,6 @@ install_service() {
 	sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g" "${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/phpmyadmin.conf"
 	ln -s "../sites-available/phpmyadmin.conf" "${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled/phpmyadmin.conf"
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+
+	sed -i '/user defined settings for phpmyadmin/a \  $cfg["Servers"][1]["host"] = "mysql";\n  $cfg["MaxNavigationItems"] = 75;' ${USER_DIR}/networks/${NETWORK_NAME}/services/phpmyadmin/etc/config.user.inc.php
 }

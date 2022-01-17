@@ -13,7 +13,7 @@ services:
     volumes:
       - ./nginx:/etc/nginx
       - ./letsencrypt:/etc/letsencrypt
-      - ./www:/var/www/html
+      - ./www:/var/www
       - ./log:/var/log/nginx
 
   certbot:
