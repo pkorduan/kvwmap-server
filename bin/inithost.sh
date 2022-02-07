@@ -157,8 +157,8 @@ install_docker-compose
 #############################
 # kvwmap-Instanz einrichten und starten
 #############################
-dcm create network kvwmap_prod
 dcm create service kvwmap-server kvwmap_prod
+dcm up network kvwmap_prod
 
 #read -p "Initscript löschen? (j/n) " answer
 #case ${answer:0:1} in
@@ -176,4 +176,6 @@ echo "Achtung Der Zugang als root ist jetzt von außen gesperrt!"
 echo "Sie können sich nur noch als gisadmin per ssh mit diesem Server verbinden."
 echo "
 Nächste Schritte zum installieren von kvwmap:"
-echo "Browser öffnen mit der Adresse: https://${HOSTNAME}/install.php"
+echo "Starten des Proxy-Servers mit"
+echo "dcm up network proxy"
+echo "Browser öffnen mit der Adresse: http://${HOSTNAME}/install.php"

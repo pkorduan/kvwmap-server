@@ -1,56 +1,62 @@
 #!/bin/bash
-
 # ToDo replace Env Vars correct in docker-compose.yaml
 install_service() {
-	echo "Installation von Service web in Netzwerk '${NETWORK_NAME}'"
+	if [ -z $NETWORK_NAME ] ; then
+		echo "Abbruch: Kein Netzwerkname angegeben!"
+	else
+		echo "Service web install_service in Netzwerk '${NETWORK_NAME}'"
+		PROXY_SERVICE="proxy"
 
-	SERVICE_NAME=web
-	echo "Service-Name: ${SERVICE_NAME}"
+		SERVICE_NAME=web
+		echo "Service-Name: ${SERVICE_NAME}"
 
-	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
-	if [ -d "$SERVICE_PATH" ]; then
-		echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
-		echo "${SERVICE_PATH} ist bereits vorhanden!"
-		return 1
+		SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+		if [ -d "$SERVICE_PATH" ]; then
+			echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+			echo "${SERVICE_PATH} ist bereits vorhanden!"
+			return 1
+		fi
+
+		mkdir -p ${SERVICE_PATH}
+		cp -r ${USER_DIR}/kvwmap-server/service-templates/web/directory_template/* ${SERVICE_PATH}
+		cp    ${USER_DIR}/kvwmap-server/service-templates/web/compose-template.yml ${SERVICE_PATH}/
+		chown root.root ${SERVICE_PATH}/www/cron/crontab_root
+		chown gisadmin.gisadmin ${SERVICE_PATH}/www/cron/crontab_gisadmin
+		chmod 600 ${SERVICE_PATH}/www/cron/crontab_root ${SERVICE_PATH}/www/cron/crontab_gisadmin
+
+		echo "Clone kvwmap von github ins Web-Verzeichnis ..."
+		if [ ! -d "${USER_DIR}/networks/$network_name/web/www/apps/kvwmap" ]; then
+			git clone https://github.com/srahn/kvwmap.git ${SERVICE_PATH}/www/apps/kvwmap
+		fi
+
+		echo "Erzeuge kvwmap custom Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
+		mkdir -p 	${SERVICE_PATH}/www/apps/kvwmap/custom/fonts \
+				${SERVICE_PATH}/www/apps/kvwmap/custom/graphics \
+				${SERVICE_PATH}/www/apps/kvwmap/custom/wappen \
+				${SERVICE_PATH}/www/apps/kvwmap/custom/layouts \
+				${SERVICE_PATH}/www/apps/kvwmap/custom/layouts/snippets \
+				${SERVICE_PATH}/www/apps/kvwmap/custom/symbols
+
+		wget -O ${SERVICE_PATH}/www/apps/kvwmap/custom/wappen/Logo_GDI-Service_200x47.png https://gdi-service.de/public/kvwmap_resources/Logo_GDI-Service_200x47.png
+
+		echo "#geo_name_search_field {
+			width: 100%;
+			}
+
+			#search_div {
+			display: none;
+		}" >> ${SERVICE_PATH}/www/apps/kvwmap/custom/layouts/custom.css
+
+		chown -R www-data.${OS_USER} ${SERVICE_PATH}/*
+		chmod -R g+w ${SERVICE_PATH}/*
+
+		sed -i -e "s|kvwmap_prod_web|kvwmap_prod_${SERVICE_NAME}|g" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
+		sed -i -e "s|kvwmap_prod_web|${NETWORK_NAME}_${SERVICE_NAME}|g" "${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/apache2/sites-available/000-default.conf"
+
+		cp "${USER_DIR}/kvwmap-server/service-templates/web/proxy/${SERVICE_NAME}.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
+		sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
+		ln -s "../sites-available/${SERVICE_NAME}.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-enabled/${SERVICE_NAME}.conf"
+
+		echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 	fi
-
-	mkdir -p ${SERVICE_PATH}
-	cp -r ${USER_DIR}/kvwmap-server/service-templates/web/directory_template/* ${SERVICE_PATH}
-	cp    ${USER_DIR}/kvwmap-server/service-templates/web/compose-template.yml ${SERVICE_PATH}/
-	chown root.root ${SERVICE_PATH}/www/cron/crontab_root
-	chown gisadmin.gisadmin ${SERVICE_PATH}/www/cron/crontab_gisadmin
-	chmod 600 ${SERVICE_PATH}/www/cron/crontab_root ${SERVICE_PATH}/www/cron/crontab_gisadmin
-
-	echo "Clone kvwmap von github ins Web-Verzeichnis ..."
-	if [ ! -d "${USER_DIR}/networks/$network_name/web/www/apps/kvwmap" ]; then
-		git clone https://github.com/srahn/kvwmap.git ${SERVICE_PATH}/www/apps/kvwmap
-	fi
-
-	echo "Erzeuge kvwmap custom Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
-	mkdir -p 	${SERVICE_PATH}/www/apps/kvwmap/custom/fonts \
-			${SERVICE_PATH}/www/apps/kvwmap/custom/graphics \
-			${SERVICE_PATH}/www/apps/kvwmap/custom/wappen \
-			${SERVICE_PATH}/www/apps/kvwmap/custom/layouts \
-			${SERVICE_PATH}/www/apps/kvwmap/custom/layouts/snippets \
-			${SERVICE_PATH}/www/apps/kvwmap/custom/symbols
-
-	wget -O ${SERVICE_PATH}/www/apps/kvwmap/custom/wappen/Logo_GDI-Service_200x47.png https://gdi-service.de/public/kvwmap_resources/Logo_GDI-Service_200x47.png
-
-	echo "#geo_name_search_field {
-		width: 100%;
-		}
-
-		#search_div {
-		display: none;
-	}" >> ${SERVICE_PATH}/www/apps/kvwmap/custom/layouts/custom.css
-
-	chown -R www-data.${OS_USER} ${SERVICE_PATH}/*
-	chmod -R g+w ${SERVICE_PATH}/*
-
-	cp "${USER_DIR}/kvwmap-server/service-templates/web/proxy/kvwmap.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
-	sed -i -e "s|kvwmap_prod_web|kvwmap_prod_${SERVICE_NAME}|g" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
-	sed -i -e "s|kvwmap_prod_web|${NETWORK_NAME}_${SERVICE_NAME}|g" "${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/apache2/sites-available/000-default.conf"
-	ln -s "../sites-enabled/${SERVICE_NAME}.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-enabled/${SERVICE_NAME}.conf"
-
-	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }

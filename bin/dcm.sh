@@ -130,9 +130,8 @@ function create_network() {
 		chmod g+w ${NETWORK_DIR}
 	fi
 
-	# zufälliges Subnetz in die env vom Netzwerk schreiben
-	RANDOM=$(date +%s%N | cut -b10-19)
-	SUBNET=$(echo $(( $RANDOM % 250 + 11 ))) #zwischen 11 und 250
+	read -p "Gib ein Subnetznummer für das Netzwerk an, z.B. 10 für das Subnetz 172.0.10.0/24: " ANSWER
+	SUBNET=$ANSWER
 	ip_range="172.0.${SUBNET}.0/24"
 	echo "SUBNET_NUMBER=${SUBNET}" >> ${NETWORK_DIR}/env
 	echo "NETWORK_SUBNET=${ip_range}" >> ${NETWORK_DIR}/env
@@ -152,13 +151,21 @@ function remove_network(){
 	fail_unless_root
 	NETWORK_NAME=$1
 	read -p "Es wird das Netzwerk $1 mit allen Services und Daten gelöscht! Fortfahren? [j|n]: " ANSWER
-	up_down_network ${NETWORK_NAME} "down"
-	rm -rvdf ${USER_DIR}/networks/${NETWORK_NAME}
-	docker network remove $NETWORK_NAME
-	echo "Netzwerk entfernt."
+	case ${ANSWER:0:1} in
+		j|J|y|Y )
+			up_down_network ${NETWORK_NAME} "down"
+			rm -rvdf ${USER_DIR}/networks/${NETWORK_NAME}
+			docker network remove $NETWORK_NAME
+			echo "Netzwerk entfernt."
+		;;
+		* )
+			echo "OK, nix passiert"
+		;;
+	esac
 }
 
 function write_network_compose_file() {
+	echo "dcm write_network_compose_file CURRENT_NETWORK=${NETWORK_NAME}";
 	CURRENT_NETWORK_NAME=$NETWORK_NAME
 	outfile=${USER_DIR}/networks/compose-networks.yml
 	outfile2=${USER_DIR}/networks/networks.txt
@@ -195,8 +202,7 @@ function write_network_compose_file() {
 		echo "${NETWORK_NAME}" >> "$outfile2"
 
 		NETWORK_NAME=${CURRENT_NETWORK_NAME}
-		NETWORK_SUBNET=""
-		debug " - NETWORK_NAME und SUBNET zurückgesetzt"
+		NETWORK_SUBNET=$NETWORK_SUBNET
 
 #	find /home/gisadmin/networks/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -f {}/env && echo $(basename {})' \;
 	done < <(find ${USER_DIR}/networks/ -maxdepth 1 -mindepth 1 -type d)
@@ -235,11 +241,20 @@ function write_compose_file() {
 		export MYSQL_ROOT_PASSWORD
 		export POSTGRES_PASSWORD
 		export USER_DIR
+
+		echo " - Substituiere Umgebungsvariablen in compose-template.yml und schreibe sie nach docker-compose.yml"
 		envsubst < ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/compose-template.yml > ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 
 		if [ "$SERVICE_NAME" = "proxy" ] && [ "$NETWORK_NAME" = "proxy" ]; then
 			echo "Netzwerke für Proxy-Netzwerk ersetzen..."
-			yq e -i '.services.*.networks = "'"$(< ${USER_DIR}/networks/networks.txt)"'"' ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
+			NETWORK_NAMES=()
+			for item in $(cat ${USER_DIR}/networks/networks.txt)
+			do
+				NETWORK_NAMES+=("\"$item\"")
+			done
+			NETWORK_LIST="${NETWORK_NAMES[@]}"
+			echo ${NETWORK_LIST// /,}
+			yq e -i '.services.proxy.networks = ['${NETWORK_LIST// /,}']' ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 		fi
 
 		chown gisadmin.gisadmin ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
@@ -267,6 +282,7 @@ function create_service() {
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
 	NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
+	echo "dcm create_service mit SERVICE_NAME: ${SERVICE_NAME} NETWORK_NAME: ${NETWORK_NAME}"
 
 	export SERVICE_NAME
 	export NETWORK_NAME
@@ -451,7 +467,19 @@ function service_config() {
 }
 
 function service_console() {
-	docker exec -it ${2}_${1} bash
+	param_service=$1
+	param_network=$2
+
+	if [ -z "${param_network}" ] ; then
+		param_network='kvwmap_prod'
+	fi
+
+	if [ "${param_service}" = "proxy" ] ; then
+		container_name='proxy'
+	else
+		container_name="${param_network}_${param_service}"
+	fi
+	cmd="docker exec -it ${container_name} bash"; echo $cmd; $cmd
 }
 
 
@@ -460,7 +488,13 @@ function inspect_network() {
 }
 
 function inspect_container() {
-	docker inspect $2_$1
+        if [ -z $3 ] ; then
+		echo "docker inspect ${2}_${1} $3"
+		docker inspect $2_$1
+        else
+		echo "docker inspect ${2}_${1}  --format \"{{json .${3}}}\" | jq"
+		docker inspect $2_$1 --format "{{json .${3}}}" | jq
+	fi
 }
 
 function ps_container() {
@@ -501,7 +535,7 @@ function reload_pgsql_container() {
 }
 
 function reload_proxy_container() {
-  cmd="docker exec proxy_nginx nginx -s reload"
+  cmd="docker exec proxy nginx -s reload"
   echo "Reload Konfiguration des proxy Containers:"
   echo $cmd
   $cmd
@@ -629,7 +663,7 @@ case "$1" in
 				inspect_network $3
 			;;
 			service)
-				inspect_container $3 $4
+				inspect_container $3 $4 $5
 			;;
 		esac
 	;;
@@ -842,14 +876,19 @@ case "$1" in
 	;;
 
 	rerun)
+		if [ -z "$3" ] ; then
+			param_service='kvwmap_prod'
+		else
+			param_service=$3
+		fi
 		case $2 in
 			all)
-				up_down_network $3 "down"
-				up_down_network $3 "up"
+				up_down_network $param_service "down"
+				up_down_network $param_service "up"
 			;;
 			*)
-				up_down_service $2 $3 "down"
-				up_down_service $2 $3 "up"
+				up_down_service $2 $param_service "down"
+				up_down_service $2 $param_service "up"
 			;;
 		esac
 	;;

@@ -1,4 +1,11 @@
 version: "3.6"
+networks:
+  kvwmap_prod:
+    name: ${NETWORK_NAME}
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NETWORK_SUBNET}
 services:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
