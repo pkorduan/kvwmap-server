@@ -13,3 +13,7 @@ services:
     volumes:
       - ./data_dir:/opt/geoserver/data_dir
       - ./web.xml:/usr/local/tomcat/webapps/geoserver/WEB-INF/web.xml
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true

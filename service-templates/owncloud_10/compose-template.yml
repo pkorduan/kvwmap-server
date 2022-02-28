@@ -18,3 +18,7 @@ services:
       - ./cron:/etc/cron.hourly/owncloud
       - ./logs:/var/log/apache2
       - ./apps:/var/www/html/apps
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true

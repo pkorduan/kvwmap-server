@@ -14,3 +14,7 @@ services:
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/.pgpass:/root/.pgpass
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/.pgpass_gisadmin:/home/gisadmin/.pgpass
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/web/www:/var/www
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true

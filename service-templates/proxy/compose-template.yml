@@ -35,3 +35,8 @@ services:
 #            -v "/home/gisadmin/proxy/letsencrypt:/etc/letsencrypt" \
 #            -v "/home/gisadmin/proxy/log:/var/log/letsencrypt" \
 #            certbot/certbot certonly
+
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true

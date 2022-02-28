@@ -30,3 +30,7 @@ services:
       - ${USER_DIR}/networks/${NETWORK_NAME}/volumes/proj/epsg:/usr/share/proj/epsg
       - ${USER_DIR}/networks/${NETWORK_NAME}/volumes/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
       - ${USER_DIR}/networks/${NETWORK_NAME}/volumes/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true

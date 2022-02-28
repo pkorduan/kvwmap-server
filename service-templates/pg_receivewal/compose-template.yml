@@ -13,3 +13,7 @@ services:
       - CONNSTR=postgresql://postgres:postgres@ :5432
     volumes:
       - ./wal_archive:/wal_archive
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true

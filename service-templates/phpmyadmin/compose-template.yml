@@ -20,3 +20,7 @@ services:
     volumes:
       - ./etc/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php
       - ./logs:/var/logs/apache2
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true

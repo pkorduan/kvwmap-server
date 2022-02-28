@@ -17,3 +17,7 @@ services:
       - ./data:/var/lib/mysql
       - ./etc:/etc/mysql
       - ./logs:/var/logs/mysql
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true

@@ -102,7 +102,6 @@ function list_networks() {
 ##################################################
 
 function create_network() {
-	fail_unless_root
 	NETWORK_NAME=$1
 	NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
 	echo "Installiere Voraussetzungen für den Betrieb des Netzwerkes $network_name"
@@ -133,29 +132,24 @@ function create_network() {
 	read -p "Gib ein Subnetznummer für das Netzwerk an, z.B. 10 für das Subnetz 172.0.10.0/24: " ANSWER
 	SUBNET=$ANSWER
 	ip_range="172.0.${SUBNET}.0/24"
-	echo "SUBNET_NUMBER=${SUBNET}" >> ${NETWORK_DIR}/env
 	echo "NETWORK_SUBNET=${ip_range}" >> ${NETWORK_DIR}/env
 
-	echo "Netzwerke neu zusammenstellen..."
-	write_network_compose_file
-
-	chown ${OS_USER}.${OS_USER} ${USER_DIR}/networks/compose-networks.yml ${USER_DIR}/networks/networks.txt ${NETWORK_DIR}/env
+	chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}/env
 	if [ "$NETWORK_NAME" != "proxy" ]; then
 		chown -R ${OS_USER}.${OS_USER} ${NETWORK_DIR}/volumes
 	fi
-	docker network create $NETWORK_NAME
+	docker network create --subnet "$ip_range" $NETWORK_NAME
 	echo "Netwerk erstellt. Mit dcm create service [service] ${NETWORK_NAME} können jetzt die dazugehörigen Dienste installiert werden."
 }
 
 function remove_network(){
-	fail_unless_root
 	NETWORK_NAME=$1
 	read -p "Es wird das Netzwerk $1 mit allen Services und Daten gelöscht! Fortfahren? [j|n]: " ANSWER
 	case ${ANSWER:0:1} in
 		j|J|y|Y )
 			up_down_network ${NETWORK_NAME} "down"
 			rm -rvdf ${USER_DIR}/networks/${NETWORK_NAME}
-			docker network remove $NETWORK_NAME
+			docker network rm $NETWORK_NAME
 			echo "Netzwerk entfernt."
 		;;
 		* )
@@ -164,59 +158,12 @@ function remove_network(){
 	esac
 }
 
-function write_network_compose_file() {
-	echo "dcm write_network_compose_file CURRENT_NETWORK=${NETWORK_NAME}";
-	CURRENT_NETWORK_NAME=$NETWORK_NAME
-	outfile=${USER_DIR}/networks/compose-networks.yml
-	outfile2=${USER_DIR}/networks/networks.txt
-
-	if [ -f $outfile ]; then
-		rm ${outfile}
-	fi
-	if [ -f $outfile2 ]; then
-		rm ${outfile2}
-	fi
-
-	echo "version: \"3.6\"" >  "$outfile"
-	echo ""                 >> "$outfile"
-	echo "networks:"        >> "$outfile"
-
-	while read dir
-	do
-		debug " - Behandle Netzwerkverzeichnis ${dir}"
-		NETWORK_NAME=$(basename $(echo $dir))
-		echo "Lese env Datei ${dir}/env"
-		source "$dir"/env
-		debug " - exportiere NETWORK_NAME=${NETWORK_NAME} NETWORK_SUBNET=${NETWORK_SUBNET}"
-		export NETWORK_NAME
-		export NETWORK_SUBNET
-#		echo "  für Netzwerk: $NETWORK_NAME $NETWORK_SUBNET"
-		if [ -z "$NETWORK_SUBNET" ]; then
-			echo "Subnet fehlt! Abbruch!"
-			exit
-		fi
-
-		debug " - envsubstituion von service-templates/network-template.yml nach ${outfile}"
-		envsubst < ${USER_DIR}/kvwmap-server/service-templates/network-template.yml >> "$outfile"
-
-		echo "${NETWORK_NAME}" >> "$outfile2"
-
-		NETWORK_NAME=${CURRENT_NETWORK_NAME}
-		NETWORK_SUBNET=$NETWORK_SUBNET
-
-#	find /home/gisadmin/networks/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -f {}/env && echo $(basename {})' \;
-	done < <(find ${USER_DIR}/networks/ -maxdepth 1 -mindepth 1 -type d)
-}
-
 function write_compose_file() {
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
 	echo "Compose-File erstellen"
 	echo "für Service $SERVICE_NAME im Netzwerk $NETWORK_NAME"
 	source ${USER_DIR}/networks/${NETWORK_NAME}/env
-
-	echo "Netzwerke neu zusammenstellen..."
-	write_network_compose_file
 
 	write_file=true
 	if [ -f ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml ]; then
@@ -329,7 +276,7 @@ function remove_service() {
 }
 
 function compose_call(){
-	cmd="docker-compose -f ./docker-compose.yml -f ${USER_DIR}/networks/compose-networks.yml --env-file ./../../env --project-name ${NETWORK_NAME} "
+	cmd="docker-compose -f ./docker-compose.yml --env-file ./../../env --project-name ${NETWORK_NAME} "
 	echo $cmd
 }
 
