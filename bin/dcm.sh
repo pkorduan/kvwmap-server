@@ -405,6 +405,7 @@ function service_config() {
 	NETWORK_NAME=$2
 	NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
 	SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
+	cd ${SERVICE_PATH}
 	export NETWORK_PATH
 	export SERVICE_PATH
 	cmd="$(compose_call)"
