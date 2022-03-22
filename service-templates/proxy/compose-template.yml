@@ -3,10 +3,9 @@ services:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     image: nginx:stable
-    container_name: ${SERVICE_NAME}
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     networks:
       - ${NETWORK_NAME}
-#     - all Networks defined
     ports:
       - "80:80"
       - "443:443"
@@ -37,6 +36,5 @@ services:
 #            certbot/certbot certonly
 
 networks:
-    default:
-        name: ${NETWORK_NAME}
+    ${NETWORK_NAME}:
         external: true

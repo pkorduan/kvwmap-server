@@ -192,18 +192,6 @@ function write_compose_file() {
 		echo " - Substituiere Umgebungsvariablen in compose-template.yml und schreibe sie nach docker-compose.yml"
 		envsubst < ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/compose-template.yml > ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 
-		if [ "$SERVICE_NAME" = "proxy" ] && [ "$NETWORK_NAME" = "proxy" ]; then
-			echo "Netzwerke für Proxy-Netzwerk ersetzen..."
-			NETWORK_NAMES=()
-			for item in $(cat ${USER_DIR}/networks/networks.txt)
-			do
-				NETWORK_NAMES+=("\"$item\"")
-			done
-			NETWORK_LIST="${NETWORK_NAMES[@]}"
-			echo ${NETWORK_LIST// /,}
-			yq e -i '.services.proxy.networks = ['${NETWORK_LIST// /,}']' ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
-		fi
-
 		chown gisadmin.gisadmin ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 		chmod g+w ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 
@@ -225,7 +213,6 @@ function service_exists(){
 }
 
 function create_service() {
-	fail_unless_root
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
 	NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
@@ -256,8 +243,6 @@ function create_service() {
 }
 
 function remove_service() {
-	fail_unless_root
-
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
 	read -p "Es wird der Service ${SERVICE_NAME} und alle Daten gelöscht! Fortfahren? [j|n]: " answer
@@ -296,9 +281,11 @@ function up_down_service() {
 		cmd="$(compose_call)"
 		case "$UP_DOWN" in
 			up)
+				echo "Erstelle Service ${NETWORK_NAME}_${SERVICE_NAME}"
 				cmd="${cmd} up -d"
 			;;
 			down)
+				echo "Entferne Service ${NETWORK_NAME}_${SERVICE_NAME}"
 				cmd="${cmd} down"
 			;;
 			*)
@@ -319,12 +306,14 @@ function up_down_service() {
 function start_service() {
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
+	echo "Starte Container ${NETWORK_NAME}_${SERVICE_NAME}"
 	docker start ${NETWORK_NAME}_${SERVICE_NAME}
 }
 
 function stop_service() {
 	SERVICE_NAME=$1
 	NETWORK_NAME=$2
+	echo "Stoppe Container ${NETWORK_NAME}_${SERVICE_NAME}"
 	docker stop ${NETWORK_NAME}_${SERVICE_NAME}
 }
 
