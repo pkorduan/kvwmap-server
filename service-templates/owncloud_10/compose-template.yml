@@ -4,10 +4,6 @@ services:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     image: owncloud:10
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
-    networks:
-      ${NETWORK_NAME}:
-        aliases:
-          - ${SERVICE_NAME}
     environment:
       - TERM=linux
       - COLUMNS=180

@@ -1,20 +1,9 @@
 version: "3.6"
-networks:
-  kvwmap_prod:
-    name: ${NETWORK_NAME}
-    ipam:
-      driver: default
-      config:
-        - subnet: ${NETWORK_SUBNET}
 services:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     image: pkorduan/kvwmap-server:2.2.4
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
-    networks:
-      ${NETWORK_NAME}:
-        aliases:
-          - ${SERVICE_NAME}
     environment:
       # Environment variables with only a key are resolved to their values on the ma>
       - OS_USER=gisadmin
@@ -37,6 +26,9 @@ services:
       - ./logs:/var/www/logs/apache2
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass:/root/.pgpass
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass_gisadmin:/home/gisadmin/.pgpass
+    ports:
+      - 80:80/tcp
+      - 443:443/tcp
 networks:
     default:
         name: ${NETWORK_NAME}

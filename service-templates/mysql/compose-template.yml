@@ -4,10 +4,6 @@ services:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     image: mysql:5.5
-    networks:
-      ${NETWORK_NAME}:
-        aliases:
-          - ${SERVICE_NAME}
     environment:
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
       - TERM=xterm
@@ -17,6 +13,8 @@ services:
       - ./data:/var/lib/mysql
       - ./etc:/etc/mysql
       - ./logs:/var/logs/mysql
+    ports:
+      - 3306:3306/tcp
 networks:
     default:
         name: ${NETWORK_NAME}

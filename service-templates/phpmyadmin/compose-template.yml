@@ -5,10 +5,6 @@ services:
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     image: phpmyadmin:5.1.1-apache
     restart: always
-    networks:
-      ${NETWORK_NAME}:
-        aliases:
-          - ${SERVICE_NAME}
     environment:
       - PMA_ARBITRARY=1
       - PMA_HOST=$PMA_HOST
