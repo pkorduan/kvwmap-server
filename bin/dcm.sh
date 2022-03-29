@@ -261,7 +261,7 @@ function remove_service() {
 }
 
 function compose_call(){
-	cmd="docker-compose -f ./docker-compose.yml --env-file ./../../env --project-name ${NETWORK_NAME} "
+	cmd="docker-compose -f ./docker-compose.yml --env-file ./../../env --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
 	echo $cmd
 }
 
