@@ -8,11 +8,11 @@ getent passwd $OS_USER >/dev/null 2>&1 && OS_USER_EXISTS=true
 USER_DIR=/home/$OS_USER
 
 export SERVER_NAME=$(hostname)
-echo "Folgenden Hostname ermittelt: $SERVER_NAME"
+#echo "Folgenden Hostname ermittelt: $SERVER_NAME"
 export DOMAIN_NAME=$(hostname)
-echo "Folgenden Domainname ermittelt: $DOMAIN_NAME"
-export IP_EXTERN=$(hostname -I | awk '{print $1}')
-echo "Folgende IP ermittelt: $IP_EXTERN"
+#echo "Folgenden Domainname ermittelt: $DOMAIN_NAME"
+#export IP_EXTERN=$(hostname -I | awk '{print $1}')
+#echo "Folgende IP ermittelt: $IP_EXTERN"
 TEMPLATEPATH="$USER_DIR/kvwmap-server/service-templates"
 
 KVWMAP_SERVER_VERSION=2.2.4
@@ -20,3 +20,5 @@ PROD_APP="kvwmap"
 
 # we have to define the service name of proxy because it will be used in dcm install_service functions of other services which have to be set in proxy configuration.
 PROXY_SERVICE="proxy" # the default
+
+echo "config.sh geladen"

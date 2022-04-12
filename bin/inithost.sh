@@ -47,8 +47,12 @@ install_docker() {
 }
 
 install_docker-compose() {
-  echo "Installiere docker-compose"
-  curl -L "https://github.com/docker/compose/releases/download/2.2.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
+  echo "Installiere docker-compose. Verfügbare Tags siehe: https://github.com/docker/compose/tags"
+  read -p "Welche Version von docker-compose soll installiert werden (2.4.1)?" COMPOSE_VERSION
+  if [ -z $COMPOSE_VERSION ] ; then
+    COMPOSE_VERSION="2.4.1"
+  fi
+  curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
   chmod +x /usr/bin/docker-compose
 }
 
@@ -165,10 +169,6 @@ install_docker-compose
 # kvwmap-Instanz einrichten und starten
 #############################
 dcm create service kvwmap-server kvwmap_prod
-dcm create service gdal kvwmap_prod
-dcm create service mysql kvwmap_prod
-dcm create service pgsql kvwmap_prod
-dcm create service web kvwmap_prod
 dcm up network kvwmap_prod
 
 #read -p "Initscript löschen? (j/n) " answer
