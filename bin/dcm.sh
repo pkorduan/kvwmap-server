@@ -2,52 +2,52 @@
 # Version 3.0.0
 
 function usage() {
-	echo ""
-	echo "Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden wenn der Nutzer nicht zur Gruppe docker gehört.";
-	echo "Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos."
-	echo "Kontakt: peter.korduan@gdi-service.de"
-	echo ""
-	echo "Netzwerke und Dienste erstellen und entfernen:"
-	echo "dcm create network [network]"
-	echo "dcm create service [service] [network]"
-	echo "dcm remove network [network]"
-	echo "dcm remove service [service] [network]"
-	echo ""
-	echo "Dienst als Container starten:"
-	echo "dcm up [service] [network]"
-	echo "dcm up network [network]"
-	echo ""
-	echo "Dienst stoppen, Container löschen:"
-	echo "dcm down [service] [network]"
-	echo "dcm down network [network]"
-	echo ""
-	echo "Container starten, stoppen:"
-	echo "dcm start all"
-	echo "dcm start [service] [network]"
-	echo "dcm stop all"
-	echo "dcm stop [service] [network]"
-	echo "dcm restart all"
-	echo "dcm restart [service] [network]"
-	#echo "dcm rerun all"
-	echo "dcm rerun [service] [network]"
-	echo ""
-	echo "Für networks wird das compose-networks.yml aktualisiert. Für service wird aus dem Template ein neues docker-compose.yml erstellt."
-	echo "dcm compose networks"
-	echo "dcm compose service [service] [network]"
-	echo ""
-	echo "Proxy-Server einrichten:"
-	echo "dcm proxy create"
-	echo "dcm proxy up"
-	echo "dcm proxy down"
-	echo ""
-	echo "dcm ls networks"
-	echo "dcm build"
-	echo "dcm clean"
-	echo "dcm config [service] [network]"
-	echo "dcm console [service] [network]"
-	echo "dcm inspect network [network]"
-	echo "dcm inspect service [service] [network]"
-	echo "dcm logs [service] [network]"
+  echo ""
+  echo "Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden wenn der Nutzer nicht zur Gruppe docker gehört.";
+  echo "Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos."
+  echo "Kontakt: peter.korduan@gdi-service.de"
+  echo ""
+  echo "Netzwerke und Dienste erstellen und entfernen:"
+  echo "dcm create network [network]"
+  echo "dcm create service [service] [network]"
+  echo "dcm remove network [network]"
+  echo "dcm remove service [service] [network]"
+  echo ""
+  echo "Dienst als Container starten:"
+  echo "dcm up [service] [network]"
+  echo "dcm up network [network]"
+  echo ""
+  echo "Dienst stoppen, Container löschen:"
+  echo "dcm down [service] [network]"
+  echo "dcm down network [network]"
+  echo ""
+  echo "Container starten, stoppen:"
+  echo "dcm start all"
+  echo "dcm start [service] [network]"
+  echo "dcm stop all"
+  echo "dcm stop [service] [network]"
+  echo "dcm restart all"
+  echo "dcm restart [service] [network]"
+  #echo "dcm rerun all"
+  echo "dcm rerun [service] [network]"
+  echo ""
+  echo "Für networks wird das compose-networks.yml aktualisiert. Für service wird aus dem Template ein neues docker-compose.yml erstellt."
+  echo "dcm compose networks"
+  echo "dcm compose service [service] [network]"
+  echo ""
+  echo "Proxy-Server einrichten:"
+  echo "dcm proxy create"
+  echo "dcm proxy up"
+  echo "dcm proxy down"
+  echo ""
+  echo "dcm ls networks"
+  echo "dcm build"
+  echo "dcm clean"
+  echo "dcm config [service] [network]"
+  echo "dcm console [service] [network]"
+  echo "dcm inspect network [network]"
+  echo "dcm inspect service [service] [network]"
+  echo "dcm logs [service] [network]"
 }
 
 function debug() {
@@ -77,24 +77,24 @@ function build_gdal_image() {
 
 # Bricht ab, wenn nutzer nicht root ist
 function fail_unless_root() {
-	dcm_user=$(id -nu)
-	dcm_user_group=$(id -nG)
-	# Wenn ausführender Nutzer nicht root ist
-	if [ "${dcm_user}" != "root" ]; then
-		echo "Aktion kann nur als User root ausgeführt werden."
-		exit 1
-	fi
+  dcm_user=$(id -nu)
+  dcm_user_group=$(id -nG)
+  # Wenn ausführender Nutzer nicht root ist
+  if [ "${dcm_user}" != "root" ]; then
+    echo "Aktion kann nur als User root ausgeführt werden."
+    exit 1
+  fi
 }
 
 function list_services() {
-	while read SERVICE
-	do
-		echo $(basename $SERVICE)
-	done < <(find ${TEMPLATEPATH} -maxdepth 1 -mindepth 1 -type d)
+  while read SERVICE
+  do
+    echo $(basename $SERVICE)
+  done < <(find ${TEMPLATEPATH} -maxdepth 1 -mindepth 1 -type d)
 }
 
 function list_networks() {
-	find ${USER_DIR}/networks/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -f {}/env && echo $(basename {})' \;
+  find ${USER_DIR}/networks/ -mindepth 1 -maxdepth 1 -type d -exec sh -c 'test -f {}/env && echo $(basename {})' \;
 }
 
 ##################################################
@@ -102,244 +102,248 @@ function list_networks() {
 ##################################################
 
 function create_network() {
-	NETWORK_NAME=$1
-	NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
-	echo "Installiere Voraussetzungen für den Betrieb des Netzwerkes $network_name"
-	if [ -d "$NETWORK_DIR" ]; then
-		echo "Das Netzwerk ${NETWORK_NAME} existiert bereits! Abbruch."
-		return
-	fi
+  NETWORK_NAME=$1
+  NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
+  echo "Installiere Voraussetzungen für den Betrieb des Netzwerkes $network_name"
+  if [ -d "$NETWORK_DIR" ]; then
+    echo "Das Netzwerk ${NETWORK_NAME} existiert bereits! Abbruch."
+    return
+  fi
 
-	if [ ! -d "${USER_DIR}/networks" ]; then
-		echo "Erzeuge das Verzeichnis für networks ${USER_DIR}/networks"
-		mkdir ${USER_DIR}/networks
-		chown ${OS_USER}.${OS_USER} ${USER_DIR}/networks
-		chmod g+w ${USER_DIR}/networks
-	fi
+  if [ ! -d "${USER_DIR}/networks" ]; then
+    echo "Erzeuge das Verzeichnis für networks ${USER_DIR}/networks"
+    mkdir ${USER_DIR}/networks
+    chown ${OS_USER}.${OS_USER} ${USER_DIR}/networks
+    chmod g+w ${USER_DIR}/networks
+  fi
 
-	echo "Erzeuge Netzwerk Verzeichnis ${NETWORK_DIR}"
-	mkdir -p ${NETWORK_DIR}
-	if [ "$NETWORK_NAME" != "proxy" ]; then
-		if $DEBUG ; then
-			cp -vr ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
-		else
-			cp -r ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
-		fi
-		chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}
-		chmod g+w ${NETWORK_DIR}
-	fi
+  echo "Erzeuge Netzwerk Verzeichnis ${NETWORK_DIR}"
+  mkdir -p ${NETWORK_DIR}
+  if [ "$NETWORK_NAME" != "proxy" ]; then
+    if $DEBUG ; then
+      cp -vr ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
+    else
+      cp -r ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
+    fi
+    chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}
+    chmod g+w ${NETWORK_DIR}
+  fi
 
-	read -p "Gib ein Subnetznummer für das Netzwerk an, z.B. 10 für das Subnetz 172.0.10.0/24: " ANSWER
-	SUBNET=$ANSWER
-	ip_range="172.0.${SUBNET}.0/24"
-	echo "NETWORK_SUBNET=${ip_range}" >> ${NETWORK_DIR}/env
+  read -p "Gib ein Subnetznummer für das Netzwerk an, z.B. 10 für das Subnetz 172.0.10.0/24: " ANSWER
+  SUBNET=$ANSWER
+  if [ -z "$SUBNET" ]; then
+    SUBNET="10"
+  fi
 
-	chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}/env
-	if [ "$NETWORK_NAME" != "proxy" ]; then
-		chown -R ${OS_USER}.${OS_USER} ${NETWORK_DIR}/volumes
-	fi
-	docker network create --subnet "$ip_range" $NETWORK_NAME
-	echo "Netwerk erstellt. Mit dcm create service [service] ${NETWORK_NAME} können jetzt die dazugehörigen Dienste installiert werden."
+  ip_range="172.0.${SUBNET}.0/24"
+  echo "NETWORK_SUBNET=${ip_range}" >> ${NETWORK_DIR}/env
+
+  chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}/env
+  if [ "$NETWORK_NAME" != "proxy" ]; then
+    chown -R ${OS_USER}.${OS_USER} ${NETWORK_DIR}/volumes
+  fi
+  docker network create --subnet "$ip_range" $NETWORK_NAME
+  echo "Netwerk erstellt. Mit dcm create service [service] ${NETWORK_NAME} können jetzt die dazugehörigen Dienste installiert werden."
 }
 
 function remove_network(){
-	NETWORK_NAME=$1
-	read -p "Es wird das Netzwerk $1 mit allen Services und Daten gelöscht! Fortfahren? [j|n]: " ANSWER
-	case ${ANSWER:0:1} in
-		j|J|y|Y )
-			up_down_network ${NETWORK_NAME} "down"
-			rm -rvdf ${USER_DIR}/networks/${NETWORK_NAME}
-			docker network rm $NETWORK_NAME
-			echo "Netzwerk entfernt."
-		;;
-		* )
-			echo "OK, nix passiert"
-		;;
-	esac
+  NETWORK_NAME=$1
+  read -p "Es wird das Netzwerk $1 mit allen Services und Daten gelöscht! Fortfahren? [j|n]: " ANSWER
+  case ${ANSWER:0:1} in
+    j|J|y|Y )
+      up_down_network ${NETWORK_NAME} "down"
+      rm -rvdf ${USER_DIR}/networks/${NETWORK_NAME}
+      docker network rm $NETWORK_NAME
+      echo "Netzwerk entfernt."
+    ;;
+    * )
+      echo "OK, nix passiert"
+    ;;
+  esac
 }
 
 function write_compose_file() {
-	SERVICE_NAME=$1
-	NETWORK_NAME=$2
-	echo "Compose-File erstellen"
-	echo "für Service $SERVICE_NAME im Netzwerk $NETWORK_NAME"
-	source ${USER_DIR}/networks/${NETWORK_NAME}/env
+  SERVICE_NAME=$1
+  NETWORK_NAME=$2
+  echo "Compose-File erstellen"
+  echo "für Service $SERVICE_NAME im Netzwerk $NETWORK_NAME"
+  source ${USER_DIR}/networks/${NETWORK_NAME}/env
 
-	write_file=true
-	if [ -f ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml ]; then
-		read -p "Es existiert bereits ein docker-compose.yml für diesen Service. Soll der Service neu aus dem Template erstellt werden? [j/n] :" answer
-		case ${answer:0:1} in
-			j|J|y|Y )
-				write_file=true
-			;;
-			* )
-				write_file=false
-			;;
-		esac
-	fi
+  write_file=true
+  if [ -f ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml ]; then
+    read -p "Es existiert bereits ein docker-compose.yml für diesen Service. Soll der Service neu aus dem Template erstellt werden? [j/n] :" answer
+    case ${answer:0:1} in
+      j|J|y|Y )
+        write_file=true
+      ;;
+      * )
+        write_file=false
+      ;;
+    esac
+  fi
 
-	if [ "$write_file" = true ]; then
-	# ===
-	# === >> export der Variablen aus der Netzwerk env-Datei, gewünschte hinzufügen
-	# ===
-		export NETWORK_NAME
-		export SERVICE_NAME
-		export NETWORK_SUBNET
-		export MYSQL_ROOT_PASSWORD
-		export POSTGRES_PASSWORD
-		export USER_DIR
+  if [ "$write_file" = true ]; then
+  # ===
+  # === >> export der Variablen aus der Netzwerk env-Datei, gewünschte hinzufügen
+  # ===
+    export NETWORK_NAME
+    export SERVICE_NAME
+    export NETWORK_SUBNET
+    export MYSQL_ROOT_PASSWORD
+    export POSTGRES_PASSWORD
+    export USER_DIR
 
-		echo " - Substituiere Umgebungsvariablen in compose-template.yml und schreibe sie nach docker-compose.yml"
-		envsubst < ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/compose-template.yml > ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
+    echo " - Substituiere Umgebungsvariablen in compose-template.yml und schreibe sie nach docker-compose.yml"
+    envsubst < ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/compose-template.yml > ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 
-		chown gisadmin.gisadmin ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
-		chmod g+w ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
+    chown gisadmin.gisadmin ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
+    chmod g+w ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 
-	else
-		echo "Keine Änderung am Service."
-	fi
+  else
+    echo "Keine Änderung am Service."
+  fi
 }
 
 function service_exists(){
-	SERVICE_NAME=$1
-	NETWORK_NAME=$2
-	if [ ! -d ${USER_DIR}/networks/${NETWORK_NAME} ]; then
-		return 1
-	fi
-	if [ ! -f ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml ]; then
-		return 2
-	fi
-	return 0
+  SERVICE_NAME=$1
+  NETWORK_NAME=$2
+  if [ ! -d ${USER_DIR}/networks/${NETWORK_NAME} ]; then
+    return 1
+  fi
+  if [ ! -f ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml ]; then
+    return 2
+  fi
+  return 0
 }
 
 function create_service() {
-	SERVICE_NAME=$1
-	NETWORK_NAME=$2
-	NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
-	echo "dcm create_service mit SERVICE_NAME: ${SERVICE_NAME} NETWORK_NAME: ${NETWORK_NAME}"
+  SERVICE_NAME=$1
+  NETWORK_NAME=$2
+  NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
+  echo "dcm create_service mit SERVICE_NAME: ${SERVICE_NAME} NETWORK_NAME: ${NETWORK_NAME}"
 
-	export SERVICE_NAME
-	export NETWORK_NAME
+  export SERVICE_NAME
+  export NETWORK_NAME
 
-	if [ ! -d "$NETWORK_DIR" ]; then
-		echo "Netzwerk ${NETWORK_NAME} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
-		dcm create network $NETWORK_NAME
-	fi
+  if [ ! -d "$NETWORK_DIR" ]; then
+    echo "Netzwerk ${NETWORK_NAME} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
+    dcm create network $NETWORK_NAME
+  fi
 
-	echo "Lade ${TEMPLATEPATH}/${SERVICE_NAME}/dcm"
-	if [ ! -f ${TEMPLATEPATH}/${SERVICE_NAME}/dcm ]; then
-		echo "Keine dcm-Erweiterung gefunden. Abbruch."
-		echo ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
-		return 1
-	fi
-	source ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
-	source ${USER_DIR}/networks/${NETWORK_NAME}/env
-	install_service
+  echo "Lade ${TEMPLATEPATH}/${SERVICE_NAME}/dcm"
+  if [ ! -f ${TEMPLATEPATH}/${SERVICE_NAME}/dcm ]; then
+    echo "Keine dcm-Erweiterung gefunden. Abbruch."
+    echo ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
+    return 1
+  fi
+  source ${TEMPLATEPATH}/${SERVICE_NAME}/dcm
+  source ${USER_DIR}/networks/${NETWORK_NAME}/env
+  install_service
 
-	if [ "${SERVICE_NAME}" != "kvwmap-server" ]; then
-		write_compose_file ${SERVICE_NAME} ${NETWORK_NAME}
-		echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
-	fi
+  if [ "${SERVICE_NAME}" != "kvwmap-server" ]; then
+    write_compose_file ${SERVICE_NAME} ${NETWORK_NAME}
+    echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
+  fi
 }
 
 function remove_service() {
-	SERVICE_NAME=$1
-	NETWORK_NAME=$2
-	read -p "Es wird der Service ${SERVICE_NAME} und alle Daten gelöscht! Fortfahren? [j|n]: " answer
-	case ${answer:0:1} in
-		j|J|y|Y )
-		;;
-		* )
-			return 1
-		;;
-	esac
+  SERVICE_NAME=$1
+  NETWORK_NAME=$2
+  read -p "Es wird der Service ${SERVICE_NAME} und alle Daten gelöscht! Fortfahren? [j|n]: " answer
+  case ${answer:0:1} in
+    j|J|y|Y )
+    ;;
+    * )
+      return 1
+    ;;
+  esac
 
-	#Service beenden
-	up_down_service ${SERVICE_NAME} ${NETWORK_NAME} down
-	#Verzeichnisse löschen
-	rm -rdvf ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+  #Service beenden
+  up_down_service ${SERVICE_NAME} ${NETWORK_NAME} down
+  #Verzeichnisse löschen
+  rm -rdvf ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
 }
 
 function compose_call(){
-	cmd="docker-compose -f ./docker-compose.yml --env-file ./../../env --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
-	echo $cmd
+  cmd="docker-compose -f ./docker-compose.yml --env-file ./../../env --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
+  echo $cmd
 }
 
 function up_down_service() {
-	SERVICE_NAME=$1
-	NETWORK_NAME=$2
-	UP_DOWN=$3
-	CURRENT_PWD=$(pwd)
+  SERVICE_NAME=$1
+  NETWORK_NAME=$2
+  UP_DOWN=$3
+  CURRENT_PWD=$(pwd)
 
-	service_exists ${SERVICE_NAME} ${NETWORK_NAME}
-	if [ "$?" -eq 0 ]; then
-		NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
-		SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
-		cd ${SERVICE_PATH}
-		export NETWORK_PATH
-		export SERVICE_PATH
-		cmd="$(compose_call)"
-		case "$UP_DOWN" in
-			up)
-				echo "Erstelle Service ${NETWORK_NAME}_${SERVICE_NAME}"
-				cmd="${cmd} up -d"
-			;;
-			down)
-				echo "Entferne Service ${NETWORK_NAME}_${SERVICE_NAME}"
-				cmd="${cmd} down"
-			;;
-			*)
-				cmd=""
-			;;
-		esac
-		echo $cmd
-		$cmd
-	else
-		echo "Service existiert nicht!"
-		cd $CURRENT_PWD
-		return 1
-	fi
-	cd $CURRENT_PWD
-	return 0
+  service_exists ${SERVICE_NAME} ${NETWORK_NAME}
+  if [ "$?" -eq 0 ]; then
+    NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
+    SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
+    cd ${SERVICE_PATH}
+    export NETWORK_PATH
+    export SERVICE_PATH
+    cmd="$(compose_call)"
+    case "$UP_DOWN" in
+      up)
+        echo "Erstelle Service ${NETWORK_NAME}_${SERVICE_NAME}"
+        cmd="${cmd} up -d"
+      ;;
+      down)
+        echo "Entferne Service ${NETWORK_NAME}_${SERVICE_NAME}"
+        cmd="${cmd} down"
+      ;;
+      *)
+        cmd=""
+      ;;
+    esac
+    echo $cmd
+    $cmd
+  else
+    echo "Service existiert nicht!"
+    cd $CURRENT_PWD
+    return 1
+  fi
+  cd $CURRENT_PWD
+  return 0
 }
 
 function start_service() {
-	SERVICE_NAME=$1
-	NETWORK_NAME=$2
-	echo "Starte Container ${NETWORK_NAME}_${SERVICE_NAME}"
-	docker start ${NETWORK_NAME}_${SERVICE_NAME}
+  SERVICE_NAME=$1
+  NETWORK_NAME=$2
+  echo "Starte Container ${NETWORK_NAME}_${SERVICE_NAME}"
+  docker start ${NETWORK_NAME}_${SERVICE_NAME}
 }
 
 function stop_service() {
-	SERVICE_NAME=$1
-	NETWORK_NAME=$2
-	echo "Stoppe Container ${NETWORK_NAME}_${SERVICE_NAME}"
-	docker stop ${NETWORK_NAME}_${SERVICE_NAME}
+  SERVICE_NAME=$1
+  NETWORK_NAME=$2
+  echo "Stoppe Container ${NETWORK_NAME}_${SERVICE_NAME}"
+  docker stop ${NETWORK_NAME}_${SERVICE_NAME}
 }
 
 function start_all_services() {
-	docker ps --format {{.Names}} --filter status=exited | xargs -i docker start {}
+  docker ps --format {{.Names}} --filter status=exited | xargs -i docker start {}
 }
 
 function stop_all_services() {
-	docker ps --format {{.Names}} --filter status=running | xargs -i docker stop {}
+  docker ps --format {{.Names}} --filter status=running | xargs -i docker stop {}
 }
 
 function list_services_by_network(){
-	echo "todo"
+  echo "todo"
 }
 
 function up_down_network() {
-	NETWORK_NAME=$1
-	UP_DOWN=$2
-	echo "Alle Services im Netzwerk ${NETWORK_NAME} werden in den Status $UP_DOWN gebracht..."
+  NETWORK_NAME=$1
+  UP_DOWN=$2
+  echo "Alle Services im Netzwerk ${NETWORK_NAME} werden in den Status $UP_DOWN gebracht..."
 
-	# alle Services im Netzwerk runterfahren
-	# bei letztem Service wird das Netzwerk selbst entfernt
-	while read SERVICE_NAME
-	do
-		up_down_service ${SERVICE_NAME} ${NETWORK_NAME} "$UP_DOWN"
-	done < <(find ${USER_DIR}/networks/${NETWORK_NAME}/ -maxdepth 3 -mindepth 3 -type f -name docker-compose.yml | xargs -i dirname {} | xargs -i basename {} )
+  # alle Services im Netzwerk runterfahren
+  # bei letztem Service wird das Netzwerk selbst entfernt
+  while read SERVICE_NAME
+  do
+    up_down_service ${SERVICE_NAME} ${NETWORK_NAME} "$UP_DOWN"
+  done < <(find ${USER_DIR}/networks/${NETWORK_NAME}/ -maxdepth 3 -mindepth 3 -type f -name docker-compose.yml | xargs -i dirname {} | xargs -i basename {} )
 }
 
 copy_directories() {
@@ -389,49 +393,49 @@ copy_directories() {
 ##################################################
 
 function service_config() {
-	echo "Service-Config ausgeben:"
-	SERVICE_NAME=$1
-	NETWORK_NAME=$2
-	NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
-	SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
-	cd ${SERVICE_PATH}
-	export NETWORK_PATH
-	export SERVICE_PATH
-	cmd="$(compose_call)"
-	cmd="${cmd} config"
-	echo $cmd
-	$cmd
+  echo "Service-Config ausgeben:"
+  SERVICE_NAME=$1
+  NETWORK_NAME=$2
+  NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
+  SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
+  cd ${SERVICE_PATH}
+  export NETWORK_PATH
+  export SERVICE_PATH
+  cmd="$(compose_call)"
+  cmd="${cmd} config"
+  echo $cmd
+  $cmd
 }
 
 function service_console() {
-	param_service=$1
-	param_network=$2
+  param_service=$1
+  param_network=$2
 
-	if [ -z "${param_network}" ] ; then
-		param_network='kvwmap_prod'
-	fi
+  if [ -z "${param_network}" ] ; then
+    param_network='kvwmap_prod'
+  fi
 
-	if [ "${param_service}" = "proxy" ] ; then
-		container_name='proxy'
-	else
-		container_name="${param_network}_${param_service}"
-	fi
-	cmd="docker exec -it ${container_name} bash"; echo $cmd; $cmd
+  if [ "${param_service}" = "proxy" ] ; then
+    container_name='proxy'
+  else
+    container_name="${param_network}_${param_service}"
+  fi
+  cmd="docker exec -it ${container_name} bash"; echo $cmd; $cmd
 }
 
 
 function inspect_network() {
-	docker network inspect $1
+  docker network inspect $1
 }
 
 function inspect_container() {
-        if [ -z $3 ] ; then
-		echo "docker inspect ${2}_${1} $3"
-		docker inspect $2_$1
+  if [ -z $3 ] ; then
+    echo "docker inspect ${2}_${1} $3"
+    docker inspect $2_$1
         else
-		echo "docker inspect ${2}_${1}  --format \"{{json .${3}}}\" | jq"
-		docker inspect $2_$1 --format "{{json .${3}}}" | jq
-	fi
+    echo "docker inspect ${2}_${1}  --format \"{{json .${3}}}\" | jq"
+    docker inspect $2_$1 --format "{{json .${3}}}" | jq
+  fi
 }
 
 function ps_container() {
@@ -551,89 +555,88 @@ function uninstall_kvwmap() {
 #----------------------------------------------
 #load settings
 CONFIG_KVWMAP_SERVER=/home/gisadmin/kvwmap-server/config
-if [ -f ${CONFIG_KVWMAP_SERVER}/config ] ; then
-	source ${CONFIG_KVWMAP_SERVER}/config
-else
-	echo "Create config file from config/config-default"
-	cp ${CONFIG_KVWMAP_SERVER}/config-default ${CONFIG_KVWMAP_SERVER}/config
-	chown gisadmin.gisadmin ${CONFIG_KVWMAP_SERVER}/config
-	chmod g+w ${CONFIG_KVWMAP_SERVER}/config
+if [ ! -f ${CONFIG_KVWMAP_SERVER}/config ] ; then
+  echo "Create config file from config/config-default"
+  cp ${CONFIG_KVWMAP_SERVER}/config-default ${CONFIG_KVWMAP_SERVER}/config
+  chown gisadmin.gisadmin ${CONFIG_KVWMAP_SERVER}/config
+  chmod g+w ${CONFIG_KVWMAP_SERVER}/config
 fi
+source ${CONFIG_KVWMAP_SERVER}/config
 
 case "$1" in
 
-	build)
-		case $2 in
-			gdal)
-				build_gdal_image 'latest'
-			;;
-			kvwmap)
-				echo "Build the image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}"
-				build_kvwmap_server $KVWMAP_IMAGE_VERSION
-			;;
-			*)
-				echo "Gebe das Image an das gebaut werden soll. gdal oder kvwmap"
-			;;
-		esac
-	;;
-	clean)
-		echo "Lösche alle nicht genutzten Container."
-		docker rm $(docker ps -q -f status=exited)
-		echo "Lösche alle Images mit Namen <none>."
-		docker rmi $(docker images -a | grep "^<none>" | awk '{print $3}')
-		echo "Lösche alle nicht benutzten Netzwerke"
-		docker network prune -f
-	;;
+  build)
+    case $2 in
+      gdal)
+        build_gdal_image 'latest'
+      ;;
+      kvwmap)
+        echo "Build the image pkorduan/kvwmap-server:${KVWMAP_IMAGE_VERSION}"
+        build_kvwmap_server $KVWMAP_IMAGE_VERSION
+      ;;
+      *)
+        echo "Gebe das Image an das gebaut werden soll. gdal oder kvwmap"
+      ;;
+    esac
+  ;;
+  clean)
+    echo "Lösche alle nicht genutzten Container."
+    docker rm $(docker ps -q -f status=exited)
+    echo "Lösche alle Images mit Namen <none>."
+    docker rmi $(docker images -a | grep "^<none>" | awk '{print $3}')
+    echo "Lösche alle nicht benutzten Netzwerke"
+    docker network prune -f
+  ;;
 
-	config)
-		service_config $2 $3
-	;;
+  config)
+    service_config $2 $3
+  ;;
 
-	console)
-		echo "Öffnet eine Bash-Shell im Container:"
-		service_console $2 $3
-	;;
+  console)
+    echo "Öffnet eine Bash-Shell im Container:"
+    service_console $2 $3
+  ;;
 
-	inspect)
-		case $2 in
-			network)
-				inspect_network $3
-			;;
-			service)
-				inspect_container $3 $4 $5
-			;;
-		esac
-	;;
+  inspect)
+    case $2 in
+      network)
+        inspect_network $3
+      ;;
+      service)
+        inspect_container $3 $4 $5
+      ;;
+    esac
+  ;;
 
-	logs)
-		service_logs $2 $3
-	;;
+  logs)
+    service_logs $2 $3
+  ;;
 
-	ip)
-		case $2 in
-			all)
-				show_all_container_ips
-			;;
-			* )
-				show_service_ip $2 $3
-			;;
-		esac
-	;;
+  ip)
+    case $2 in
+      all)
+        show_all_container_ips
+      ;;
+      * )
+        show_service_ip $2 $3
+      ;;
+    esac
+  ;;
 
-	status)
-		case $2 in
-			all)
-				docker ps -a
-			;;
-			*)
-				docker ps -a
-			;;
-		esac
-	;;
+  status)
+    case $2 in
+      all)
+        docker ps -a
+      ;;
+      *)
+        docker ps -a
+      ;;
+    esac
+  ;;
 
-	ps)
-		ps_container $2
-	;;
+  ps)
+    ps_container $2
+  ;;
 
   rebuild)
     case $2 in
@@ -693,204 +696,204 @@ case "$1" in
     esac
   ;;
 
-	install)
-		if ! id "${OS_USER}" >/dev/null 2>&1; then
-			echo "
-			Erzeuge user: ${OS_USER} ..."
-			# create user for web gis anwendung if not exists
-			$OS_USER_EXISTS || adduser $OS_USER
-			/usr/sbin/usermod -u 17000 $OS_USER
-			/usr/sbin/groupmod -g 1700 $OS_USER
-		fi
+  install)
+    if ! id "${OS_USER}" >/dev/null 2>&1; then
+      echo "
+      Erzeuge user: ${OS_USER} ..."
+      # create user for web gis anwendung if not exists
+      $OS_USER_EXISTS || adduser $OS_USER
+      /usr/sbin/usermod -u 17000 $OS_USER
+      /usr/sbin/groupmod -g 1700 $OS_USER
+    fi
 
-		if [ ! -f /usr/bin/docker ]; then
-			install_docker
-		fi
+    if [ ! -f /usr/bin/docker ]; then
+      install_docker
+    fi
 
-		if [ ! -f /usr/bin/docker-compose ]; then
-			install_docker-compose
-		fi
+    if [ ! -f /usr/bin/docker-compose ]; then
+      install_docker-compose
+    fi
 
-		case $2 in
-			all)
-				install_kvwmap_images
-			;;
-			kvwmap)
-				git config --global user.email "peter.korduan@gdi-service.de"
-				git config --global user.name "Peter Korduan"
-				install_kvwmap_images
-			;;
-		esac
-	;;
+    case $2 in
+      all)
+        install_kvwmap_images
+      ;;
+      kvwmap)
+        git config --global user.email "peter.korduan@gdi-service.de"
+        git config --global user.name "Peter Korduan"
+        install_kvwmap_images
+      ;;
+    esac
+  ;;
 
 ###############################################################
 ## Container erstellen, starten, stoppen, entfernen
 ###############################################################
 
-	create)
-		case $2 in
-			network)
-				create_network $3
-			;;
-			service)
-				create_service $3 $4
-			;;
-			compose)
-				write_compose_file $3 $4
-			;;
-		esac
-	;;
-	remove)
-		case $2 in
-			network)
-				remove_network $3
-			;;
-			service)
-				remove_service $3 $4
-			;;
-			*)
-				usage
-			;;
-		esac
-	;;
-	up)	#das alte run, instanziiert einen Service als Container
-		case $2 in
-			network)
-				up_down_network $3 "up"
-			;;
-			*)
-				up_down_service $2 $3 "up"
-		;;
-		esac
-		docker ps
-	;;
-	down)
-		case $2 in
-			network)
-				up_down_network $3 "down"
-			;;
-			*)
-				up_down_service $2 $3 "down"
-			;;
-		esac
-	;;
+  create)
+    case $2 in
+      network)
+        create_network $3
+      ;;
+      service)
+        create_service $3 $4
+      ;;
+      compose)
+        write_compose_file $3 $4
+      ;;
+    esac
+  ;;
+  remove)
+    case $2 in
+      network)
+        remove_network $3
+      ;;
+      service)
+        remove_service $3 $4
+      ;;
+      *)
+        usage
+      ;;
+    esac
+  ;;
+  up)  #das alte run, instanziiert einen Service als Container
+    case $2 in
+      network)
+        up_down_network $3 "up"
+      ;;
+      *)
+        up_down_service $2 $3 "up"
+    ;;
+    esac
+    docker ps
+  ;;
+  down)
+    case $2 in
+      network)
+        up_down_network $3 "down"
+      ;;
+      *)
+        up_down_service $2 $3 "down"
+      ;;
+    esac
+  ;;
 
-	start)
-		case $2 in
-			all)
-				start_all_container
-			;;
-			*)
-				start_service $2 $3
-			;;
-		esac
-		docker ps -a | sort -k 2
-	;;
+  start)
+    case $2 in
+      all)
+        start_all_container
+      ;;
+      *)
+        start_service $2 $3
+      ;;
+    esac
+    docker ps -a | sort -k 2
+  ;;
 
-	stop)
-		case $2 in
-			all)
-				stop_all_container
-			;;
-			*)
-				stop_service $2 $3
-			;;
-		esac
-		docker ps -a | sort -k 2
-	;;
+  stop)
+    case $2 in
+      all)
+        stop_all_container
+      ;;
+      *)
+        stop_service $2 $3
+      ;;
+    esac
+    docker ps -a | sort -k 2
+  ;;
 
-	restart)
-		case $2 in
-			all)
-				stop_services
-				start_services
-			;;
-			*)
-				stop_service $2 $3
-				start_service $2 $3
-			;;
-		esac
-	;;
+  restart)
+    case $2 in
+      all)
+        stop_services
+        start_services
+      ;;
+      *)
+        stop_service $2 $3
+        start_service $2 $3
+      ;;
+    esac
+  ;;
 
-	rerun)
-		if [ -z "$3" ] ; then
-			param_service='kvwmap_prod'
-		else
-			param_service=$3
-		fi
-		case $2 in
-			all)
-				up_down_network $param_service "down"
-				up_down_network $param_service "up"
-			;;
-			*)
-				up_down_service $2 $param_service "down"
-				up_down_service $2 $param_service "up"
-			;;
-		esac
-	;;
+  rerun)
+    if [ -z "$3" ] ; then
+      param_service='kvwmap_prod'
+    else
+      param_service=$3
+    fi
+    case $2 in
+      all)
+        up_down_network $param_service "down"
+        up_down_network $param_service "up"
+      ;;
+      *)
+        up_down_service $2 $param_service "down"
+        up_down_service $2 $param_service "up"
+      ;;
+    esac
+  ;;
 
-	compose)
-		case $2 in
-			networks)
-				write_network_compose_file
-				echo "Erledigt."
-			;;
-			service)
-				write_compose_file $3 $4
-			;;
-			*)
-				usage
-			;;
-		esac
-	;;
-	test)
-		case $2 in
-		proxy)
-			test_proxy_container
-			;;
-		*)
-			echo "Derzeit können nur folgende Container getestet werden: proxy"
-			;;
-		esac
-	;;
+  compose)
+    case $2 in
+      networks)
+        write_network_compose_file
+        echo "Erledigt."
+      ;;
+      service)
+        write_compose_file $3 $4
+      ;;
+      *)
+        usage
+      ;;
+    esac
+  ;;
+  test)
+    case $2 in
+    proxy)
+      test_proxy_container
+      ;;
+    *)
+      echo "Derzeit können nur folgende Container getestet werden: proxy"
+      ;;
+    esac
+  ;;
 
-	update)
-		case $2 in
-			cron)
-				docker exec web /etc/cron.hourly/kvwmap
-				echo "Crontab für Nutzer gisadmin im Web-Container geschrieben."
-			;;
-			*)
-				usage
-			;;
-		esac
-	;;
-	proxy)
-		case $2 in
-			create)
-				create_service proxy proxy
-			;;
-			up)
-				up_down_service proxy proxy "up"
-			;;
-			down)
-				up_down_service proxy proxy "down"
-			;;
-		esac
-	;;
-	ls)
-		case $2 in
-			networks)
-				list_networks
-			;;
-			*)
-				usage
-			;;
-		esac
-	;;
-	*)
-		usage
-		exit 1
-	;;
+  update)
+    case $2 in
+      cron)
+        docker exec web /etc/cron.hourly/kvwmap
+        echo "Crontab für Nutzer gisadmin im Web-Container geschrieben."
+      ;;
+      *)
+        usage
+      ;;
+    esac
+  ;;
+  proxy)
+    case $2 in
+      create)
+        create_service proxy proxy
+      ;;
+      up)
+        up_down_service proxy proxy "up"
+      ;;
+      down)
+        up_down_service proxy proxy "down"
+      ;;
+    esac
+  ;;
+  ls)
+    case $2 in
+      networks)
+        list_networks
+      ;;
+      *)
+        usage
+      ;;
+    esac
+  ;;
+  *)
+    usage
+    exit 1
+  ;;
 esac

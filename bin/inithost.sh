@@ -1,7 +1,9 @@
 #!/bin/bash
 # Initialize kvwmap-server
+# Version 
 OS_USER=gisadmin
 USER_DIR=/home/${OS_USER}
+echo "USER_DIR: ${USER_DIR} gesetzt."
 CURRENT_DIR=$(pwd)
 
 # run this scirpt:
@@ -140,12 +142,17 @@ echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
 echo "alias dcm='/home/gisadmin/kvwmap-server/bin/dcm.sh'" >> $USER_DIR/.bashrc
 echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
 echo "set nocompatible" >> $USER_DIR/.vimrc
+echo ".bashrc angepasst."
 
 cp $USER_DIR/.bashrc ~/.bashrc
+echo ".bashrc für Root gesetzt."
 cp $USER_DIR/.vimrc ~/.vimrc
+echo ".vimrc für Root gesetzt."
 
 source ~/.bashrc
+echo ".bashrc geladen."
 source ~/.vimrc
+echo ".vimrc geladen."
 
 #############################
 # Docker
@@ -158,6 +165,10 @@ install_docker-compose
 # kvwmap-Instanz einrichten und starten
 #############################
 dcm create service kvwmap-server kvwmap_prod
+dcm create service gdal kvwmap_prod
+dcm create service mysql kvwmap_prod
+dcm create service pgsql kvwmap_prod
+dcm create service web kvwmap_prod
 dcm up network kvwmap_prod
 
 #read -p "Initscript löschen? (j/n) " answer
