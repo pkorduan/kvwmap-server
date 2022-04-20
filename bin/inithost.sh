@@ -48,7 +48,7 @@ install_docker() {
 
 install_docker-compose() {
   echo "Installiere docker-compose. Verfügbare Tags siehe: https://github.com/docker/compose/tags"
-  read -p "Welche Version von docker-compose soll installiert werden (2.4.1)?" COMPOSE_VERSION
+  read -p "Welche Version von docker-compose soll installiert werden (2.4.1)? " COMPOSE_VERSION
   if [ -z $COMPOSE_VERSION ] ; then
     COMPOSE_VERSION="2.4.1"
   fi
