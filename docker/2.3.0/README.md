@@ -53,6 +53,8 @@ dcm run web
 # Changelog
 # 2.3.0
 	* remove phpmyadmin and first-run script from this image
+# 2.2.9
+        * Add apache module remote_ip
 # 2.2.4
 	* install gsfonts and configure ImageMagick to use it
 	* install jq Package for parsing JSON Text on command line

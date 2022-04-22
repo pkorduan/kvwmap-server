@@ -1,6 +1,6 @@
 FROM debian:latest
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="2.3.0"
+LABEL version="2.2.9"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -15,21 +15,29 @@ RUN sed -i \
         -e "s|# alias l='ls -CF'|alias l='ls -alh --color=yes'|g" \
         -e "s|# alias rm=|alias rm=|g" \
         ~/.bashrc
-RUN echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> ~/.bashrc
+RUN echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> ~/.b$
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&\
   echo $TZ > /etc/timezone
 
 RUN echo "deb http://deb.debian.org/debian buster-backports main contrib non-free" > /etc/apt/sources.list.d/backports.list
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt upgrade -y && apt-get install -y --no-install-recommends \
       apt-utils \
+      apt-transport-https \
+      lsb-release \
+      ca-certificates \
+      curl \
+      wget
+
+RUN wget -O /etc/apt/trusted.gpg.d/apache2.gpg https://packages.sury.org/apache2/apt.gpg && sh -c 'echo "deb https://packages.sury.org/apache2/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/apache2.list'
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
       apache2 \
       build-essential \
       certbot \
       cmake \
       cron \
-      curl \
       dialog \
       docker.io \
       libfreetype6-dev \
@@ -45,7 +53,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-ins
       libgdal-dev \
       libgeos-dev \
       libharfbuzz-dev \
+      libio-socket-ssl-perl \
       libjpeg-dev \
+      libnet-ssleay-perl \
       libproj-dev \
       libpq-dev \
       librsvg2-dev \
@@ -66,9 +76,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-ins
       php-zip \
       postgresql-client \
       protobuf-compiler \
-      python-cairosvg \
       python3-cairosvg \
       python3-certbot-apache \
+      sendemail \
       sudo \
       swig \
       unzip \
@@ -87,8 +97,8 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod proxy && \
     a2enmod proxy_http && \
     a2enmod proxy_html && \
-    a2enmod xml2enc && \
     a2enmod remoteip && \
+    a2enmod xml2enc && \
     phpenmod zip
 
 ADD sources /usr/local/bin
@@ -110,19 +120,42 @@ RUN wget https://download.osgeo.org/mapserver/mapserver-7.6.3.tar.gz && \
     -DWITH_CLIENT_WMS=1 \
     -DWITH_CLIENT_WFS=1 && \
     make && \
-    cp mapscript/php/php_mapscript.so /usr/lib/php/20180731/ && \
+    cp mapscript/php/php_mapscript.so /usr/lib/php/20190902/ && \
     cp mapserv /usr/lib/cgi-bin
 
 # Install ImageMagick
 WORKDIR /usr/local
 RUN git clone --branch 7.0.11-5 --depth 1 https://github.com/ImageMagick/ImageMagick.git && \
     cd ImageMagick && \
-    ./configure --with-rsvg=yes --with-gs-font-dir=/usr/share/fonts/type1/gsfonts/ && \
+    ./configure --with-rsvg=yes --with-gs-font-dir=/usr/share/fonts/type1/gsfonts/ --disable-hdri && \
     make && \
     make install && \
     ln -s /usr/local/bin/convert /usr/bin/convert && \
     sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /usr/local/etc/ImageMagick-7/delegates.xml && \
-    echo '<policy domain="coder" rights="read | write" pattern="PDF" />' >> /usr/local/etc/ImageMagick-7/q.xml
+    echo '<policy domain="coder" rights="read | write" pattern="PDF" />' >> /usr/local/etc/ImageMagick-7/q.xml && \
+    ldconfig /usr/local/lib
+
+# Install phpMyAdmin
+WORKDIR /usr/local
+
+RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.4/phpMyAdmin-5.0.4-english.tar.gz && \
+    tar xvfz phpMyAdmin-5.0.4-english.tar.gz && \
+    mv phpMyAdmin-5.0.4-english phpmyadmin && \
+    rm phpMyAdmin-5.0.4-english.tar.gz && \
+    mkdir -p /srv/www/ && \
+    mv phpmyadmin /srv/www
+
+WORKDIR /srv/www/phpmyadmin
+RUN groupadd -g 1700 ${OS_USER} && \
+    useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
+    usermod -G ${OS_USER} www-data && \
+    chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin && \
+    chmod -R g+w /srv/www/phpmyadmin && \
+    echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git && \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+    mkdir -p $USER_DIR/.ssh && \
+    ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
+    chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 

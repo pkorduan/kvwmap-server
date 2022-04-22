@@ -21,7 +21,7 @@ services:
       - ./apache2/sites-available:/etc/apache2/sites-available
       - ./apache2/sites-enabled:/etc/apache2/sites-enabled
       - ./cron/load_cron_files:/etc/cron.hourly/load_cron_files
-      - ./php/7.3:/etc/php/7.3
+      - ./php/7.4:/etc/php/7.4
       - ./www:/var/www
       - ./logs:/var/www/logs/apache2
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass:/root/.pgpass
