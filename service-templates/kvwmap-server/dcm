@@ -4,9 +4,6 @@ function install_service() {
 	if [ -z $NETWORK_NAME ] ; then
 		echo "Abbruch: Kein Netzwerkname angegeben!"
 	else
-		echo "Service kvwmap-server install_service in Netzwerk '${NETWORK_NAME}'"
-		dcm create network ${NETWORK_NAME}
-
 		if [ ! -d "$USER_DIR/networks/proxy/services/proxy" ]; then
 			echo "Der Proxy fehlt! Wird installiert."
 			dcm proxy create

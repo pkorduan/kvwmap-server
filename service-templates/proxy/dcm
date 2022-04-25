@@ -10,7 +10,10 @@ install_service() {
 	NETWORK_NAME=proxy
 	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
 
-	dcm create network proxy
+  if [ ! -d "$SERVICE_PATH" ]; then
+    echo "Netzwerk ${SERVICE_PATH} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
+    dcm create network $NETWORK_NAME
+  fi
 
 	if [ -d "$SERVICE_PATH" ]; then
 		echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
