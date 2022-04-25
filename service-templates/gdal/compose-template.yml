@@ -2,6 +2,7 @@ version: "3.6"
 services:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     image: pkorduan/gdal-http:0.2.1
     environment:
       - PGSQL_PASSFILE=/home/gisadmin/.pgpass
