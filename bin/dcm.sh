@@ -21,11 +21,13 @@ function usage() {
   echo "dcm down [service] [network]"
   echo "dcm down network [network]"
   echo ""
-  echo "Container starten, stoppen:"
+  echo "Container starten, stoppen und entfernen:"
   echo "dcm start all"
   echo "dcm start [service] [network]"
   echo "dcm stop all"
   echo "dcm stop [service] [network]"
+  echo "dcm rm all [network] default kvwmap_prod"
+  echo "dcm rm [service] [network]"
   echo "dcm restart all"
   echo "dcm restart [service] [network]"
   #echo "dcm rerun all"
@@ -438,6 +440,30 @@ function inspect_container() {
   fi
 }
 
+function rm_container() {
+  if [ -z $2 ] ; then
+    echo "Entferne alle Container im Netzwerk: $1"
+    cmd="docker rm $1_web $1_gdal $1_pgsql $1_mariadb $1_phpmyadmin"
+  else
+    echo "Entferne Container $1 im Netzwerk $2"
+    cmd="docker rm $2_$1"
+  fi;
+  echo $cmd
+  $cmd
+}
+
+function start_container() {
+  if [ -z $2 ] ; then
+    echo "Starte alle Container im Netzwerk: $1"
+    cmd="docker start $1_web $1_gdal $1_pgsql $1_mariadb $1_phpmyadmin"
+  else
+    echo "Starte Container $1 im Netzwerk $2"
+    cmd="docker start $2_$1"
+  fi;
+  echo $cmd
+  $cmd
+}
+
 function ps_container() {
   if [ -z $1 ] ; then
     echo "Liste alle Container"
@@ -524,7 +550,7 @@ function uninstall_kvwmap() {
   read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (y/n)? " answer
   case ${answer:0:1} in
     y|Y )
-      stop_all_container
+      stop_all_services
       remove_all_container
       #remove_all_images
 
@@ -653,7 +679,7 @@ case "$1" in
         run_web_container
       ;;
       *)
-        stop_all_container
+        stop_all_services
         remove_all_container
         build_gdal_image
         build_kvwmap_server $KVWMAP_IMAGE_VERSION
@@ -667,7 +693,7 @@ case "$1" in
   reload)
     case $2 in
       all)
-        stop_all_container
+        stop_all_services
         remove_all_container
         docker rmi -f $(docker images -q pkorduan/kvwmap-server)
         docker pull pkorduan/kvwmap-server:$KVWMAP_IMAGE_VERSION
@@ -779,12 +805,17 @@ case "$1" in
   ;;
 
   start)
+    if [ -z "$3" ] ; then
+      param_service='kvwmap_prod'
+    else
+      param_service=$3
+    fi
     case $2 in
       all)
-        start_all_container
+        start_container $param_service
       ;;
       *)
-        start_service $2 $3
+        start_container $2 $param_service
       ;;
     esac
     docker ps -a | sort -k 2
@@ -793,7 +824,7 @@ case "$1" in
   stop)
     case $2 in
       all)
-        stop_all_container
+        stop_all_services
       ;;
       *)
         stop_service $2 $3
@@ -828,6 +859,22 @@ case "$1" in
       ;;
       *)
         up_down_service $2 $param_service "down"
+        up_down_service $2 $param_service "up"
+      ;;
+    esac
+  ;;
+
+  run)
+    if [ -z "$3" ] ; then
+      param_service='kvwmap_prod'
+    else
+      param_service=$3
+    fi
+    case $2 in
+      all)
+        up_down_network $param_service "up"
+      ;;
+      *)
         up_down_service $2 $param_service "up"
       ;;
     esac
@@ -889,6 +936,21 @@ case "$1" in
       ;;
       *)
         usage
+      ;;
+    esac
+  ;;
+  rm)
+    if [ -z "$3" ] ; then
+      param_service='kvwmap_prod'
+    else
+      param_service=$3
+    fi
+    case $2 in
+      all)
+        rm_container $param_service
+      ;;
+      *)
+        rm_container $2 $param_service
       ;;
     esac
   ;;

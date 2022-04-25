@@ -15,17 +15,6 @@ services:
       - ./www:/var/www
       - ./log:/var/log/nginx
 
-  certbot:
-    image: certbot/certbot
-    container_name: ${NETWORK_NAME}_certbot
-    networks:
-      - ${NETWORK_NAME}
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 24h & wait $${!}; done;'"
-    volumes:
-      - ./letsencrypt:/etc/letsencrypt
-      - ./www:/var/www
-      - ./log:/var/log/letsencrypt
-
 # When it not work with
 # docker-compose run certbot
 # run
