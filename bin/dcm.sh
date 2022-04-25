@@ -37,10 +37,11 @@ function usage() {
   echo "dcm compose networks"
   echo "dcm compose service [service] [network]"
   echo ""
-  echo "Proxy-Server einrichten:"
+  echo "Proxy-Server einrichten, starten, stoppen und Konfiguration laden:"
   echo "dcm proxy create"
   echo "dcm proxy up"
   echo "dcm proxy down"
+  echo "dcm proxy reload"
   echo ""
   echo "dcm ls networks"
   echo "dcm build"
@@ -146,6 +147,17 @@ function create_network() {
   fi
   docker network create --subnet "$ip_range" $NETWORK_NAME
   echo "Netwerk erstellt. Mit dcm create service [service] ${NETWORK_NAME} können jetzt die dazugehörigen Dienste installiert werden."
+
+  if [[ $NETWORK_NAME != "proxy" && "$(docker inspect proxy_proxy -f {{.NetworkSettings.Networks.${NETWORK_NAME}}})" == "<no value>" ]] ; then
+    add_proxy_to_network $NETWORK_NAME
+  fi
+}
+
+function add_proxy_to_network() {
+  echo "Füge Proxy zum netzwerk $1 hinzu."
+  cmd="docker network connect $1 proxy_proxy"
+  echo $cmd
+  $cmd
 }
 
 function remove_network(){
@@ -898,7 +910,7 @@ case "$1" in
     case $2 in
     proxy)
       test_proxy_container
-      ;;
+    ;;
     *)
       echo "Derzeit können nur folgende Container getestet werden: proxy"
       ;;
@@ -926,6 +938,9 @@ case "$1" in
       ;;
       down)
         up_down_service proxy proxy "down"
+      ;;
+      reload)
+        reload_proxy_container
       ;;
     esac
   ;;
