@@ -173,6 +173,16 @@ dcm proxy up
 dcm create service kvwmap-server kvwmap_prod
 dcm up network kvwmap_prod
 
+# Create a mysql user for kvwmap
+docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'172.0.${SUBNET}.%' IDENTIFIED BY '${MYSQL_PASSWORD}'" mysql
+# Grant permissions to kvwmap user
+docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "REVOKE ALL PRIVILEGES ON *.* FROM '${MYSQL_USER}'@'172.0.${SUBNET}.%'"
+docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "REVOKE GRANT OPTION ON *.* FROM '${MYSQL_USER}'@'172.0.${SUBNET}.%'"
+docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, FILE, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON *.* TO '${MYSQL_USER}'@'172.0.${SUBNET}.%' REQUIRE NONE WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0"
+# Allow mysql access for user root only from network
+docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "RENAME USER 'root' TO 'root'@'172.0.${SUBNET}.%'"
+docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES" mysql
+
 #read -p "Initscript löschen? (j/n) " answer
 #case ${answer:0:1} in
 #  j|J|y|Y )
