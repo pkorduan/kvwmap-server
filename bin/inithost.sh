@@ -175,14 +175,24 @@ dcm create service kvwmap-server kvwmap_prod
 dcm up network kvwmap_prod
 
 # Create a mysql user for kvwmap
-docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'172.0.${SUBNET}.%' IDENTIFIED BY '${MYSQL_PASSWORD}'" mysql
+docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'172.0.${SUBNET}.%' IDENTIFIED VIA mysql_native_password USING PASSWORD('${MYSQL_PASSWORD}')"
 # Grant permissions to kvwmap user
-docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "REVOKE ALL PRIVILEGES ON *.* FROM '${MYSQL_USER}'@'172.0.${SUBNET}.%'"
-docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "REVOKE GRANT OPTION ON *.* FROM '${MYSQL_USER}'@'172.0.${SUBNET}.%'"
-docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, FILE, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON *.* TO '${MYSQL_USER}'@'172.0.${SUBNET}.%' REQUIRE NONE WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0"
+docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO 'kvwmap'@'172.0.${SUBNET}.%' REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0"
+docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO 'kvwmap'@'172.0.${SUBNET}.%'"
 # Allow mysql access for user root only from network
 docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "RENAME USER 'root' TO 'root'@'172.0.${SUBNET}.%'"
 docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES" mysql
+
+# Create SSL-Certificate for HTTPS Connections
+docker run -it --rm --name certbot -v "${USER_DIR}/networks/proxy/services/proxy/www/html:/var/www/html" -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly --webroot -w /var/www/html --email "peter.korduan@gdi-service.de"
+# Enable https
+sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default-ssl.conf
+sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf
+cd ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled
+ln -s ../sites-available/default-ssl.conf
+dcm proxy reload
+
+cd $USER_DIR/networks/kvwmap_prod/services/web
 
 #read -p "Initscript löschen? (j/n) " answer
 #case ${answer:0:1} in

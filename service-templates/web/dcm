@@ -23,7 +23,7 @@ install_service() {
 		chown gisadmin.gisadmin ${SERVICE_PATH}/www/cron/crontab_gisadmin
 		chmod 600 ${SERVICE_PATH}/www/cron/crontab_root ${SERVICE_PATH}/www/cron/crontab_gisadmin
 
-                echo "Service templates für Service web nach ${SERVICE_PATH} kopiert."
+    echo "Service templates für Service web nach ${SERVICE_PATH} kopiert."
 		echo "Clone kvwmap von github ins Web-Verzeichnis ..."
 		if [ ! -d "${USER_DIR}/networks/$network_name/web/www/apps/kvwmap" ]; then
 			git clone https://github.com/srahn/kvwmap.git ${SERVICE_PATH}/www/apps/kvwmap
@@ -50,12 +50,7 @@ install_service() {
 		chown -R www-data.${OS_USER} ${SERVICE_PATH}/*
 		chmod -R g+w ${SERVICE_PATH}/*
 
-		cp "${USER_DIR}/kvwmap-server/service-templates/web/proxy/${SERVICE_NAME}.conf" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
-		sed -i -e "s|kvwmap_prod_web|kvwmap_prod_${SERVICE_NAME}|g"                     "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
-		sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g"                "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/${SERVICE_NAME}.conf"
-		ln -s "../sites-available/${SERVICE_NAME}.conf"                                 "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-enabled/${SERVICE_NAME}.conf"
-
-		sed -i -e "s|kvwmap_prod_web|${NETWORK_NAME}_${SERVICE_NAME}|g"                 "${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/apache2/sites-available/000-default.conf"
+		sed -i -e "s|kvwmap_prod_web|${NETWORK_NAME}_${SERVICE_NAME}|g" "${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/apache2/sites-available/000-default.conf"
 
 		echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 	fi
