@@ -6,8 +6,7 @@ services:
     image: phpmyadmin:5.1.1-apache
     restart: always
     environment:
-      - PMA_ARBITRARY=1
-      - PMA_HOST=$PMA_HOST
+      - PMA_HOST=mysql
       - MYSQL_USER=$MYSQL_USER
       - MYSQL_PASSWORD=$MYSQL_PASSWORD
       - TERM=xterm
@@ -16,6 +15,8 @@ services:
     volumes:
       - ./etc/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php
       - ./logs:/var/logs/apache2
+      - ./apache2/sites-available/userDbAdmin.conf:/etc/apache2/sites-available/userDbAdmin.conf
+      - ./apache2/sites-enabled/userDbAdmin.conf:/etc/apache2/sites-enabled/userDbAdmin.conf
 networks:
     default:
         name: ${NETWORK_NAME}

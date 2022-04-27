@@ -38,8 +38,8 @@ install_service() {
 	cp    ${USER_DIR}/kvwmap-server/service-templates/phpmyadmin/compose-template.yml ${SERVICE_PATH}/
 
 	chown -R 999.gisadmin ${SERVICE_PATH}/
+  chmod g+w ${SERVICE_PATH}/etc/*
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
-
-	sed -i '/user defined settings for phpmyadmin/a \  $cfg["Servers"][1]["host"] = "mysql";\n  $cfg["MaxNavigationItems"] = 75;' ${USER_DIR}/networks/${NETWORK_NAME}/services/phpmyadmin/etc/config.user.inc.php
+  echo '$cfg["Servers"][1]["host"] = "mysql";\n  $cfg["MaxNavigationItems"] = 75;' >> ${USER_DIR}/networks/${NETWORK_NAME}/services/phpmyadmin/etc/config.user.inc.php
 }

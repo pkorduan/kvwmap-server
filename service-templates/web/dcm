@@ -4,13 +4,8 @@ install_service() {
 	if [ -z $NETWORK_NAME ] ; then
 		echo "Abbruch: Kein Netzwerkname angegeben!"
 	else
-                echo "optional neuer Service-Name (Default 'web'): "
-                read SERVICE_NAME
-
-                if [ -z "$SERVICE_NAME" ]; then
-                    SERVICE_NAME=web
-                fi
-                echo "Service-Name=${SERVICE_NAME}"
+    SERVICE_NAME=web
+    echo "Service-Name=${SERVICE_NAME}"
 
 		PROXY_SERVICE="proxy"
 
