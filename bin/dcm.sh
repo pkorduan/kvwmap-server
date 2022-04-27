@@ -514,14 +514,14 @@ function reload_pgsql_container() {
 }
 
 function reload_proxy_container() {
-  cmd="docker exec proxy nginx -s reload"
+  cmd="docker exec proxy_proxy nginx -s reload"
   echo "Reload Konfiguration des proxy Containers:"
   echo $cmd
   $cmd
 }
 
 function test_proxy_container() {
-  cmd="docker exec proxy_nginx nginx -t"
+  cmd="docker exec proxy_proxy nginx -t"
   echo "Teste proxy Container:"
   echo $cmd
   $cmd

@@ -4,16 +4,15 @@ function install_service() {
   if [ -z $NETWORK_NAME ] ; then
     echo "Abbruch: Kein Netzwerkname angegeben!"
   else
-    NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
-
-    if [ ! -d "$NETWORK_DIR" ]; then
-      echo "Netzwerk ${NETWORK_NAME} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
-      dcm create network $NETWORK_NAME
-    fi
-
     if [ ! -d "$USER_DIR/networks/proxy/services/proxy" ]; then
       echo "Der Proxy fehlt! Wird installiert."
       dcm proxy create
+    fi
+
+    NETWORK_DIR=${USER_DIR}/networks/${NETWORK_NAME}
+    if [ ! -d "$NETWORK_DIR" ]; then
+      echo "Netzwerk ${NETWORK_NAME} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
+      dcm create network $NETWORK_NAME
     fi
 
     echo "Zur Einrichtung des MySQL und phpMyAdmin Containers müssen Passwörter vergeben werden!"

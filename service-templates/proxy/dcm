@@ -9,7 +9,7 @@ install_service() {
 
 	NETWORK_NAME=proxy
   NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
-	SERVICE_PATH=${NETWORK_PATH}}/services/${SERVICE_NAME}
+	SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
 
   if [ ! -d "$NETWORK_PATH" ]; then
     echo "Netzwerk ${SERVICE_PATH} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
@@ -27,6 +27,9 @@ install_service() {
 	else
 		cp -r ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
 	fi
+
+	sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g" "${USER_DIR}/networks/proxy/services/${PROXY_SERVICE}/nginx/sites-available/default.conf"
+
 	echo "Kopiere compose-template.yml nach ${SERVICE_PATH}"
 	cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/compose-template.yml ${SERVICE_PATH}/
 	cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/init-letsencrypt.sh ${SERVICE_PATH}/
