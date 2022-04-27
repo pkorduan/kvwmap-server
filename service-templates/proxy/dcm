@@ -1,6 +1,6 @@
 #!/bin/bash
+# Script to install service proxy
 # ToDos replace servername in nginx configs and
-# fix error in phpmyadmin nginx conf.
 
 install_service() {
 	echo "Installation von Service proxy in Netzwerk 'proxy'"
@@ -8,9 +8,10 @@ install_service() {
 	echo "Service-Name: ${SERVICE_NAME}"
 
 	NETWORK_NAME=proxy
-	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+  NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
+	SERVICE_PATH=${NETWORK_PATH}}/services/${SERVICE_NAME}
 
-  if [ ! -d "$SERVICE_PATH" ]; then
+  if [ ! -d "$NETWORK_PATH" ]; then
     echo "Netzwerk ${SERVICE_PATH} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
     dcm create network $NETWORK_NAME
   fi
