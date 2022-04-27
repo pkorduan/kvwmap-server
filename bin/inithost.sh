@@ -15,6 +15,7 @@ install_docker() {
   apt-get update && apt-get install -y \
     apt-utils \
     curl \
+    glances \
     jq \
     sendemail \
     unzip \
