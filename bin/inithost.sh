@@ -90,7 +90,12 @@ case "$1" in
         rm -rf /var/lib/containerd
       ;;
       user)
+        systemctl stop docker.socket
+        docker stop $(docker ps -q)
+        docker rm $(docker ps -q)
+        mv $USER_DIR/docker /var/lib/docker
         userdel -r gisadmin
+        systemctl start docker
       ;;
       bashrc)
         cp /etc/skel/.bashrc /root/.bashrc
@@ -98,6 +103,12 @@ case "$1" in
       ;;
       all)
         uninstall_all
+        sed -i \
+            -e "s|PermitRootLogin no|#PermitRootLogin prohibit-password|g" \
+            -e "s|^Port.*|#Port 22|g" \
+            /etc/ssh/sshd_config
+        /etc/init.d/ssh reload
+        
       ;;
       *)
         echo "unistall missing argument docker, user, bashrc or all"
@@ -252,7 +263,7 @@ case "$1" in
         docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES" mysql
 
         # Create SSL-Certificate for HTTPS Connections
-        docker run -it --rm --name certbot -v "${USER_DIR}/networks/proxy/services/proxy/www/html:/var/www/html" -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly --webroot -w /var/www/html --email "peter.korduan@gdi-service.de"
+        docker run -it --rm --name certbot -v "${USER_DIR}/networks/proxy/services/proxy/www/html:/var/www/html" -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly -d ${HOSTNAME} --webroot -w /var/www/html --email "peter.korduan@gdi-service.de"
         # Enable https
         sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default-ssl.conf
         sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf
