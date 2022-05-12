@@ -128,16 +128,28 @@ function create_network() {
     chmod g+w ${NETWORK_DIR}
   fi
 
-  if [ -z "${SUBNET_KVWMAP_PROD}" ] ; then
-    read -p "Gib ein Subnetznummer für das Netzwerk an, z.B. x für das Subnetz 172.0.x.0/24: " ANSWER
-    SUBNET=$ANSWER
-    if [ -z "$SUBNET" ]; then
-      SUBNET="10"
-    fi
-  else
-    SUBNET=$SUBNET_KVWMAP_PROD
-    echo "Use pre-defined SUBNET: 172.0.${SUBNET_KVWMAP_PROD}.0/24"
-  fi
+  case ${NETWORK_NAME} in
+    kvwmap_prod)
+      SUBNET=$SUBNET_KVWMAP_PROD
+    ;;
+    kvwmap_dev)
+      SUBNET=20
+    ;;
+    kvwmap_demo)
+      SUBNET=30
+    ;;
+    proxy)
+      SUBNET=1
+    ;;
+    * )
+      read -p "Gib ein Subnetznummer für das Netzwerk an, z.B. x für das Subnetz 172.0.x.0/24: " ANSWER
+      SUBNET=$ANSWER
+      if [ -z "$SUBNET" ]; then
+        SUBNET="10"
+      fi
+    ;;
+  esac
+  echo "Set Subnet for Network ${NETWORK_NAME}: 172.0.${SUBNET}.0/24";
 
   ip_range="172.0.${SUBNET}.0/24"
   echo "NETWORK_SUBNET=${ip_range}" >> ${NETWORK_DIR}/env

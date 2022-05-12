@@ -8,7 +8,7 @@ CURRENT_DIR=$(pwd)
 # Pre-define Variables
 export GISADMIN_PASSWORD=$(openssl rand -base64 24)
 export HOSTNAME="$(hostname)"
-export SSH_PORT="50$(expr 1 + $RANDOM % 999)"
+export SSH_PORT="50$(expr 100 + $RANDOM % 999)"
 export COMPOSE_VERSION="2.4.1"
 export SUBNET_KVWMAP_PROD="10"
 export MYSQL_ROOT_PASSWORD=$(openssl rand -base64 24)
