@@ -7,7 +7,6 @@ CURRENT_DIR=$(pwd)
 
 # Pre-define Variables
 export GISADMIN_PASSWORD=$(openssl rand -base64 24)
-export HOSTNAME="$(hostname)"
 export SSH_PORT="50$(expr 100 + $RANDOM % 999)"
 export COMPOSE_VERSION="2.4.1"
 export SUBNET_KVWMAP_PROD="10"
@@ -189,11 +188,7 @@ case "$1" in
         # Hostnamen setzen
         #############################
 
-        if [ -z "${HOSTNAME}" ] ; then
-          read -p "Enter the domain name for this server: " HOSTNAME
-        else
-          echo "Use pre-defined HOSTNAME: ${HOSTNAME}"
-        fi
+        read -p "Enter the domain name for this server: " HOSTNAME
         hostname $HOSTNAME
 
         #############################
@@ -254,13 +249,13 @@ case "$1" in
         $USER_DIR/kvwmap-server/bin/dcm.sh up network kvwmap_prod
 
         # Create a mysql user for kvwmap
-        docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'172.0.${SUBNET_KVWMAP_PROD}.%' IDENTIFIED VIA mysql_native_password USING PASSWORD('${MYSQL_PASSWORD}')"
+        docker exec kvwmap_prod_mariadb mysql -h localhost -u root --password=$MYSQL_ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'172.0.${SUBNET_KVWMAP_PROD}.%' IDENTIFIED VIA mysql_native_password USING PASSWORD('${MYSQL_PASSWORD}')"
         # Grant permissions to kvwmap user
-        docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO 'kvwmap'@'172.0.${SUBNET_KVWMAP_PROD}.%' REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0"
-        docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO 'kvwmap'@'172.0.${SUBNET_KVWMAP_PROD}.%'"
+        docker exec kvwmap_prod_mariadb mysql -h localhost -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO 'kvwmap'@'172.0.${SUBNET_KVWMAP_PROD}.%' REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0"
+        docker exec kvwmap_prod_mariadb mysql -h localhost -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO 'kvwmap'@'172.0.${SUBNET_KVWMAP_PROD}.%'"
         # Allow mysql access for user root only from network
-        docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "RENAME USER 'root' TO 'root'@'172.0.${SUBNET_KVWMAP_PROD}.%'"
-        docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES" mysql
+        docker exec kvwmap_prod_mariadb mysql -h localhost -u root --password=$MYSQL_ROOT_PASSWORD -e "RENAME USER 'root' TO 'root'@'172.0.${SUBNET_KVWMAP_PROD}.%'"
+        docker exec kvwmap_prod_mariadb mysql -h localhost -u root --password=$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES" mysql
 
         # Create SSL-Certificate for HTTPS Connections
         docker run -it --rm --name certbot -v "${USER_DIR}/networks/proxy/services/proxy/www/html:/var/www/html" -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly -d ${HOSTNAME} --webroot -w /var/www/html --email "peter.korduan@gdi-service.de"
