@@ -128,7 +128,7 @@ function create_network() {
     chmod g+w ${NETWORK_DIR}
   fi
 
-  read -p "Gib ein Subnetznummer für das Netzwerk an, z.B. 10 für das Subnetz 172.0.10.0/24: " ANSWER
+  read -p "Gib ein Subnetznummer für das Netzwerk an, z.B. x für das Subnetz 172.0.x.0/24: " ANSWER
   SUBNET=$ANSWER
   if [ -z "$SUBNET" ]; then
     SUBNET="10"

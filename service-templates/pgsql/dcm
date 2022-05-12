@@ -2,37 +2,41 @@
 
 install_service() {
 
-	echo "Installation von Service pgsql in Netzwerk '${NETWORK_NAME}'"
-	SERVICE_NAME=pgsql
+  echo "Installation von Service pgsql in Netzwerk '${NETWORK_NAME}'"
+  SERVICE_NAME=pgsql
 
-	echo "Service-Name=${SERVICE_NAME}"
+  echo "Service-Name=${SERVICE_NAME}"
 
-	read -p "Passwort für User postgres: " -s POSTGRESPW
-	echo "POSTGRES_PASSWORD=\"${POSTGRESPW}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
+  if [ -z "${POSTGRES_PASSWORD}" ] ; then
+    read -p "Passwort für User postgres: " -s POSTGRESPW
+  else
+    echo "Use pre-defined POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:1:5}..."
+  fi
+  echo "POSTGRES_PASSWORD=\"${POSTGRES_PASSWORD}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
 
-	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+  SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
 
-	if [ -d "$SERVICE_PATH" ]; then
-		echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
-		return 1
-	fi
+  if [ -d "$SERVICE_PATH" ]; then
+    echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+    return 1
+  fi
 
-	mkdir -p ${SERVICE_PATH}
-	cp -r ${USER_DIR}/kvwmap-server/service-templates/pgsql/directory_template/* ${SERVICE_PATH}
-	cp    ${USER_DIR}/kvwmap-server/service-templates/pgsql/compose-template.yml ${SERVICE_PATH}/
+  mkdir -p ${SERVICE_PATH}
+  cp -r ${USER_DIR}/kvwmap-server/service-templates/pgsql/directory_template/* ${SERVICE_PATH}
+  cp    ${USER_DIR}/kvwmap-server/service-templates/pgsql/compose-template.yml ${SERVICE_PATH}/
 
-	debug "Ersetze NETWORK_SUBNET in ${SERVICE_PATH}/config/pg_hba.conf durch: ${NETWORK_SUBNET}"
-	sed -i -e "s|NETWORK_SUBNET|${NETWORK_SUBNET}|g" "${SERVICE_PATH}/config/pg_hba.conf"
+  debug "Ersetze NETWORK_SUBNET in ${SERVICE_PATH}/config/pg_hba.conf durch: ${NETWORK_SUBNET}"
+  sed -i -e "s|NETWORK_SUBNET|${NETWORK_SUBNET}|g" "${SERVICE_PATH}/config/pg_hba.conf"
 
-	chown -R 999.gisadmin ${SERVICE_PATH}/
-	chown root.root ${SERVICE_PATH}/config/.pgpass
-	chown gisadmin.gisadmin ${SERVICE_PATH}/config/.pgpass_gisadmin
-	chmod 600 ${SERVICE_PATH}/config/.pgpass*
+  chown -R 999.gisadmin ${SERVICE_PATH}/
+  chown root.root ${SERVICE_PATH}/config/.pgpass
+  chown gisadmin.gisadmin ${SERVICE_PATH}/config/.pgpass_gisadmin
+  chmod 600 ${SERVICE_PATH}/config/.pgpass*
 
-#	read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
-#	echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> ${SERVICE_PATH}/config/pg_hba.conf
+#  read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
+#  echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> ${SERVICE_PATH}/config/pg_hba.conf
 
-	export SERVICE_NAME
+  export SERVICE_NAME
 
-	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+  echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }

@@ -41,5 +41,5 @@ install_service() {
   chmod g+w ${SERVICE_PATH}/etc/*
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
-  echo '$cfg["Servers"][1]["host"] = "mysql";\n  $cfg["MaxNavigationItems"] = 75;' >> ${USER_DIR}/networks/${NETWORK_NAME}/services/phpmyadmin/etc/config.user.inc.php
+  sed -i -e "s|# user defined settings for phpmyadmin|# user defined settings for phpmyadmin\n  \$cfg[\"Servers\"][1][\"host\"] = \"mysql\";\n  \$cfg[\"MaxNavigationItems\"] = 75;|g" ${USER_DIR}/networks/${NETWORK_NAME}/services/phpmyadmin/etc/config.user.inc.php
 }
