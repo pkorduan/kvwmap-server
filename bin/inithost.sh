@@ -14,6 +14,8 @@ export MYSQL_ROOT_PASSWORD=$(openssl rand -base64 24)
 export MYSQL_USER="kvwmap"
 export MYSQL_PASSWORD=$(openssl rand -base64 24)
 export POSTGRES_PASSWORD=$(openssl rand -base64 24)
+read -p "Enter the domain name for this server: " CUSTOM_HOSTNAME
+export HOSTNAME=$CUSTOM_HOSTNAME
 
 # run this scirpt:
 # wget -O inithost.sh https://raw.githubusercontent.com/pkorduan/kvwmap-server/master/inithost && chmod a+x inithost.sh && ./inithost.sh
@@ -187,14 +189,11 @@ case "$1" in
         #############################
         # Hostnamen setzen
         #############################
-
-        read -p "Enter the domain name for this server: " HOSTNAME
         hostname $HOSTNAME
 
         #############################
         # SSH_PORT ändern
         #############################
-
         if [ -z "${SSH_PORT}" ] ; then
           read -p "Enter port for ssh login: " SSH_PORT
         else
