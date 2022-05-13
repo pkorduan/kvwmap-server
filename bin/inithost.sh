@@ -1,22 +1,4 @@
 #!/bin/bash
-# Initialize kvwmap-server
-# Version 
-OS_USER=gisadmin
-USER_DIR=/home/${OS_USER}
-CURRENT_DIR=$(pwd)
-
-# Pre-define Variables
-export GISADMIN_PASSWORD=$(openssl rand -base64 24)
-export SSH_PORT="50$(expr 100 + $RANDOM % 999)"
-export COMPOSE_VERSION="2.4.1"
-export SUBNET_KVWMAP_PROD="10"
-export MYSQL_ROOT_PASSWORD=$(openssl rand -base64 24)
-export MYSQL_USER="kvwmap"
-export MYSQL_PASSWORD=$(openssl rand -base64 24)
-export POSTGRES_PASSWORD=$(openssl rand -base64 24)
-read -p "Enter the domain name for this server: " CUSTOM_HOSTNAME
-export HOSTNAME=$CUSTOM_HOSTNAME
-
 # run this scirpt:
 # wget -O inithost.sh https://raw.githubusercontent.com/pkorduan/kvwmap-server/master/inithost && chmod a+x inithost.sh && ./inithost.sh
 
@@ -117,7 +99,7 @@ case "$1" in
     esac
   ;;
   *)
-    read -p "Initscript wirklich ausführen? (j/n) " answer
+    read -p "kvwmap-server wirklich installieren? (j/n) " answer
     case ${answer:0:1} in
       j|J|y|Y )
         #############################
@@ -134,6 +116,24 @@ case "$1" in
           tree \
           unzip \
           wget
+
+        # Initialize kvwmap-server
+        # Version 
+        OS_USER=gisadmin
+        USER_DIR=/home/${OS_USER}
+        CURRENT_DIR=$(pwd)
+
+        # Pre-define Variables
+        export GISADMIN_PASSWORD=$(openssl rand -base64 24)
+        export SSH_PORT="50$(expr 100 + $RANDOM % 999)"
+        export COMPOSE_VERSION="2.4.1"
+        export SUBNET_KVWMAP_PROD="10"
+        export MYSQL_ROOT_PASSWORD=$(openssl rand -base64 24)
+        export MYSQL_USER="kvwmap"
+        export MYSQL_PASSWORD=$(openssl rand -base64 24)
+        export POSTGRES_PASSWORD=$(openssl rand -base64 24)
+        read -p "Enter the domain name for this server: " CUSTOM_HOSTNAME
+        export HOSTNAME=$CUSTOM_HOSTNAME
 
         wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64
         chmod a+x /usr/local/bin/yq
@@ -200,7 +200,6 @@ case "$1" in
           echo "Use pre-defined SSH_PORT: ${SSH_PORT}"
         fi
         sed -i \
-            -e "s|#PermitRootLogin prohibit-password|PermitRootLogin no|g" \
             -e "s|#Port 22|Port ${SSH_PORT}|g" \
             /etc/ssh/sshd_config
         /etc/init.d/ssh reload
@@ -248,13 +247,13 @@ case "$1" in
         $USER_DIR/kvwmap-server/bin/dcm.sh up network kvwmap_prod
 
         # Create a mysql user for kvwmap
-        docker exec kvwmap_prod_mariadb mysql -h localhost -u root --password=$MYSQL_ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'172.0.${SUBNET_KVWMAP_PROD}.%' IDENTIFIED VIA mysql_native_password USING PASSWORD('${MYSQL_PASSWORD}')"
+        docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'172.0.${SUBNET_KVWMAP_PROD}.%' IDENTIFIED VIA mysql_native_password USING PASSWORD('${MYSQL_PASSWORD}');" mysql
         # Grant permissions to kvwmap user
-        docker exec kvwmap_prod_mariadb mysql -h localhost -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO 'kvwmap'@'172.0.${SUBNET_KVWMAP_PROD}.%' REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0"
-        docker exec kvwmap_prod_mariadb mysql -h localhost -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO 'kvwmap'@'172.0.${SUBNET_KVWMAP_PROD}.%'"
+        docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_USER}'@'172.0.${SUBNET_KVWMAP_PROD}.%' REQUIRE NONE WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0;" mysql
+        docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_USER}'@'172.0.${SUBNET_KVWMAP_PROD}.%';" mysql
         # Allow mysql access for user root only from network
-        docker exec kvwmap_prod_mariadb mysql -h localhost -u root --password=$MYSQL_ROOT_PASSWORD -e "RENAME USER 'root' TO 'root'@'172.0.${SUBNET_KVWMAP_PROD}.%'"
-        docker exec kvwmap_prod_mariadb mysql -h localhost -u root --password=$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES" mysql
+        docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "RENAME USER 'root' TO 'root'@'172.0.${SUBNET_KVWMAP_PROD}.%';" mysql
+        docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES;" mysql
 
         # Create SSL-Certificate for HTTPS Connections
         docker run -it --rm --name certbot -v "${USER_DIR}/networks/proxy/services/proxy/www/html:/var/www/html" -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly -d ${HOSTNAME} --webroot -w /var/www/html --email "peter.korduan@gdi-service.de"
@@ -278,9 +277,10 @@ case "$1" in
         #esac
 
         echo "
-        Die Installation ist erfolgreich abgeschlossen."
-        echo "Achtung Der Zugang als root ist jetzt von außen gesperrt!"
-        echo "Sie können sich nur noch als gisadmin per ssh mit diesem Server verbinden."
+        Die Installation ist erfolgreich abgeschlossen.
+        "
+        echo "Der Zugang für root kann mit folgendem Befehl gesperrt werden:
+        sed -i -e \"s|#PermitRootLogin prohibit-password|PermitRootLogin no|g\" /etc/ssh/sshd_config"
         echo "
         Nächste Schritte zum installieren von kvwmap:"
         echo "Browser öffnen mit der Adresse: http://${HOSTNAME}/install.php"
