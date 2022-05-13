@@ -171,7 +171,7 @@ case "$1" in
 
         if [ -d ./kvwmap-server ] ; then
           echo 'Stop kvwmap-server and uninstall all.'
-          $USER_DIR/kvwmap-server/bin/dcm.sh uninstall all
+          dcm uninstall all
         fi
 
         if [ -d ./kvwmap-server ] ; then
@@ -228,6 +228,7 @@ case "$1" in
 
         source ~/.bashrc
         echo ".bashrc geladen."
+        echo "PATH: ${PATH}"
         source ~/.vimrc
         echo ".vimrc geladen."
 
@@ -241,10 +242,10 @@ case "$1" in
         #############################
         # kvwmap-Instanz einrichten und starten
         #############################
-        $USER_DIR/kvwmap-server/bin/dcm.sh proxy create
-        $USER_DIR/kvwmap-server/bin/dcm.sh proxy up
-        $USER_DIR/kvwmap-server/bin/dcm.sh create service kvwmap-server kvwmap_prod
-        $USER_DIR/kvwmap-server/bin/dcm.sh up network kvwmap_prod
+        dcm proxy create
+        dcm proxy up
+        dcm create service kvwmap-server kvwmap_prod
+        dcm up network kvwmap_prod
 
         # Create a mysql user for kvwmap
         docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'172.0.${SUBNET_KVWMAP_PROD}.%' IDENTIFIED VIA mysql_native_password USING PASSWORD('${MYSQL_PASSWORD}');" mysql
@@ -262,7 +263,7 @@ case "$1" in
         sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf
         cd ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled
         ln -s ../sites-available/default-ssl.conf
-        $USER_DIR/kvwmap-server/bin/dcm.sh proxy reload
+        dcm proxy reload
 
         cd $USER_DIR/networks/kvwmap_prod/services/web
 
