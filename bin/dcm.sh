@@ -254,7 +254,7 @@ function create_service() {
 
   if [ ! -d "$NETWORK_DIR" ]; then
     echo "Netzwerk ${NETWORK_NAME} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
-    dcm create network $NETWORK_NAME
+    $USER_DIR/kvwmap-server/bin/dcm.sh create network $NETWORK_NAME
   fi
 
   echo "Lade ${TEMPLATEPATH}/${SERVICE_NAME}/dcm"
@@ -374,7 +374,7 @@ function up_down_network() {
 }
 
 copy_directories() {
-  dcm rm all ohne
+  $USER_DIR/kvwmap-server/bin/dcm.sh rm all ohne
   rm -R $USER_DIR/networks/$network_name/web/www
   mv $USER_DIR/docker/www $USER_DIR/networks/$network_name/web/www
   ln -s $USER_DIR/networks/$network_name/web/www $USER_DIR/docker/www
