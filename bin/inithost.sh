@@ -54,6 +54,8 @@ install_docker-compose() {
 }
 
 uninstall_all() {
+  dcm stop all
+  docker network prune
   systemctl stop docker.socket
   apt-get purge docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
   rm -rf /var/lib/docker
