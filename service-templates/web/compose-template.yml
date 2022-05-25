@@ -4,6 +4,7 @@ services:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     image: pkorduan/kvwmap-server:2.2.9
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    restart: "always"
     environment:
       # Environment variables with only a key are resolved to their values on the ma>
       - OS_USER=gisadmin

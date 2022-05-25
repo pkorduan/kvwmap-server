@@ -4,6 +4,7 @@ services:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     image: pkorduan/gdal-http:0.2.1
+    restart: "always"
     environment:
       - PGSQL_PASSFILE=/home/gisadmin/.pgpass
       - TERM=xterm
