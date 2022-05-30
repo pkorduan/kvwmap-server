@@ -127,7 +127,7 @@ case "$1" in
 
         # Pre-define Variables
         export GISADMIN_PASSWORD=$(openssl rand -base64 24)
-        export SSH_PORT="50$(expr 100 + $RANDOM % 999)"
+        export SSH_PORT="50$(expr 100 + $RANDOM % 899)"
         export COMPOSE_VERSION="2.4.1"
         export SUBNET_KVWMAP_PROD="10"
         export MYSQL_ROOT_PASSWORD=$(openssl rand -base64 24)
@@ -258,14 +258,24 @@ case "$1" in
         docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "RENAME USER 'root' TO 'root'@'172.0.${SUBNET_KVWMAP_PROD}.%';" mysql
         docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES;" mysql
 
-        # Create SSL-Certificate for HTTPS Connections
-        docker run -it --rm --name certbot -v "${USER_DIR}/networks/proxy/services/proxy/www/html:/var/www/html" -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly -d ${HOSTNAME} --webroot -w /var/www/html --email "peter.korduan@gdi-service.de"
-        # Enable https
-        sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default-ssl.conf
-        sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf
-        cd ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled
-        ln -s ../sites-available/default-ssl.conf
-        dcm proxy reload
+
+        read -p "Create Certificate for HTTPS? (j/n) " answer
+        case ${answer:0:1} in
+          j|J|y|Y )
+            # Create SSL-Certificate for HTTPS Connections
+            docker run -it --rm --name certbot -v "${USER_DIR}/networks/proxy/services/proxy/www/html:/var/www/html" -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly -d ${HOSTNAME} --webroot -w /var/www/html --email "peter.korduan@gdi-service.de"
+            # Enable https
+            sed -i -e "s|platzhalterkvwmapserverdomainname|${HOSTNAME}|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default-ssl.conf
+            sed -i -e "s|#add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf
+            sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf
+            cd ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled
+            ln -s ../sites-available/default-ssl.conf
+            dcm proxy reload
+          ;;
+          * )
+            echo "OK, Das Zertifikat kann später mit dem certbot Container erstellt werden."
+          ;;
+        esac
 
         cd $USER_DIR/networks/kvwmap_prod/services/web
 
