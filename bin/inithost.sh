@@ -119,6 +119,12 @@ case "$1" in
           unzip \
           wget
 
+        #############################
+        # Install Docker
+        #############################
+        install_docker
+        install_docker-compose
+
         # Initialize kvwmap-server
         # Version 
         OS_USER=gisadmin
@@ -233,13 +239,6 @@ case "$1" in
         echo "PATH: ${PATH}"
         source ~/.vimrc
         echo ".vimrc geladen."
-
-        #############################
-        # Docker
-        #############################
-
-        install_docker
-        install_docker-compose
 
         #############################
         # kvwmap-Instanz einrichten und starten
