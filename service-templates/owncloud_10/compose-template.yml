@@ -4,6 +4,7 @@ services:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     image: owncloud:10
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    restart: "always"
     environment:
       - TERM=linux
       - COLUMNS=180
