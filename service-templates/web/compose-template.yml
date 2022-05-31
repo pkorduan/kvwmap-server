@@ -21,6 +21,7 @@ services:
       - ${USER_DIR}/networks/${NETWORK_NAME}/volumes/proj:/usr/share/proj/
       - ./apache2/sites-available:/etc/apache2/sites-available
       - ./apache2/sites-enabled:/etc/apache2/sites-enabled
+      - ./apache2/conf-available:/etc/apache2/conf-available
       - ./cron/load_cron_files:/etc/cron.hourly/load_cron_files
       - ./php/7.4:/etc/php/7.4
       - ./www:/var/www
