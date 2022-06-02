@@ -1,0 +1,25 @@
+version: "3.6"
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: geonetwork:postgres
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    restart: "always"
+    environment:
+      - DATA_DIR=/var/lib/geonetwork/data
+#      - GEONETWORK_DB_NAME=/var/lib/geonetwork/db/gn
+      - POSTGRES_DB_HOST=pgsql
+      - POSTGRES_DB_PORT=5432
+      - POSTGRES_DB_NAME=geonetwork
+      - POSTGRES_DB_USERNAME=kvwmap
+#      - POSTGRES_DB_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - 8080:8080
+    volumes:
+      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass:/root/.pgpass
+      - ./data:/var/lib/geonetwork/data
+#      - ./db:/var/lib/geonetwork/db
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true

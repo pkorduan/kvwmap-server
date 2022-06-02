@@ -1,0 +1,31 @@
+#!/bin/bash
+
+install_service() {
+
+	echo "Installation von Service geonetwork in Netzwerk '${NETWORK_NAME}'"
+#	echo "optional neuer Service-Name (Default 'geonetwork'): "
+#	read SERVICE_NAME
+
+	if [ -z "$SERVICE_NAME" ]; then
+		SERVICE_NAME=geonetwork
+	fi
+
+	echo "Service-Name: ${SERVICE_NAME}"
+
+	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+
+	if [ -d "$SERVICE_PATH" ]; then
+		echo "Der Service existiert in dem Netzwerk bereits. Starten Sie dieses Skript erneut und wählen Sie einen anderen Namen!"
+		echo "${SERVICE_PATH} ist bereits vorhanden!"
+		return 1
+	fi
+
+	mkdir ${SERVICE_PATH}
+	cp    ${USER_DIR}/kvwmap-server/service-templates/geonetwork/compose-template.yml ${SERVICE_PATH}/
+  mkdir ${SERVICE_PATH}/data
+#	mkdir ${SERVICE_PATH}/db
+  chgrp -R gisadmin ${SERVICE_PATH}/* 
+  chmod -R g+w ${SERVICE_PATH}/*
+
+	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+}

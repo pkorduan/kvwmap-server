@@ -133,7 +133,7 @@ case "$1" in
 
         # Pre-define Variables
         export GISADMIN_PASSWORD=$(openssl rand -base64 24)
-        export SSH_PORT="50$(expr 100 + $RANDOM % 899)"
+        export SSH_PORT="22"
         export COMPOSE_VERSION="2.4.1"
         export SUBNET_KVWMAP_PROD="10"
         export MYSQL_ROOT_PASSWORD=$(openssl rand -base64 24)
@@ -297,16 +297,16 @@ case "$1" in
         Nächste Schritte zum installieren von kvwmap:"
         echo "Browser öffnen mit der Adresse: http://${HOSTNAME}/install.php"
 
-        echo "
-        GISADMIN_PASSWORD=\"${GISADMIN_PASSWORD}\"
-        HOSTNAME=\"${HOSTNAME}\"
-        SSH_PORT=\"${SSH_PORT}\"
-        COMPOSE_VERSION=\"${COMPOSE_VERSION}\"
-        SUBNET_KVWMAP_PROD=\"${SUBNET_KVWMAP_PROD}\"
-        MYSQL_ROOT_PASSWORD=\"${MYSQL_ROOT_PASSWORD}\"
-        MYSQL_PASSWORD=\"${MYSQL_PASSWORD}\" for MYSQL_USER=\"${MYSQL_USER}\"
-        POSTGRES_PASSWORD=\"${POSTGRES_PASSWORD}\"
-        "
+        echo "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+GISADMIN_PASSWORD=\"${GISADMIN_PASSWORD}\"
+HOSTNAME=\"${HOSTNAME}\"
+SSH_PORT=\"${SSH_PORT}\"
+COMPOSE_VERSION=\"${COMPOSE_VERSION}\"
+SUBNET_KVWMAP_PROD=\"${SUBNET_KVWMAP_PROD}\"
+MYSQL_ROOT_PASSWORD=\"${MYSQL_ROOT_PASSWORD}\"
+MYSQL_PASSWORD=\"${MYSQL_PASSWORD}\" for MYSQL_USER=\"${MYSQL_USER}\"
+POSTGRES_PASSWORD=\"${POSTGRES_PASSWORD}\"
+= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ="
       ;;
       * )
         echo "OK, nix passiert!"
