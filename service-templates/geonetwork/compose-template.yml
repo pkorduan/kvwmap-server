@@ -13,8 +13,8 @@ services:
       - POSTGRES_DB_NAME=geonetwork
       - POSTGRES_DB_USERNAME=kvwmap
 #      - POSTGRES_DB_PASSWORD=${POSTGRES_PASSWORD}
-    ports:
-      - 8080:8080
+#    ports:
+#      - 8080:8080
     volumes:
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass:/root/.pgpass
       - ./data:/var/lib/geonetwork/data
