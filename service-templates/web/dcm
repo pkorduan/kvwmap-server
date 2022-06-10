@@ -30,13 +30,14 @@ install_service() {
 		fi
 
 		echo "Erzeuge kvwmap custom Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
-		mkdir -p 	${SERVICE_PATH}/www/apps/kvwmap/custom/fonts \
+		mkdir -p ${SERVICE_PATH}/www/apps/kvwmap/custom/fonts \
 				${SERVICE_PATH}/www/apps/kvwmap/custom/graphics \
 				${SERVICE_PATH}/www/apps/kvwmap/custom/wappen \
 				${SERVICE_PATH}/www/apps/kvwmap/custom/layouts \
 				${SERVICE_PATH}/www/apps/kvwmap/custom/layouts/snippets \
 				${SERVICE_PATH}/www/apps/kvwmap/custom/symbols
 
+		cp ${SERVICE_PATH}/www/apps/kvwmap/graphics/favicon.ico ${SERVICE_PATH}/www/apps/kvwmap/custom/wappen/favicon.ico
 		wget -O ${SERVICE_PATH}/www/apps/kvwmap/custom/wappen/Logo_GDI-Service_200x47.png https://gdi-service.de/public/kvwmap_resources/Logo_GDI-Service_200x47.png
 
 		echo "#geo_name_search_field {
