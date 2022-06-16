@@ -17,6 +17,7 @@ services:
       - ./logs:/var/logs/apache2
       - ./apache2/sites-available/userDbAdmin.conf:/etc/apache2/sites-available/userDbAdmin.conf
       - ./apache2/sites-enabled/userDbAdmin.conf:/etc/apache2/sites-enabled/userDbAdmin.conf
+      - ./apache2/conf-available:/etc/apache2/conf-available
 networks:
     default:
         name: ${NETWORK_NAME}
