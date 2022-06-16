@@ -12,6 +12,7 @@ services:
       - TERM=xterm
       - COLUMNS=180
       - LINES=200
+      - HIDE_PHP_VERSION=true
     volumes:
       - ./etc/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php
       - ./logs:/var/logs/apache2
