@@ -22,10 +22,20 @@ install_service() {
 
 	mkdir ${SERVICE_PATH}
 	cp    ${USER_DIR}/kvwmap-server/service-templates/geonetwork/compose-template.yml ${SERVICE_PATH}/
-  mkdir ${SERVICE_PATH}/data
+    cp    ${USER_DIR}/kvwmap-server/service-templates/geonetwork/init-letsencrypt.sh ${SERVICE_PATH}/
+    mkdir ${SERVICE_PATH}/data
 #	mkdir ${SERVICE_PATH}/db
-  chgrp -R gisadmin ${SERVICE_PATH}/* 
-  chmod -R g+w ${SERVICE_PATH}/*
+    chgrp -R gisadmin ${SERVICE_PATH}/* 
+    chmod -R g+w ${SERVICE_PATH}/*
+
+
+    MIS_DOMAIN_CONF="$(cat ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf | grep server_name | cut -d ';' -f 1 | awk '{print $2}')"
+    cp ${USER_DIR}/kvwmap-server/service-templates/geonetwork/directory_template/mis.platzhalterkvwmapserverdomainname.conf ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/mis.${MIS_DOMAIN_CONF}.conf
+    chown 33:1700 ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/mis.${MIS_DOMAIN_CONF}.conf
+    sed -i -e "s|platzhalterkvwmapserverdomainname|mis.${MIS_DOMAIN_CONF}|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/mis.${MIS_DOMAIN_CONF}.conf
+    cd ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled
+    ln -s ../sites-available/mis.${MIS_DOMAIN_CONF}.conf
+    dcm reload proxy
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }
