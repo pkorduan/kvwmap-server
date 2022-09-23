@@ -2,7 +2,7 @@ version: "3.6"
 services:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
-    image: pkorduan/kvwmap-server:2.2.9
+    image: pkorduan/kvwmap-server:2.2.11
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     restart: "always"
     environment:
