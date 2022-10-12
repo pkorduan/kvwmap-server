@@ -3,6 +3,10 @@ services:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    networks:
+      default:
+        aliases:
+          - gdal
     image: pkorduan/gdal-http:0.2.1
     restart: "always"
     environment:
@@ -30,5 +34,4 @@ services:
 networks:
     default:
         name: ${NETWORK_NAME}
-        aliases: gdal
         external: true
