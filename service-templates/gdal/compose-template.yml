@@ -7,7 +7,22 @@ services:
     restart: "always"
     environment:
       - PGSQL_PASSFILE=/home/gisadmin/.pgpass
-      - TERM=xterm
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      - CLASSPATH=/usr/share/java/jackcess-1.1.14.jar:/usr/share/java/commons-logging-1.1.1.jar:/usr/share/java/commons-lang-2.4.jar
+      - LANG=C.UTF-8
+      - LC_CTYPE=C.UTF-8
+      - LC_NUMERIC=C.UTF-8
+      - LC_TIME=C.UTF-8
+      - LC_COLLATE=C.UTF-8
+      - LC_MONETARY=C.UTF-8
+      - LC_MESSAGES=C.UTF-8
+      - LC_PAPER=C.UTF-8
+      - LC_NAME=C.UTF-8
+      - LC_ADDRESS=C.UTF-8
+      - LC_TELEPHONE=C.UTF-8
+      - LC_MEASUREMENT=C.UTF-8
+      - LC_IDENTIFICATION=C.UTF-8
+      - TERM=Linux
     volumes:
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/.pgpass:/root/.pgpass
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/.pgpass_gisadmin:/home/gisadmin/.pgpass
@@ -15,4 +30,5 @@ services:
 networks:
     default:
         name: ${NETWORK_NAME}
+        aliases: gdal
         external: true
