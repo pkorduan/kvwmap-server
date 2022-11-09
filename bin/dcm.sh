@@ -578,6 +578,19 @@ function show_container_status() {
   echo "OK - $CONTAINER is running. IP: $NETWORK, StartedAt: $STARTED"
 }
 
+function remove_all_container() {
+  docker ps -q | xargs docker rm
+}
+
+function remove_all_images() {
+  docker ps -q | xargs docker rmi
+}
+
+function remove_all_networks() {
+  docker network ls | grep kvwmap_ | cut -d" " -f1 | xargs docker network rm
+  docker network rm proxy
+}
+
 function uninstall_kvwmap() {
   echo "Deinstalliere das kvwmap und dazugehörige images."
   fail_unless_root
@@ -586,7 +599,8 @@ function uninstall_kvwmap() {
     j|J|y|Y )
       stop_all_services
       remove_all_container
-      #remove_all_images
+      remove_all_images
+      remove_all_netwoks
 
       if [ ! -z "$USER_DIR" ] ; then
         echo "Lösche Verzeichnisse networks und proxy"
