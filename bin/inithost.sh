@@ -54,15 +54,29 @@ install_docker-compose() {
 }
 
 uninstall_all() {
+  echo "Stopp alle Container"
   dcm stop all
+  echo "Entferne Netzwerke"
   docker network prune
+  echo "Deinstalliere Docker und docker-compose"
   systemctl stop docker.socket
-  apt-get purge docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
+  apt-get purge -y docker-engine docker docker.io docker-ce docker-ce-cli
+  apt-get autoremove -y --purge docker-engine docker docker.io docker-ce
   rm -rf /var/lib/docker
   rm -rf /var/lib/containerd
+  rm $(which docker-compose)
   userdel -r gisadmin
   cp /etc/skel/.bashrc /root/.bashrc
   source /root/.bashrc
+  if [ -f /etc/zabbix ]; then
+    /etc/init.d/zabbix-agent2 stop
+    apt remove zabbix-agent2
+    rm -rf /etc/zabbix
+  fi
+
+  if [ -f /var/logs/serverlog.json ]; then
+    rm /var/logs/serverlog.json
+  fi
 }
 
 case "$1" in

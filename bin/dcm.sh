@@ -51,7 +51,6 @@ function usage() {
   echo "dcm inspect network [network]"
   echo "dcm inspect service [service] [network]"
   echo "dcm logs [service] [network]"
-  echo "dcm uninstall Deinstalliert alles"
 }
 
 function debug() {
@@ -170,7 +169,7 @@ function create_network() {
   docker network create --subnet "$ip_range" $NETWORK_NAME
   echo "Netwerk erstellt. Mit dcm create service [service] ${NETWORK_NAME} können jetzt die dazugehörigen Dienste installiert werden."
 
-  if [[ $NETWORK_NAME != "proxy" && "$(docker inspect proxy_proxy -f {{.NetworkSettings.Networks.${NETWORK_NAME}}})" == "<no value>" ]] ; then
+  if [[ -n "$(docker ps -q -f name=proxy_proxy)" && $NETWORK_NAME != "proxy" && "$(docker inspect proxy_proxy -f {{.NetworkSettings.Networks.${NETWORK_NAME}}})" == "<no value>" ]] ; then
     add_proxy_to_network $NETWORK_NAME
   fi
 }
@@ -591,42 +590,6 @@ function remove_all_networks() {
   docker network rm proxy
 }
 
-function uninstall_kvwmap() {
-  echo "Deinstalliere das kvwmap und dazugehörige images."
-  fail_unless_root
-  read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (j/n)? " answer
-  case ${answer:0:1} in
-    j|J|y|Y )
-      echo "Stoppe und entferne Container und Images"
-      stop_all_services
-      remove_all_container
-      remove_all_images
-      remove_all_netwoks
-
-      if [ ! -z "$USER_DIR" ] ; then
-        echo "Lösche Verzeichnisse networks und proxy"
-        rm -RI $USER_DIR/networks
-        echo "Lösche Verzeichniss kvwmap-server"
-        #rm -RI $USER_DIR/kvwmap-server
-      fi
-      
-      echo "Entferne alle erzeugten Netzwerke"
-      remove_networks
-      echo "So jetzt ist alles weg außer de Images. Zum Löschen der Images folgenden Befehl aufrufen:"
-      echo " docker images purge' ausführen."
-      echo "Zum neu installieren nach ${USER_DIR} wechseln und folgenden Befehle eingeben:"
-      echo " git clone https://github.com/pkorduan/kvwmap-server.git"
-      echo " kvwmap-server/dcm create service kvwmap-server"
-      echo " dcm up network kvwmap_prod"
-      echo "und im Browser:"
-      echo " http://meineserverip/kvwmap/install.php"
-    ;;
-    * )
-      echo "OK, nix passiert!"
-    ;;
-  esac
-}
-
 #----------------------------------------------
 #load settings
 CONFIG_KVWMAP_SERVER=/home/gisadmin/kvwmap-server/config
@@ -797,45 +760,6 @@ case "$1" in
         git config --global user.email "peter.korduan@gdi-service.de"
         git config --global user.name "Peter Korduan"
         install_kvwmap_images
-      ;;
-    esac
-  ;;
-
-  uninstall)
-    read -p "Sollen wirklich alle Container, Images, Docker, Docker-Compose, Verzeichnisse, der gisadmin Nutzer, die Gruppen, Zabbix-Agent und sonstiges deinstalliert werden? [j|n]: " ANSWER
-    case ${ANSWER:0:1} in
-      j|J|y|Y )
-        if id "${OS_USER}" >/dev/null 2>&1; then
-          uninstall_kvwmap
-          echo "
-          Lösche user: ${OS_USER} ..."
-          # create user for web gis anwendung if not exists
-          deluser --remove-home $OS_USER
-          delgroup gisadmin
-        fi
-
-        if [ -f /usr/bin/docker ]; then
-          apt-get purge -y docker-engine docker docker.io docker-ce docker-ce-cli
-          apt-get autoremove -y --purge docker-engine docker docker.io docker-ce
-          rm -R /var/lib/docker
-        fi
-
-        if [ -f /usr/bin/docker-compose ]; then
-          rm $(which docker-compose)
-        fi
-
-        if [ -f /etc/zabbix ]; then
-          /etc/init.d/zabbix-agent2 stop
-          apt remove zabbix-agent2
-          rm -rf /etc/zabbix
-        fi
-  
-        if [ -f /var/logs/serverlog.json ]; then
-          rm /var/logs/serverlog.json
-        fi
-      ;;
-      * )
-        echo "OK, nix passiert"
       ;;
     esac
   ;;
