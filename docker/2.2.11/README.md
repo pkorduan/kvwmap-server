@@ -1,5 +1,6 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+	* 2.2.11 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.11/Dockerfile)
 	* 2.2.10 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.10/Dockerfile)
 	* 2.2.9 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.9/Dockerfile)
 	* 2.2.8 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.8/Dockerfile)

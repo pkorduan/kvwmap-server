@@ -1,5 +1,13 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+	* 2.2.10 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.10/Dockerfile)
+	* 2.2.9 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.9/Dockerfile)
+	* 2.2.8 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.8/Dockerfile)
+	* 2.2.7 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.7/Dockerfile)
+	* 2.2.6 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.6/Dockerfile)
+	* 2.2.5 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.5/Dockerfile)
+	* 2.2.4 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.4/Dockerfile)
+	* 2.2.3 [docker/2.2.3/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.3/Dockerfile)
 	* 2.2.2 [docker/2.2.2/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.2/Dockerfile)
 	* 2.2.1 [docker/2.2.1/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.1/Dockerfile)
 	* 2.2.0 [docker/2.2.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.0/Dockerfile)
@@ -238,6 +246,29 @@ follow the instruction of certbot and choose option 1 for standalone self instal
 dcm run web
 
 # Changelog
+# 2.2.10
+	* Use debian image Version 11.3
+	* Install without backports
+	* updated Apache Version
+	* Mapserver 7.6.4
+	* remove phpMyAdmin
+# 2.2.9
+	* Add apache module remote_ip
+# 2.2.8
+	* Install sendemail, libnet-ssleay-perl and libio-socket-ssl-perl
+# 2.2.7
+	* Upgrade apache2 to version 2.4.52
+# 2.2.6
+	* call ldconfig after installation of imagemagick
+# 2.2.5
+	* install imagemagick with disabled hdri to improve performance of image creation
+# 2.2.4
+	* install gsfonts and configure ImageMagick to use it
+	* install jq Package for parsing JSON Text on command line
+# 2.2.3
+	* upgrade mapserver to 7.6.3 see https://mapserver.org/development/changelog/changelog-7-6.html#changelog-7-6
+	* add --no-install-recommends to apt-get install
+	* chmod to /usr/local/bin executables
 # 2.2.2
 	* Compile ImageMagick with rsvg support
 # 2.2.1

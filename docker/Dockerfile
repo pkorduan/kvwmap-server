@@ -1,6 +1,6 @@
-FROM debian:latest
+FROM debian:11.3
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="2.2.3"
+LABEL version="2.2.10"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
@@ -20,60 +20,67 @@ RUN echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &&\
   echo $TZ > /etc/timezone
 
-RUN echo "deb http://deb.debian.org/debian buster-backports main contrib non-free" > /etc/apt/sources.list.d/backports.list
+#RUN echo "deb http://deb.debian.org/debian buster-backports main contrib non-free" > /etc/apt/sources.list.d/backports.list
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
-    apt-utils \
-    apache2 \
-    build-essential \
-    certbot \
-    cmake \
-    cron \
-    curl \
-    dialog \
-    docker.io \
-    libfreetype6-dev \
-    gdal-bin \
-    git \
-    ghostscript \
-    htop \
-    libcairo-dev \
-    libfcgi-dev \
-    libfribidi-dev \
-    libgdal-dev \
-    libgeos-dev \
-    libharfbuzz-dev \
-    libjpeg-dev \
-    libproj-dev \
-    libpq-dev \
-    librsvg2-dev \
-    mariadb-client \
-    ntp \
-    php \
-    php-cli \
-    php-curl \
-    php-dev \
-    php-gd \
-    php-mbstring \
-    php-mysql \
-    php-pgsql \
-    php-soap \
-    php-sqlite3 \
-    php-xsl \
-    php-zip \
-    postgresql-client \
-    protobuf-compiler \
-    python-cairosvg \
-    python3-cairosvg \
-    python3-certbot-apache \
-    sudo \
-    swig \
-    unzip \
-    vim \
-    wget \
-    zip
+#RUN wget -O /etc/apt/trusted.gpg.d/apache2.gpg https://packages.sury.org/apache2/apt.gpg && sh -c 'echo "deb https://packages.sury.org/apache2/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/apache2.list'
 
-RUN apt-get clean
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+      apache2 \
+      apt-utils \
+      apt-transport-https \
+      build-essential \
+      cmake \
+      cron \
+      curl \
+      dialog \
+      libfreetype6-dev \
+      lsb-release \
+      gdal-bin \
+      git \
+      ghostscript \
+      gsfonts \
+      htop \
+      jq \
+      libcairo-dev \
+      libfcgi-dev \
+      libfribidi-dev \
+      libgdal-dev \
+      libgeos-dev \
+      libharfbuzz-dev \
+      libio-socket-ssl-perl \
+      libjpeg-dev \
+      libnet-ssleay-perl \
+      libproj-dev \
+      libpq-dev \
+      librsvg2-dev \
+      mariadb-client \
+      ntp \
+      openssh-client \
+      php \
+      php-cli \
+      php-curl \
+      php-dev \
+      php-gd \
+      php-mbstring \
+      php-mysql \
+      php-pgsql \
+      php-soap \
+      php-sqlite3 \
+      php-xsl \
+      php-zip \
+      postgresql-client \
+      protobuf-compiler \
+      python3-cairosvg \
+      python3-certbot-apache \
+      sendemail \
+      sudo \
+      swig \
+      unzip \
+      vim \
+      wget \
+      zip && \
+   rm -rf /var/lib/apt/lists/* && \
+   apt-get clean
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod authz_groupfile && \
@@ -84,19 +91,21 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod proxy && \
     a2enmod proxy_http && \
     a2enmod proxy_html && \
-    a2enmod xml2enc 
-
-RUN phpenmod zip
+    a2enmod remoteip && \
+    a2enmod xml2enc && \
+    phpenmod zip && \
+    service apache2 restart
 
 ADD sources /usr/local/bin
+RUN chmod a+x /usr/local/bin/kvwmap-start /usr/local/bin/kvwmap-firstrun
 
 # Install mapserver and php-mapscript
 WORKDIR /usr/local
-RUN wget https://download.osgeo.org/mapserver/mapserver-7.6.3.tar.gz && \
-    tar xvfz mapserver-7.6.3.tar.gz && \
-    rm mapserver-7.6.3.tar.gz && \
-    mkdir mapserver-7.6.3/build && \
-    cd mapserver-7.6.3/build && \
+RUN wget https://download.osgeo.org/mapserver/mapserver-7.6.4.tar.gz && \
+    tar xvfz mapserver-7.6.4.tar.gz && \
+    rm mapserver-7.6.4.tar.gz && \
+    mkdir mapserver-7.6.4/build && \
+    cd mapserver-7.6.4/build && \
     cmake .. \
     -DWITH_PROTOBUFC=0 \
     -DWITH_RSVG=1 \
@@ -106,58 +115,34 @@ RUN wget https://download.osgeo.org/mapserver/mapserver-7.6.3.tar.gz && \
     -DWITH_CLIENT_WMS=1 \
     -DWITH_CLIENT_WFS=1 && \
     make && \
-    cp mapscript/php/php_mapscript.so /usr/lib/php/20180731/ && \
+    cp mapscript/php/php_mapscript.so /usr/lib/php/20190902/ && \
     cp mapserv /usr/lib/cgi-bin
 
 # Install ImageMagick
 WORKDIR /usr/local
-RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
+RUN git clone --branch 7.1.0-34 --depth 1 https://github.com/ImageMagick/ImageMagick.git && \
     cd ImageMagick && \
-    ./configure --with-rsvg=yes && \
+    ./configure --with-rsvg=yes --with-gs-font-dir=/usr/share/fonts/type1/gsfonts/ --disable-hdri && \
     make && \
     make install && \
-    ln -s /usr/local/bin/convert /usr/bin/convert
-
-# force imagemagick to make sharp images
-RUN sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /usr/local/etc/ImageMagick-7/delegates.xml && \
-    echo '<policy domain="coder" rights="read | write" pattern="PDF" />' >> /usr/local/etc/ImageMagick-7/q.xml
-
-# Install phpMyAdmin
-WORKDIR /usr/local
-
-RUN wget https://files.phpmyadmin.net/phpMyAdmin/5.0.4/phpMyAdmin-5.0.4-english.tar.gz && \
-    tar xvfz phpMyAdmin-5.0.4-english.tar.gz && \
-    mv phpMyAdmin-5.0.4-english phpmyadmin && \
-    rm phpMyAdmin-5.0.4-english.tar.gz && \
-    mkdir -p /srv/www/ && \
-    mv phpmyadmin /srv/www
-WORKDIR /srv/www/phpmyadmin
+    ln -s /usr/local/bin/convert /usr/bin/convert && \
+    sed -i -e "s|-sDEVICE=pngalpha|-sDEVICE=pnmraw|g" /usr/local/etc/ImageMagick-7/delegates.xml && \
+    echo '<policy domain="coder" rights="read | write" pattern="PDF" />' >> /usr/local/etc/ImageMagick-7/q.xml && \
+    ldconfig /usr/local/lib
 
 RUN groupadd -g 1700 ${OS_USER} && \
     useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
     usermod -G ${OS_USER} www-data && \
-    chown -R $OS_USER.$OS_USER /srv/www/phpmyadmin && \
-    chmod -R g+w /srv/www/phpmyadmin && \
-    echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git
-
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-RUN mkdir -p $USER_DIR/.ssh && \
-  ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
-  chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
+    echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git && \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+    mkdir -p $USER_DIR/.ssh && \
+    ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
+    chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
-RUN sed -i \
-        -e "s|HISTCONTROL=ignoreboth|HISTCONTROL=ignoredups|g" \
-        -e "s|HISTFILESIZE=2000|HISTFILESIZE=|g" "/home/gisadmin/.bashrc"
-
-RUN if grep -q "HISTTIMEFORMAT" "/home/gisadmin/.bashrc" ; then echo "do nothing"; else echo "HISTTIMEFORMAT=\"%F %T "\" >> /home/gisadmin/.bashrc; fi
-
 USER $OS_USER
-
-#RUN composer update
-
+WORKDIR $USER_DIR
 RUN git config --global user.name "Peter Korduan" && \
     git config --global user.email "peter.korduan@gdi-service.de"
 
@@ -165,7 +150,5 @@ USER root
 
 EXPOSE 80
 EXPOSE 443
-
-WORKDIR $USER_DIR
 
 CMD /usr/local/bin/kvwmap-start
