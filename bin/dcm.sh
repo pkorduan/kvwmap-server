@@ -579,7 +579,7 @@ function show_container_status() {
 }
 
 function remove_all_container() {
-  docker ps -q | xargs docker rm
+  docker ps -aq | xargs docker rm
 }
 
 function remove_all_images() {
