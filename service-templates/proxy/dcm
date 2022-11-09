@@ -41,5 +41,5 @@ install_service() {
 
 #	dcm up proxy proxy
 
-	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet. Starten sie den Service mit dcm proxy up"
+	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet. Der Service kann gestartet werden mit: dcm proxy up"
 }

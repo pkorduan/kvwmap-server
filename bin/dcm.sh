@@ -597,6 +597,7 @@ function uninstall_kvwmap() {
   read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (j/n)? " answer
   case ${answer:0:1} in
     j|J|y|Y )
+      echo "Stoppe und entferne Container und Images"
       stop_all_services
       remove_all_container
       remove_all_images
@@ -816,6 +817,7 @@ case "$1" in
         if [ -f /usr/bin/docker ]; then
           apt-get purge -y docker-engine docker docker.io docker-ce docker-ce-cli
           apt-get autoremove -y --purge docker-engine docker docker.io docker-ce
+          rm -R /var/lib/docker
         fi
 
         if [ -f /usr/bin/docker-compose ]; then
