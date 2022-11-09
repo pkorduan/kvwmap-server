@@ -51,6 +51,7 @@ function usage() {
   echo "dcm inspect network [network]"
   echo "dcm inspect service [service] [network]"
   echo "dcm logs [service] [network]"
+  echo "dcm uninstall Deinstalliert alles"
 }
 
 function debug() {
@@ -130,6 +131,10 @@ function create_network() {
     fi
     chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}
     chmod g+w ${NETWORK_DIR}
+  fi
+
+  if [ "$NETWORK_NAME" == "proxy" ]; then
+    echo '# Umgebungsvariablen für proxy Container Einrichtung' > ${NETWORK_DIR}/env
   fi
 
   case ${NETWORK_NAME} in
@@ -447,7 +452,7 @@ function service_console() {
   fi
 
   if [ "${param_service}" = "proxy" ] ; then
-    container_name='proxy'
+    container_name='proxy_proxy'
   else
     container_name="${param_network}_${param_service}"
   fi
@@ -576,9 +581,9 @@ function show_container_status() {
 function uninstall_kvwmap() {
   echo "Deinstalliere das kvwmap und dazugehörige images."
   fail_unless_root
-  read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (y/n)? " answer
+  read -p "Wollen Sie kvwmap-server wirklich deinstallieren? (j/n)? " answer
   case ${answer:0:1} in
-    y|Y )
+    j|J|y|Y )
       stop_all_services
       remove_all_container
       #remove_all_images
@@ -777,6 +782,45 @@ case "$1" in
         git config --global user.email "peter.korduan@gdi-service.de"
         git config --global user.name "Peter Korduan"
         install_kvwmap_images
+      ;;
+    esac
+  ;;
+
+  uninstall)
+    read -p "Sollen wirklich alle Container, Images, Docker, Docker-Compose, Verzeichnisse, der gisadmin Nutzer, die Gruppen, Zabbix-Agent und sonstiges deinstalliert werden? [j|n]: " ANSWER
+    case ${ANSWER:0:1} in
+      j|J|y|Y )
+        if id "${OS_USER}" >/dev/null 2>&1; then
+          uninstall_kvwmap
+          echo "
+          Lösche user: ${OS_USER} ..."
+          # create user for web gis anwendung if not exists
+          deluser --remove-home $OS_USER
+          deluser --remove-all-files $OS_USER
+          delgroup gisadmin
+        fi
+
+        if [ -f /usr/bin/docker ]; then
+          apt-get purge -y docker-engine docker docker.io docker-ce docker-ce-cli
+          apt-get autoremove -y --purge docker-engine docker docker.io docker-ce
+        fi
+
+        if [ -f /usr/bin/docker-compose ]; then
+          rm $(which docker-compose)
+        fi
+
+        if [ -f /etc/zabbix ]; then
+          /etc/init.d/zabbix-agent2 stop
+          apt remove zabbix-agent2
+          rm -rf /etc/zabbix
+        fi
+  
+        if [ -f /var/logs/serverlog.json ]; then
+          rm /var/logs/serverlog.json
+        fi
+      ;;
+      * )
+        echo "OK, nix passiert"
       ;;
     esac
   ;;
