@@ -583,7 +583,7 @@ function remove_all_container() {
 }
 
 function remove_all_images() {
-  docker ps -q | xargs docker rmi
+  docker images -q | xargs docker rmi
 }
 
 function remove_all_networks() {
@@ -810,7 +810,6 @@ case "$1" in
           Lösche user: ${OS_USER} ..."
           # create user for web gis anwendung if not exists
           deluser --remove-home $OS_USER
-          deluser --remove-all-files $OS_USER
           delgroup gisadmin
         fi
 
