@@ -271,7 +271,6 @@ case "$1" in
         docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "RENAME USER 'root' TO 'root'@'172.0.${SUBNET_KVWMAP_PROD}.%';" mysql
         docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES;" mysql
 
-
         read -p "Create Certificate for HTTPS? (j/n) " answer
         case ${answer:0:1} in
           j|J|y|Y )
