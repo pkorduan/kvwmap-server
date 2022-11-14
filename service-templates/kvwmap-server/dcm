@@ -42,6 +42,7 @@ function install_service() {
     dcm create service mariadb ${NETWORK_NAME}
     dcm create service phpmyadmin ${NETWORK_NAME}
     dcm create service pgsql ${NETWORK_NAME}
+    dcm create service pgadmin ${NETWORK_NAME}
     dcm create service gdal ${NETWORK_NAME}
 
     SERVICE_NAME="kvwmap-server"

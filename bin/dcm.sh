@@ -226,6 +226,8 @@ function write_compose_file() {
     export NETWORK_SUBNET
     export MYSQL_ROOT_PASSWORD
     export POSTGRES_PASSWORD
+    export PGADMIN_DEFAULT_EMAIL
+    export PGADMIN_DEFAULT_PASSWORD
     export USER_DIR
 
     echo " - Substituiere Umgebungsvariablen in compose-template.yml und schreibe sie nach docker-compose.yml"
@@ -350,10 +352,20 @@ function start_service() {
 }
 
 function stop_service() {
-  SERVICE_NAME=$1
-  NETWORK_NAME=$2
-  echo "Stoppe Container ${NETWORK_NAME}_${SERVICE_NAME}"
-  docker stop ${NETWORK_NAME}_${SERVICE_NAME}
+  param_service=$1
+  param_network=$2
+
+  if [ -z "${param_network}" ] ; then
+    param_network='kvwmap_prod'
+  fi
+
+  if [ "${param_service}" = "proxy" ] ; then
+    container_name='proxy_proxy'
+  else
+    container_name="${param_network}_${param_service}"
+  fi
+  echo "Stoppe Container ${container_name}"
+  cmd="docker stop ${container_name}"; echo $cmd; $cmd
 }
 
 function start_all_services() {

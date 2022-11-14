@@ -1,0 +1,14 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "kvwmapsp Produktion",
+            "Group": "Servers",
+            "Port": 5432,
+            "Username": "kvwmap",
+            "Host": "pgsql",
+            "SSLMode": "prefer",
+            "MaintenanceDB": "kvwmapsp",
+            "PassFile": "../../.pgpass"
+        }
+    }
+}

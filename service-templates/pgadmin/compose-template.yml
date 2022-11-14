@@ -1,0 +1,19 @@
+version: '2'
+services:
+  pgadmin:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: dpage/pgadmin4
+    command: dpage/pgadmin4
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    environment:
+            - PGADMIN_DEFAULT_EMAIL=peter.korduan@gdi-service.de
+            - PGADMIN_DEFAULT_PASSWORD=$PGADMIN_DEFAULT_PASSWORD
+    volumes:
+      - ./data:/var/lib/pgadmin
+      - ./config/servers.json:/pgadmin4/servers.json
+      - ../../pgsql/config/.pgpass:/var/lib/pgadmin/.pgpass
+#      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass:/var/lib/pgadmin/.pgpass
+networks:
+  default:
+      name: ${NETWORK_NAME}
+      external: true

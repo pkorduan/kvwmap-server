@@ -1,0 +1,38 @@
+#!/bin/bash
+
+install_service() {
+
+  echo "Installation von Service pgadmin in Netzwerk '${NETWORK_NAME}'"
+  SERVICE_NAME=pgadmin
+  echo "Service-Name=${SERVICE_NAME}"
+
+  if [ -z "$PGADMIN_DEFAULT_EMAIL" ] ; then
+    read -p "pgadmin Administrator E-Mail: " PGADMIN_DEFAULT_EMAIL
+  else
+    echo "Use pre-defined PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL:1:5}..."
+  fi
+
+  if [ -z "$PGADMIN_DEFAULT_PASSWORD" ] ; then
+    read -p "pgadmin Administrator Passwort: " -s PGADMIN_DEFAULT_PASSWORD
+  else
+    echo "Use pre-defined PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:1:5}..."
+  fi
+  echo "PGADMIN_DEFAULT_PASSWORD=\"${PGADMIN_DEFAULT_PASSWORD}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
+
+  SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+
+  if [ -d "$SERVICE_PATH" ]; then
+    echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+    return 1
+  fi
+
+  mkdir -p ${SERVICE_PATH}
+  cp -r ${USER_DIR}/kvwmap-server/service-templates/pgadmin/directory_template/* ${SERVICE_PATH}
+  sed -i "s/secretpasswort/${POSTGRES_PASSWORD}/g" ${SERVICE_PATH}/config/.pgpass
+
+  cp    ${USER_DIR}/kvwmap-server/service-templates/pgadmin/compose-template.yml ${SERVICE_PATH}/
+  mkdir -p ${SERVICE_PATH}/data
+  chown 5050:5050 ${SERVICE_PATH}/data
+
+  echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+}
