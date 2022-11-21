@@ -18,7 +18,9 @@ services:
       - COLUMNS=180
       - LINES=200
     volumes:
-      - ${USER_DIR}/networks/${NETWORK_NAME}/volumes/proj:/usr/share/proj/
+      - ${USER_DIR}/networks/${NETWORK_NAME}/volumes/proj/epsg:/usr/share/proj/epsg
+      - ${USER_DIR}/networks/${NETWORK_NAME}/volumes/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
+      - ${USER_DIR}/networks/${NETWORK_NAME}/volumes/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb
       - ./apache2/sites-available:/etc/apache2/sites-available
       - ./apache2/sites-enabled:/etc/apache2/sites-enabled
       - ./apache2/conf-available:/etc/apache2/conf-available
