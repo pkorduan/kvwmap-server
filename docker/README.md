@@ -1,11 +1,13 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
-	* 2.2.10 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.10/Dockerfile)
-	* 2.2.9 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.9/Dockerfile)
-	* 2.2.8 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.8/Dockerfile)
-	* 2.2.7 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.7/Dockerfile)
-	* 2.2.6 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.6/Dockerfile)
-	* 2.2.5 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.5/Dockerfile)
+    * 2.2.12 [docker/2.2.12/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.12/Dockerfile)
+    * 2.2.11 [docker/2.2.11/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.11/Dockerfile)
+	* 2.2.10 [docker/2.2.10/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.10/Dockerfile)
+	* 2.2.9 [docker/2.2.9/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.9/Dockerfile)
+	* 2.2.8 [docker/2.2.8/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.8/Dockerfile)
+	* 2.2.7 [docker/2.2.7/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.7/Dockerfile)
+	* 2.2.6 [docker/2.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.6/Dockerfile)
+	* 2.2.5 [docker/2.2.5/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.5/Dockerfile)
 	* 2.2.4 [docker/2.2.4/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.4/Dockerfile)
 	* 2.2.3 [docker/2.2.3/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.3/Dockerfile)
 	* 2.2.2 [docker/2.2.2/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.2/Dockerfile)
@@ -246,6 +248,11 @@ follow the instruction of certbot and choose option 1 for standalone self instal
 dcm run web
 
 # Changelog
+# 2.2.12
+    * inkscape library included
+    * Decrease the ImageMagick Version
+# 2.2.11
+    * using rotatelogs for apache2 access and error logfiles, daily rotation and compression inside 000-default.conf
 # 2.2.10
 	* Use debian image Version 11.3
 	* Install without backports
