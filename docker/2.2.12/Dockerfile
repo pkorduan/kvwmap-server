@@ -40,7 +40,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-ins
       ghostscript \
       gsfonts \
       htop \
-      inkscape \
       jq \
       libcairo-dev \
       libfcgi-dev \
@@ -148,6 +147,9 @@ RUN git config --global user.name "Peter Korduan" && \
     git config --global user.email "peter.korduan@gdi-service.de"
 
 USER root
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+      inkscape
 
 EXPOSE 80
 EXPOSE 443

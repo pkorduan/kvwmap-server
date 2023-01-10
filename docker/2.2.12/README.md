@@ -1,6 +1,6 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
-    * 2.2.12 [docker/2.2.12/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.12/Dockerfile)
+	* 2.2.12 [docker/2.2.12/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.12/Dockerfile)
 	* 2.2.11 [docker/2.2.11/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.11/Dockerfile)
 	* 2.2.10 [docker/2.2.10/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.10/Dockerfile)
 	* 2.2.9 [docker/2.2.9/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.9/Dockerfile)
@@ -249,16 +249,16 @@ dcm run web
 
 # Changelog
 # 2.2.12
-    * inkscape library included
-    * Decrease the ImageMagick Version      
+	* inkscape library included
+	* Decrease the ImageMagick Version
 # 2.2.11
-    * using rotatelogs for apache2 access and error logfiles, daily rotation and compression inside 000-default.conf
+	* using rotatelogs for apache2 access and error logfiles, daily rotation and compression inside 000-default.conf
 # 2.2.10
-    * Use debian image Version 11.3
-    * Install without backports
-    * updated Apache Version
-    * Mapserver 7.6.4
-    * remove phpMyAdmin
+	* Use debian image Version 11.3
+	* Install without backports
+	* updated Apache Version
+	* Mapserver 7.6.4
+* remove phpMyAdmin
 # 2.2.9
 	* Add apache module remote_ip
 # 2.2.8
