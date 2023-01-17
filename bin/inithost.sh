@@ -1,6 +1,6 @@
 #!/bin/bash
-# run this scirpt:
-# wget -O inithost.sh https://raw.githubusercontent.com/pkorduan/kvwmap-server/master/inithost && chmod a+x inithost.sh && ./inithost.sh
+# run this script:
+# wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost && chmod a+x inithost.sh && ./inithost.sh
 
 install_docker() {
   echo "Install docker auf dem Hostrechner ..."
@@ -55,7 +55,7 @@ install_docker-compose() {
 
 uninstall_all() {
   echo "Stopp alle Container"
-  ${USER_DIR}/kvwmap-server/bin/dcm.sh stop all
+  dcm stop all
   echo "Entferne Netzwerke"
   docker network prune
   echo "Deinstalliere Docker und docker-compose"
@@ -193,7 +193,7 @@ case "$1" in
 
         if [ -d ./kvwmap-server ] ; then
           echo 'Stop kvwmap-server and uninstall all.'
-          ${USER_DIR}/kvwmap-server/bin/dcm.sh uninstall all
+          dcm uninstall all
         fi
 
         if [ -d ./kvwmap-server ] ; then
@@ -238,7 +238,6 @@ case "$1" in
             -e "s|alias rm=|#alias rm=|g" \
             $USER_DIR/.bashrc
         echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
-        echo "alias dcm='${USER_DIR}/kvwmap-server/bin/dcm.sh'" >> $USER_DIR/.bashrc
         echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
         echo "set nocompatible" >> $USER_DIR/.vimrc
         echo ".bashrc angepasst."
@@ -250,21 +249,16 @@ case "$1" in
 
         source ~/.bashrc
         echo ".bashrc geladen."
-        echo "PATH nach source ~/.bashrc: ${PATH}"
-        PATH="${PATH}:${USER_DIR}/kvwmap-server/bin"
-        echo "PATH nach setzen PATH direkt in inithost.sh: ${PATH}"
         source ~/.vimrc
         echo ".vimrc geladen."
-        alias dcm='${USER_DIR}/kvwmap-server/bin/dcm.sh'
-        echo "alias dcm gesetzt";
 
         #############################
         # kvwmap-Instanz einrichten und starten
         #############################
-        ${USER_DIR}/kvwmap-server/bin/dcm.sh proxy create
-        ${USER_DIR}/kvwmap-server/bin/dcm.sh proxy up
-        ${USER_DIR}/kvwmap-server/bin/dcm.sh create service kvwmap-server kvwmap_prod
-        ${USER_DIR}/kvwmap-server/bin/dcm.sh up network kvwmap_prod
+        dcm proxy create
+        dcm proxy up
+        dcm create service kvwmap-server kvwmap_prod
+        dcm up network kvwmap_prod
 
         read -p "Create Certificate for HTTPS? (j/n) " answer
         case ${answer:0:1} in
@@ -277,7 +271,7 @@ case "$1" in
             sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf
             cd ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled
             ln -s ../sites-available/default-ssl.conf
-            ${USER_DIR}/kvwmap-server/bin/dcm.sh proxy reload
+            dcm proxy reload
           ;;
           * )
             echo "OK, Das Zertifikat kann später mit dem certbot Container erstellt werden."
