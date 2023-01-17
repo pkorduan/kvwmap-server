@@ -202,11 +202,11 @@ case "$1" in
         fi
 
         echo 'Clone kvwmap-server repository to ./kvwmap-server.'
-        git clone https://github.com/pkorduan/kvwmap-server.git
+        sudo -u $OS_USER git clone https://github.com/pkorduan/kvwmap-server.git
         chown -R gisadmin.gisadmin kvwmap-server/* kvwmap-server/.*
         chmod -R g+w kvwmap-server/* kvwmap-server/.*
         cd kvwmap-server
-        git checkout develop
+        sudo -u $OS_USER git checkout develop
 
         #############################
         # Hostnamen setzen
@@ -249,10 +249,14 @@ case "$1" in
         echo ".vimrc für Root gesetzt."
 
         source ~/.bashrc
+        cat ~/.bashrc
         echo ".bashrc geladen."
-        echo "PATH: ${PATH}"
+        echo "PATH nach source ~/.bashrc: ${PATH}"
+        PATH="${PATH}:${USER_DIR}/kvwmap-server/bin"
+        echo "PATH nach setzen PATH direkt in inithost.sh: ${PATH}"
         source ~/.vimrc
         echo ".vimrc geladen."
+
 
         #############################
         # kvwmap-Instanz einrichten und starten
