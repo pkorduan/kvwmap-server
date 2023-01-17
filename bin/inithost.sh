@@ -249,14 +249,14 @@ case "$1" in
         echo ".vimrc für Root gesetzt."
 
         source ~/.bashrc
-        cat ~/.bashrc
         echo ".bashrc geladen."
         echo "PATH nach source ~/.bashrc: ${PATH}"
         PATH="${PATH}:${USER_DIR}/kvwmap-server/bin"
         echo "PATH nach setzen PATH direkt in inithost.sh: ${PATH}"
         source ~/.vimrc
         echo ".vimrc geladen."
-
+        alias dcm='/home/gisadmin/kvwmap-server/bin/dcm.sh'
+        echo "alias dcm gesetzt";
 
         #############################
         # kvwmap-Instanz einrichten und starten
