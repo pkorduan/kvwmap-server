@@ -5,6 +5,7 @@ services:
     image: dpage/pgadmin4
     command: dpage/pgadmin4
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    restart: "always"
     environment:
             - PGADMIN_DEFAULT_EMAIL=peter.korduan@gdi-service.de
             - PGADMIN_DEFAULT_PASSWORD=$PGADMIN_DEFAULT_PASSWORD
