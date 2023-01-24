@@ -231,8 +231,6 @@ case "$1" in
         #############################
 
         cp /etc/skel/.bashrc $USER_DIR/.bashrc
-        echo "export PATH=\$PATH:${USER_DIR}/kvwmap-server/bin" >> $USER_DIR/.bashrc
-        source ~/.bashrc
         echo "
         export PATH=\$PATH:${USER_DIR}/kvwmap-server" >> $USER_DIR/.bashrc
         sed -i \
