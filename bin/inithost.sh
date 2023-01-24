@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e # breche Script bei Fehlern ab
+set -u # breche ab wenn Variablen verwendet werden, die keine Wertzuweisung hatten
 # run this script:
 # wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost && chmod a+x inithost.sh && ./inithost.sh
 
@@ -188,6 +190,32 @@ case "$1" in
         cd ${USER_DIR}
 
         #############################
+        # Umgebung einrichten
+        #############################
+
+        cp /etc/skel/.bashrc $USER_DIR/.bashrc
+        echo "
+        export PATH=\$PATH:${USER_DIR}/kvwmap-server/bin" >> $USER_DIR/.bashrc
+        sed -i \
+            -e "s|#alias ll=|alias ll=|g" \
+            -e "s|alias rm=|#alias rm=|g" \
+            $USER_DIR/.bashrc
+        echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
+        echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
+        echo "set nocompatible" >> $USER_DIR/.vimrc
+        echo ".bashrc angepasst."
+
+        cp $USER_DIR/.bashrc ~/.bashrc
+        echo ".bashrc für Root gesetzt."
+        cp $USER_DIR/.vimrc ~/.vimrc
+        echo ".vimrc für Root gesetzt."
+
+        source ~/.bashrc
+        echo ".bashrc geladen."
+        source ~/.vimrc
+        echo ".vimrc geladen."
+
+        #############################
         # kvmap-server entfernen, wenn vorhanden
         #############################
 
@@ -225,33 +253,6 @@ case "$1" in
             -e "s|#Port 22|Port ${SSH_PORT}|g" \
             /etc/ssh/sshd_config
         /etc/init.d/ssh reload
-
-        #############################
-        # Umgebung einrichten
-        #############################
-
-        cp /etc/skel/.bashrc $USER_DIR/.bashrc
-        echo "
-        export PATH=\$PATH:${USER_DIR}/kvwmap-server/bin" >> $USER_DIR/.bashrc
-        source $USER_DIR/.bashrc
-        sed -i \
-            -e "s|#alias ll=|alias ll=|g" \
-            -e "s|alias rm=|#alias rm=|g" \
-            $USER_DIR/.bashrc
-        echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
-        echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
-        echo "set nocompatible" >> $USER_DIR/.vimrc
-        echo ".bashrc angepasst."
-
-        cp $USER_DIR/.bashrc ~/.bashrc
-        echo ".bashrc für Root gesetzt."
-        cp $USER_DIR/.vimrc ~/.vimrc
-        echo ".vimrc für Root gesetzt."
-
-        source ~/.bashrc
-        echo ".bashrc geladen."
-        source ~/.vimrc
-        echo ".vimrc geladen."
 
         #############################
         # kvwmap-Instanz einrichten und starten

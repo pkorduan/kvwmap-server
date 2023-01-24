@@ -1,56 +1,62 @@
 #!/bin/bash
-# Version 3.0.0
+# Version 3.0.1
+ERR_CMD_OPTIONS=1
+set -e
+set -u
 
 function usage() {
-  echo ""
-  echo "Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden wenn der Nutzer nicht zur Gruppe docker gehört.";
-  echo "Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos."
-  echo "Kontakt: peter.korduan@gdi-service.de"
-  echo ""
-  echo "Netzwerke und Dienste erstellen und entfernen:"
-  echo "dcm create network [network]"
-  echo "dcm create service [service] [network]"
-  echo "dcm remove network [network]"
-  echo "dcm remove service [service] [network]"
-  echo ""
-  echo "Dienst als Container starten:"
-  echo "dcm up [service] [network]"
-  echo "dcm up network [network]"
-  echo ""
-  echo "Container stoppen und entfernen:"
-  echo "dcm down [service] [network]"
-  echo "dcm down network [network]"
-  echo ""
-  echo "Container neu erstellen und starten:"
-  echo "dcm rerun [all|service] [network]"
-  echo ""
-  echo "Container starten, stoppen:"
-  echo "dcm start [all|service] [network]"
-  echo "dcm restart [all|service] [network]"
-  echo "dcm stop [all|service] [network]"
-  echo ""
-  echo "Container entfernen:"
-  echo "dcm rm all [network] default kvwmap_prod"
-  echo "dcm rm [service] [network]"
-  echo ""
-  echo "Für networks wird das compose-networks.yml aktualisiert. Für service wird aus dem Template ein neues docker-compose.yml erstellt."
-  echo "dcm compose networks"
-  echo "dcm compose service [service] [network]"
-  echo ""
-  echo "Proxy-Server einrichten, starten, stoppen und Konfiguration laden:"
-  echo "dcm proxy create"
-  echo "dcm proxy up"
-  echo "dcm proxy down"
-  echo "dcm proxy reload"
-  echo ""
-  echo "dcm ls networks"
-  echo "dcm build"
-  echo "dcm clean"
-  echo "dcm config [service] [network]"
-  echo "dcm console [service] [network]"
-  echo "dcm inspect network [network]"
-  echo "dcm inspect service [service] [network]"
-  echo "dcm logs [service] [network]"
+  # Hilfe per HEREDOC ausgeben
+  cat <<- EOF
+  Das Script führt Anweisungen für die Verwaltung des kvwmap-Servers aus. Es muss als Nutzer root ausgeführt werden wenn der Nutzer nicht zur Gruppe docker gehört.
+  Dazu gehören Befehle zum Starten und Stoppen der Container aber auch solche zum Anzeigen von Stati und Laden von Konfigurationen und sonstige häufiger für die Administration benötigten Komandos.
+  Kontakt: peter.korduan@gdi-service.de
+  
+  Netzwerke und Dienste erstellen und entfernen:
+  dcm create network [network]
+  dcm create service [service] [network]
+  dcm remove network [network]
+  dcm remove service [service] [network]
+  
+  Dienst als Container starten:
+  dcm up [service] [network]
+  dcm up network [network]
+  
+  Container stoppen und entfernen:
+  dcm down [service] [network]
+  dcm down network [network]
+  
+  Container neu erstellen und starten:
+  dcm rerun [all|service] [network]
+  
+  Container starten, stoppen:
+  dcm start [all|service] [network]
+  dcm restart [all|service] [network]
+  dcm stop [all|service] [network]
+  
+  Container entfernen:
+  dcm rm all [network] default kvwmap_prod
+  dcm rm [service] [network]
+  
+  Für networks wird das compose-networks.yml aktualisiert. Für service wird aus dem Template ein neues docker-compose.yml erstellt.
+  dcm compose networks
+  dcm compose service [service] [network]
+  
+  Proxy-Server einrichten, starten, stoppen und Konfiguration laden:
+  dcm proxy create
+  dcm proxy up
+  dcm proxy down
+  dcm proxy reload
+  
+  dcm ls networks
+  dcm build
+  dcm clean
+  dcm config [service] [network]
+  dcm console [service] [network]
+  dcm inspect network [network]
+  dcm inspect service [service] [network]
+  dcm logs [service] [network]
+EOF
+  exit $ERR_CMD_OPTIONS
 }
 
 function debug() {
@@ -393,7 +399,7 @@ function up_down_network() {
   done < <(find ${USER_DIR}/networks/${NETWORK_NAME}/ -maxdepth 3 -mindepth 3 -type f -name docker-compose.yml | xargs -i dirname {} | xargs -i basename {} )
 }
 
-copy_directories() {
+function copy_directories() {
   dcm rm all ohne
   rm -R $USER_DIR/networks/$network_name/web/www
   mv $USER_DIR/docker/www $USER_DIR/networks/$network_name/web/www
@@ -604,8 +610,13 @@ function remove_all_networks() {
 
 #----------------------------------------------
 #load settings
-CONFIG_KVWMAP_SERVER=/home/gisadmin/kvwmap-server/config
+USER_DIR=/home/gisadmin
+CONFIG_KVWMAP_SERVER=${USER_DIR}/kvwmap-server/config
 if [ ! -f ${CONFIG_KVWMAP_SERVER}/config ] ; then
+  if [ ! -f ${USER_DIR} ] ; then
+    echo "Can not create the conifg file because target directory ${USER_DIR} does not exists."
+    exit 0
+  fi
   echo "Create config file from config/config-default"
   cp ${CONFIG_KVWMAP_SERVER}/config-default ${CONFIG_KVWMAP_SERVER}/config
   chown gisadmin.gisadmin ${CONFIG_KVWMAP_SERVER}/config
@@ -629,6 +640,7 @@ case "$1" in
       ;;
     esac
   ;;
+
   clean)
     echo "Lösche alle nicht genutzten Container."
     docker rm $(docker ps -q -f status=exited)

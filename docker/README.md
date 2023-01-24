@@ -1,8 +1,8 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
-    * 2.2.13 [docker/2.2.13/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.13/Dockerfile)
-    * 2.2.12 [docker/2.2.12/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.12/Dockerfile)
-    * 2.2.11 [docker/2.2.11/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.11/Dockerfile)
+	* 2.2.13 [docker/2.2.13/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.13/Dockerfile)
+	* 2.2.12 [docker/2.2.12/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.12/Dockerfile)
+	* 2.2.11 [docker/2.2.11/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.11/Dockerfile)
 	* 2.2.10 [docker/2.2.10/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.10/Dockerfile)
 	* 2.2.9 [docker/2.2.9/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.9/Dockerfile)
 	* 2.2.8 [docker/2.2.8/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.8/Dockerfile)
@@ -35,7 +35,7 @@ The preferred way to install the `pkorduan/kvwmap-server` image on a blank root 
 ```
 wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost && \
 chmod a+x inithost.sh && \
-./inithost.sh
+. ./inithost.sh
 ```
 The script will clone the kvwmap-server repository from github first and than install
 all required components with the included administration script `dcm` (docker container manager).
@@ -94,9 +94,8 @@ Change the dcm files in cargo-available and create links in cargo-enabled to inc
 Consider, that changes under kvwmap-server will be overwritten by git pull or git merge commands. Save your changes bevore updating kvwmap-server.
 
 ### Run container for kvwmap
-Start the containers with volumes and link it together. You will be asked to choose initial passwords for the MySQL root and PostgreSQL postgres super user as well as for a kvwmap user. The Password for kvwmap user will be used as initial password for the database access to the kvwmap databases, for the phpMyAdmin web client, which has the alias userDbAdmin, and for the admin page of the web application kvwmap itself.
 ```
-dcm run all
+dcm up kvwmap_prod
 ```
 
 After this step the container named web, pgsql-server and mysql-server shoud be
