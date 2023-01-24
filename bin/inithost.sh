@@ -239,6 +239,7 @@ case "$1" in
             $USER_DIR/.bashrc
         echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
         echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
+		echo "export PATH=\$PATH:${USER_DIR}/kvwmap-server/bin" >> $USER_DIR/.bashrc
         echo "set nocompatible" >> $USER_DIR/.vimrc
         echo ".bashrc angepasst."
 
