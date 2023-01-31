@@ -20,8 +20,8 @@ services:
 #use default      - ./config/postgresql.conf:/var/lib/postgresql/config/postgresql.conf
       - ./config/pg_hba.conf:/var/lib/postgresql/config/pg_hba.conf
       - ./data:/var/lib/postgresql/data
-      - ./backup:/backup
-      - ./logs:/var/www/logs/pgsql
+      - ./backup:/pgbackrest
+      - ./logs:/var/log/pgsql
       - ../../volumes/proj/epsg:/usr/share/proj/epsg
       - ../../volumes/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
       - ../../volumes/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb

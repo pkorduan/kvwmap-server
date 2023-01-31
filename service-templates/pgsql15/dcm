@@ -23,6 +23,9 @@ install_service() {
   mkdir -p ${SERVICE_PATH}
   cp -r ${USER_DIR}/kvwmap-server/service-templates/pgsql15/directory_template/* ${SERVICE_PATH}
   cp    ${USER_DIR}/kvwmap-server/service-templates/pgsql15/compose-template.yml ${SERVICE_PATH}
+  mkdir ${SERVICE_PATH}/data
+  mkdir ${SERVICE_PATH}/backup
+  mkdir ${SERVICE_PATH}/logs
 
   debug "Ersetze NETWORK_SUBNET in ${SERVICE_PATH}/config/pg_hba.conf durch: ${NETWORK_SUBNET}"
   sed -i -e "s|NETWORK_SUBNET|${NETWORK_SUBNET}|g" "${SERVICE_PATH}/config/pg_hba.conf"
@@ -30,9 +33,6 @@ install_service() {
   chown -R 999.gisadmin ${SERVICE_PATH}
   chown root.root ${SERVICE_PATH}/config/.pgpass*
   chmod 600 ${SERVICE_PATH}config/.pgpass*
-
-#  read -p "Add IP to allow external access with pgAdmin Client: " PGADMIN_IP
-#  echo "host    all             kvwmap          ${PGADMIN_IP}/32               md5 # externe IP for external pgAdmin access" >> ${SERVICE_PATH}/config/pg_hba.conf
 
   export SERVICE_NAME
 
