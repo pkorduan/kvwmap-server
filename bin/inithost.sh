@@ -1,9 +1,14 @@
 #!/bin/bash
 set -e # breche Script bei Fehlern ab
-set -u # breche ab wenn Variablen verwendet werden, die keine Wertzuweisung hatten
+#set -u # breche ab wenn Variablen verwendet werden, die keine Wertzuweisung hatten
 # run this script:
 # wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost && chmod a+x inithost.sh && ./inithost.sh
-
+usage() {
+  echo <<- EOF
+  USAGE
+    inithost
+EOF
+}
 install_docker() {
   echo "Install docker auf dem Hostrechner ..."
   # Update debian repo
@@ -81,9 +86,15 @@ uninstall_all() {
   fi
 }
 
-case "$1" in
+
+option1=$1
+option2=$2
+
+set -u # breche ab wenn Variablen verwendet werden, die keine Wertzuweisung hatten
+
+case "$option1" in
   uninstall)
-    case $2 in
+    case $option2 in
       docker)
         systemctl stop docker.socket
         apt-get purge docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
@@ -109,7 +120,7 @@ case "$1" in
             -e "s|^Port.*|#Port 22|g" \
             /etc/ssh/sshd_config
         /etc/init.d/ssh reload
-        
+
       ;;
       *)
         echo "unistall missing argument docker, user, bashrc or all"
@@ -135,14 +146,8 @@ case "$1" in
           unzip \
           wget
 
-        #############################
-        # Install Docker
-        #############################
-        install_docker
-        install_docker-compose
-
         # Initialize kvwmap-server
-        # Version 
+        # Version
         OS_USER=gisadmin
         USER_DIR=/home/${OS_USER}
         CURRENT_DIR=$(pwd)
@@ -185,9 +190,15 @@ case "$1" in
           useradd -u 17000 -g 1700 -d ${USER_DIR} -m -s /bin/bash -p $(echo ${GISADMIN_PASSWORD} | openssl passwd -1 -stdin) ${OS_USER}
         fi
 
-        /usr/sbin/usermod -a -G docker $OS_USER
-
         cd ${USER_DIR}
+
+        #############################
+        # Install Docker
+        #############################
+        install_docker
+        install_docker-compose
+
+        /usr/sbin/usermod -a -G docker $OS_USER
 
         #############################
         # Umgebung einrichten
