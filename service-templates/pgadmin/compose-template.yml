@@ -14,7 +14,8 @@ services:
       - ./config/servers.json:/pgadmin4/servers.json
       - ../../pgsql/config/.pgpass:/var/lib/pgadmin/.pgpass
 #      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass:/var/lib/pgadmin/.pgpass
+    networks:
+      - ${NETWORK_NAME}
 networks:
-  default:
-      name: ${NETWORK_NAME}
+  ${NETWORK_NAME}:
       external: true
