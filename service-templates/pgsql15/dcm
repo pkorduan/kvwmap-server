@@ -31,7 +31,7 @@ install_service() {
   sed -i -e "s|NETWORK_SUBNET|${NETWORK_SUBNET}|g" "${SERVICE_PATH}/config/pg_hba.conf"
 
   chown -R 999.gisadmin ${SERVICE_PATH}
-  chown root.root ${SERVICE_PATH}/config/.pgpass*
+  chown 999.999 ${SERVICE_PATH}/config/.pgpass*
   chmod 600 ${SERVICE_PATH}config/.pgpass*
 
   export SERVICE_NAME

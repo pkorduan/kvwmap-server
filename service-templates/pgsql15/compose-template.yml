@@ -1,5 +1,6 @@
 version: "3.6"
 services:
+  #pgsql:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
@@ -11,17 +12,15 @@ services:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
       - PGSQL_DB=postgres
       - PGSQL_USER=postgres
-      - PGSQL_PASSFILE=/root/.pgpass
+      - PGPASSFILE=/var/lib/postgresql/config/.pgpass
       - PGSQL_MAJOR_VERSION=15
       - POSTGIS_VERSION=3.3
     volumes:
-      - ./config/.pgpass:/root/.pgpass
-      - ./config/.pgpass_gisadmin:/home/gisadmin/.pgpass
-#use default      - ./config/postgresql.conf:/var/lib/postgresql/config/postgresql.conf
-      - ./config/pg_hba.conf:/var/lib/postgresql/config/pg_hba.conf
+      - ./config/postgresql.conf:/var/lib/postgresql/config
       - ./data:/var/lib/postgresql/data
       - ./backup:/pgbackrest
       - ./logs:/var/log/pgsql
+#      - ./dumps:/dumps
       - ../../volumes/proj/epsg:/usr/share/proj/epsg
       - ../../volumes/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
       - ../../volumes/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb
