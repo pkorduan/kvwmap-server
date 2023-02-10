@@ -1,0 +1,27 @@
+#!/bin/bash
+
+install_service() {
+
+  echo "Installation von Service pgsqlrestore in Netzwerk '${NETWORK_NAME}'"
+  SERVICE_NAME=pgsqlrestore
+
+  echo "Service-Name: ${SERVICE_NAME}"
+
+  SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/
+  if [ -d "$SERVICE_PATH" ]; then
+    echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+    return 1
+  fi
+
+  mkdir -p ${SERVICE_PATH}
+  cp -r ${USER_DIR}/kvwmap-server/service-templates/pgsqlrestore/directory_template/* ${SERVICE_PATH}
+  cp    ${USER_DIR}/kvwmap-server/service-templates/pgsqlrestore/compose-template.yml ${SERVICE_PATH}
+  mkdir ${SERVICE_PATH}/data
+  mkdir ${SERVICE_PATH}/logs
+
+  chown -R 999.gisadmin ${SERVICE_PATH}
+
+  export SERVICE_NAME
+
+  echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+}

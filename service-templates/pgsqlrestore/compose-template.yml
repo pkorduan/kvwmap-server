@@ -5,9 +5,8 @@ services:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     image: pkorduan/postgis:15-3.3
-    restart: "always"
-    ports:
-      - 5432:5432
+#    ports:
+#      - "5432-5500:5432"
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
       - PGSQL_DB=postgres
@@ -16,16 +15,14 @@ services:
       - PGSQL_MAJOR_VERSION=15
       - POSTGIS_VERSION=3.3
     volumes:
-      - ./config:/var/lib/postgresql/config
+      - ./config:/var/lib/postgresql/config:ro
       - ./data:/var/lib/postgresql/data
-      - ./backup:/pgbackrest
+      - ./backup:/pgbackrest:ro
       - ./logs:/var/log/pgsql
-#      - ./dumps:/dumps
       - ../../volumes/proj/epsg:/usr/share/proj/epsg
       - ../../volumes/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
       - ../../volumes/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb
 #      - ./www:/var/www #optional
 networks:
-    default:
-        name: ${NETWORK_NAME}
+    ${NETWORK_NAME}:
         external: true
