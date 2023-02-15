@@ -308,8 +308,16 @@ function remove_service() {
 }
 
 function compose_call(){
-  cmd="docker-compose -f ./docker-compose.yml --env-file ./../../env --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
-  echo $cmd
+#entscheiden ob docker-compose-binary oder docker compose-plugin
+
+    if [ $(which "docker-compose">/dev/null; echo $?) -eq 0 ]; then
+        DOCKERCOMPOSE_CALL="docker-compose"
+    elif [ $(which "docker compose">/dev/null; echo $?) -eq 0 ]; then
+        DOCKERCOMPOSE_CALL="docker compose"
+    fi
+
+    cmd="${DOCKERCOMPOSE_CALL} -f ./docker-compose.yml --env-file ./../../env --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
+    echo $cmd
 }
 
 function up_down_service() {
@@ -326,6 +334,7 @@ function up_down_service() {
     export NETWORK_PATH
     export SERVICE_PATH
     cmd="$(compose_call)"
+    echo $cmd
     case "$UP_DOWN" in
       up)
         echo "Erstelle Service ${NETWORK_NAME}_${SERVICE_NAME}"
