@@ -312,7 +312,7 @@ function compose_call(){
 
     if [ $(which "docker-compose">/dev/null; echo $?) -eq 0 ]; then
         DOCKERCOMPOSE_CALL="docker-compose"
-    elif [ $(which "docker compose">/dev/null; echo $?) -eq 0 ]; then
+    else
         DOCKERCOMPOSE_CALL="docker compose"
     fi
 
