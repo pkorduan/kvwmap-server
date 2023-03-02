@@ -29,8 +29,8 @@ services:
       - LC_IDENTIFICATION=C.UTF-8
       - TERM=Linux
     volumes:
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/.pgpass:/root/.pgpass
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/.pgpass_gisadmin:/home/gisadmin/.pgpass
+      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass:/root/.pgpass
+      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass_gisadmin:/home/gisadmin/.pgpass
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/web/www:/var/www
 networks:
     default:
