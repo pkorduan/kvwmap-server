@@ -1,0 +1,33 @@
+version: "3.6"
+services:
+  #pgsql:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    build: ./build
+#    image: pkorduan/postgis:15-3.3
+    restart: "always"
+#    ports:
+#      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - PGSQL_DB=postgres
+      - PGSQL_USER=postgres
+      - PGPASSFILE=/var/lib/postgresql/config/.pgpass
+      - PGSQL_MAJOR_VERSION=15
+      - POSTGIS_VERSION=3.3
+    volumes:
+      - ./config:/var/lib/postgresql/config
+      - ./.pgpass:/var/lib/postgresql/config/.pgpass
+      - ./data:/var/lib/postgresql/data
+      - ./logs:/var/log/pgsql
+      - ./dumps:/dumps
+      - ./scripts:/scripts
+      - ../../volumes/proj/epsg:/usr/share/proj/epsg
+      - ../../volumes/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
+      - ../../volumes/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb
+#      - ./www:/var/www #optional
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true
