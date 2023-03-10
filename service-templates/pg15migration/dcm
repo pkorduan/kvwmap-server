@@ -2,29 +2,30 @@
 
 install_service() {
 
-  echo "Installation von Service pg15migration in Netzwerk '${NETWORK_NAME}'"
   SERVICE_NAME=pg15migration
+  echo "Installation von Service $SERVICE_NAME in Netzwerk '${NETWORK_NAME}'"
 
-  echo "Service-Name: ${SERVICE_NAME}"
-
-  SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/
+  SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
   if [ -d "$SERVICE_PATH" ]; then
     echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
-    return 1
+    exit 1
   fi
 
-  if [ -z "${POSTGRES_PASSWORD}" ] ; then
-    read -p "Passwort für User postgres: " -s POSTGRES_PASSWORD
-  else
-    echo "Use pre-defined POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:1:5}..."
-  fi
+  read -p "Passwort für User postgres: " POSTGRES_PASSWORD
   echo "POSTGRES_PASSWORD=\"${POSTGRES_PASSWORD}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
 
+  read -p "Pfad zur alten .pgpass: " PGPASSFILE
+  read -p "Hinweis: .pgpass Nutzer postgres braucht Zugang zu DB postgres! [press the  'any' key to continue]"
+  read -p "Pfad zum Dump-Ordner: " PGDUMPPATH
+
   mkdir -p ${SERVICE_PATH}
-  cp -r ${USER_DIR}/kvwmap-server/service-templates/"$SERVICE_NAME"/directory_template/. ${SERVICE_PATH}
-  cp    ${USER_DIR}/kvwmap-server/service-templates/"$SERVICE_NAME"/compose-template.yml ${SERVICE_PATH}
+  cp -r ${USER_DIR}/kvwmap-server/service-templates/"$SERVICE_NAME"/directory_template/. ${SERVICE_PATH}/
+  cp    ${USER_DIR}/kvwmap-server/service-templates/"$SERVICE_NAME"/compose-template.yml ${SERVICE_PATH}/
   mkdir ${SERVICE_PATH}/data
   mkdir ${SERVICE_PATH}/logs
+
+  ln -s "$PGPASSFILE" "$SERVICE_PATH"/
+  ln -s "$PGDUMPPATH" "$SERVICE_PATH"/
 
   chown -R 999.gisadmin ${SERVICE_PATH}
 
