@@ -4,12 +4,12 @@ DUMPDIR=/dumps
 LOGDIR="$DUMPDIR"/logs
 
 if [ ! -d "$LOGDIR" ]; then
-    echo "erstelle $LOGDIR"
-    mkdir -p "$LOGDIR"
+    cmd="mkdir -p $LOGDIR"
+    echo $cmd; $cmd
 fi
 
 echo "Rollen + Tablespace einlesen"
-psql -U postgres -f "$DUMPDIR"/schema_rollen.sql &> "$LOGDIR"/schema_rollen.stdout  2> "$LOGDIR"/schema_rollen.errout
+psql -U postgres -f "$DUMPDIR"/roles_tablespaces.dump &> "$LOGDIR"/roles_tablespaces.stdout  2> "$LOGDIR"/roles_tablespaces.errout
 
 echo "einzelne DB-Dumps einlesen"
 while read -r DUMP_FILEPATH

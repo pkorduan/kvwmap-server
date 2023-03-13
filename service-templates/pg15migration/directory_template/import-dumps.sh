@@ -5,6 +5,11 @@ PGMNETWORK="pgmigration"
 
 CONTAINER="$PGMNETWORK"_"$PGMSERVICE"
 
+if [ $(basename $(pwd)) != "$PGMSERVICE" ]; then
+    echo "Script wird in nicht im Ordner des Service ($PGMSERVICE) aufgerufen. Abbruch."
+    exit 1
+fi
+
 echo "Script stopp Container $CONTAINER, leert ./data, startet Container und importiert Dumps"
 read -p "Forfahren? [j/n]: " yesno
 if [ "$yesno" != "j" ]; then
