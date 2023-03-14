@@ -25,7 +25,11 @@ services:
       - ../../volumes/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
       - ../../volumes/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb
 #      - ./www:/var/www #optional
+    networks:
+        ${NETWORK_NAME}:
+            aliases:
+                - pgsql
+                - kvwmap_prod_pgsql
 networks:
-    default:
-        name: ${NETWORK_NAME}
+    ${NETWORK_NAME}:
         external: true
