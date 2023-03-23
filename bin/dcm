@@ -621,7 +621,7 @@ function remove_all_networks() {
 #load settings
 USER_DIR=/home/gisadmin
 CONFIG_KVWMAP_SERVER=${USER_DIR}/kvwmap-server/config
-if [ ! -f ${CONFIG_KVWMAP_SERVER} ] ; then
+if [ ! -f ${CONFIG_KVWMAP_SERVER}/config ] ; then
   if [ ! -d ${USER_DIR} ] ; then
     echo "Can not create the conifg file because target directory ${USER_DIR} does not exists."
     exit 1
