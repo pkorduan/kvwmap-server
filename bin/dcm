@@ -144,7 +144,7 @@ function create_network() {
 
   case ${NETWORK_NAME} in
     kvwmap_prod)
-      SUBNET=$SUBNET_KVWMAP_PROD
+      SUBNET=10
     ;;
     kvwmap_dev)
       SUBNET=20
