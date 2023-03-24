@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# bash <(curl -s https://dev.gdi-service.de/public/init-debian11.sh)
+# bash <(curl -s https://raw.githubusercontent.com/pkorduan/kvwmap-server/develop/bin/init-debian11.sh)
 
 set -e
 
@@ -39,6 +39,20 @@ chmod +x ./get-docker.sh
 
 wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64
 chmod a+x /usr/local/bin/yq
+
+#############################
+# Install Glances
+#############################
+apt-get update && apt-get install -y \
+    python3 \
+    python3-dev \
+    python3-jinja2 \
+    python3-psutil \
+    python3-setuptools \
+    hddtemp \
+    python3-pip \
+    lm-sensors
+pip3 install glances
 
 #############################
 # Gruppe + OS_USER anlegen (gisadmin)
