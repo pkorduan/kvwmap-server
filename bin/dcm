@@ -342,7 +342,7 @@ function up_down_service() {
       ;;
       down)
         echo "Entferne Service ${NETWORK_NAME}_${SERVICE_NAME}"
-        cmd="${cmd} down"
+        cmd="${cmd} down -t 600"
       ;;
       *)
         cmd=""
