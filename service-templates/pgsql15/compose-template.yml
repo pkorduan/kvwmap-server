@@ -6,8 +6,8 @@ services:
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     image: pkorduan/postgis:15-3.3
     restart: "always"
-    ports:
-      - 5432:5432
+#    ports:
+#      - 5432:5432
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
       - PGSQL_DB=postgres
@@ -20,16 +20,16 @@ services:
       - ./data:/var/lib/postgresql/data
       - ./backup:/pgbackrest
       - ./logs:/var/log/pgsql
-#      - ./dumps:/dumps
+      - ./dumps:/dumps
+      - ./scripts:/scripts
       - ../../volumes/proj/epsg:/usr/share/proj/epsg
       - ../../volumes/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
       - ../../volumes/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb
-#      - ./www:/var/www #optional
     networks:
         ${NETWORK_NAME}:
             aliases:
-                - pgsql
-                - kvwmap_prod_pgsql
+                - pgsql15
+                - kvwmap_prod_pgsql15
 networks:
     ${NETWORK_NAME}:
         external: true

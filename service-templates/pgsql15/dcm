@@ -13,12 +13,11 @@ install_service() {
     return 1
   fi
 
-  if [ -z "${POSTGRES_PASSWORD}" ] ; then
-    read -p "Passwort für User postgres: " -s POSTGRES_PASSWORD
-  else
-    echo "Use pre-defined POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:1:5}..."
-  fi
+  read -p "Passwort für User postgres: " -s POSTGRES_PASSWORD
   echo "POSTGRES_PASSWORD=\"${POSTGRES_PASSWORD}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
+  read -p "Pfad zur alten .pgpass: " PGPASSFILE
+  read -p "Hinweis: .pgpass Nutzer postgres braucht Zugang zu DB postgres! [press the  'any' key to continue]"
+  read -p "Pfad zum Dump-Ordner: " PGDUMPPATH
 
   mkdir -p ${SERVICE_PATH}
   cp -r ${USER_DIR}/kvwmap-server/service-templates/pgsql15/directory_template/* ${SERVICE_PATH}
@@ -27,12 +26,10 @@ install_service() {
   mkdir ${SERVICE_PATH}/backup
   mkdir ${SERVICE_PATH}/logs
 
-  debug "Ersetze NETWORK_SUBNET in ${SERVICE_PATH}/config/pg_hba.conf durch: ${NETWORK_SUBNET}"
-  sed -i -e "s|NETWORK_SUBNET|${NETWORK_SUBNET}|g" "${SERVICE_PATH}/config/pg_hba.conf"
+  cp "$PGPASSFILE" "$SERVICE_PATH"/config/
+  ln -s "$PGDUMPPATH" "$SERVICE_PATH"/
 
   chown -R 999.gisadmin ${SERVICE_PATH}
-  chown 999.999 ${SERVICE_PATH}/config/.pgpass*
-  chmod 600 ${SERVICE_PATH}config/.pgpass*
 
   export SERVICE_NAME
 
