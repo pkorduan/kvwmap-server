@@ -144,7 +144,7 @@ function create_network() {
 
   case ${NETWORK_NAME} in
     kvwmap_prod)
-      SUBNET=$SUBNET_KVWMAP_PROD
+      SUBNET=10
     ;;
     kvwmap_dev)
       SUBNET=20
@@ -342,7 +342,7 @@ function up_down_service() {
       ;;
       down)
         echo "Entferne Service ${NETWORK_NAME}_${SERVICE_NAME}"
-        cmd="${cmd} down"
+        cmd="${cmd} down -t 600"
       ;;
       *)
         cmd=""
@@ -622,9 +622,9 @@ function remove_all_networks() {
 USER_DIR=/home/gisadmin
 CONFIG_KVWMAP_SERVER=${USER_DIR}/kvwmap-server/config
 if [ ! -f ${CONFIG_KVWMAP_SERVER}/config ] ; then
-  if [ ! -f ${USER_DIR} ] ; then
+  if [ ! -d ${USER_DIR} ] ; then
     echo "Can not create the conifg file because target directory ${USER_DIR} does not exists."
-    exit 0
+    exit 1
   fi
   echo "Create config file from config/config-default"
   cp ${CONFIG_KVWMAP_SERVER}/config-default ${CONFIG_KVWMAP_SERVER}/config
