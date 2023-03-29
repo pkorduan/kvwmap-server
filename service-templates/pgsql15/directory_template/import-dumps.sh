@@ -15,7 +15,7 @@ if [ ! -f ./config/.pgpass ]; then
     exit 1
 fi
 
-echo "Script stopp Container $CONTAINER, leert ./data, startet Container und importiert Dumps"
+echo "Script entfernt Container $CONTAINER, leert ./data, ./backup startet Container und importiert Dumps"
 read -p "Forfahren? [j/n]: " yesno
 if [ "$yesno" != "j" ]; then
     echo "Abbruch."
@@ -23,26 +23,27 @@ if [ "$yesno" != "j" ]; then
 fi
 
 dcm down "$PGMSERVICE" "$PGMNETWORK"
-rm -rf ./data/*
+rm -rf ./data/* ./backup/*
+
 
 echo "Cluster wird initialisiert"
 dcm up "$PGMSERVICE" "$PGMNETWORK"
 echo "warte 30s bis das Cluster initialisiert ist..."
 sleep 30
-dcm down "$PGMSERVICE" "$PGMNETWORK"
+docker stop "$CONTAINER"
 
 echo "ersetze Config durch Restore-Config"
 mv ./config/conf.d ./config/conf.d.prod
 mv ./config/conf.d.restore ./config/conf.d
 
-dcm up "$PGMSERVICE" "$PGMNETWORK"
+docker start "$CONTAINER"
 sleep 5
 
 docker exec -it "$CONTAINER" bash -c /scripts/restore.sh
 
 echo "ersetze Restore-Config durch Produktions-Config"
-dcm down "$PGMSERVICE" "$PGMNETWORK"
+docker stop "$CONTAINER"
 mv ./config/conf.d ./config/conf.d.restore
 mv ./config/conf.d.prod ./config/conf.d
-dcm up "$PGMSERVICE" "$PGMNETWORK"
+docker start "$CONTAINER"
 

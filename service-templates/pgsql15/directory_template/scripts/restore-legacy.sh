@@ -19,6 +19,11 @@ do
     echo "Importiere $DB_NAME"
     psql postgres gisadmin -c "CREATE DATABASE $DB_NAME;" &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
     psql "$DB_NAME" gisadmin -c "CREATE EXTENSION postgis;" &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
+    psql "$DB_NAME" gisadmin -c "CREATE EXTENSION postgis_raster;" &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
+    psql "$DB_NAME" gisadmin -c "CREATE EXTENSION postgis_sfcgal;" &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
+    psql "$DB_NAME" gisadmin -c "CREATE EXTENSION fuzzystrmatch; CREATE EXTENSION postgis_tiger_geocoder;" &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
+    psql "$DB_NAME" gisadmin -c "CREATE EXTENSION address_standardizer; CREATE EXTENSION address_standardizer_data_us;" &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
+    psql "$DB_NAME" gisadmin -c "CREATE EXTENSION postgis_topology;" &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
     psql "$DB_NAME" gisadmin < /usr/share/postgresql/15/contrib/postgis-3.3/legacy.sql &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
     perl /usr/share/postgresql/15/contrib/postgis-3.3/postgis_restore.pl "$DUMP_FILEPATH" 2>&1 | psql "$DB_NAME" gisadmin &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
 done < <(find "$DUMPDIR" -type f -name "schema_data.*.dump")
