@@ -7,7 +7,7 @@ services:
     restart: "always"
     networks:
       - ${NETWORK_NAME}
-      - kvwmap_prod
+#      - kvwmap_prod
     ports:
       - "80:80"
       - "443:443"
@@ -20,5 +20,5 @@ services:
 networks:
     ${NETWORK_NAME}:
         external: true
-    kvwmap_prod:
-        external: true
+#    kvwmap_prod:
+#        external: true
