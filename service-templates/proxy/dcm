@@ -39,6 +39,10 @@ install_service() {
 	chown root.root ${SERVICE_PATH}/init-letsencrypt.sh
 	chmod 700 ${SERVICE_PATH}/init-letsencrypt.sh
 
+    sed -i -e "s|#      - kvwmap_prod|      - kvwmap_prod|g" "${SERVICE_PATH}/docker-compose.yml"
+    sed -i -e "s|#    kvwmap_prod:|    kvwmap_prod:|g" "${SERVICE_PATH}/docker-compose.yml"
+    sed -i -e "s|#        external: true|#        external: true|g" "${SERVICE_PATH}/docker-compose.yml"
+
 #	dcm up proxy proxy
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet. Der Service kann gestartet werden mit: dcm proxy up"
