@@ -1,24 +1,26 @@
 #!/bin/bash
-set -e # breche Script bei Fehlern ab
-#set -u # breche ab wenn Variablen verwendet werden, die keine Wertzuweisung hatten
 # run this script:
 # wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost && chmod a+x inithost.sh && ./inithost.sh
-usage() {
-  echo <<- EOF
-  USAGE
-    inithost
-EOF
-}
+
 install_docker() {
   echo "Install docker auf dem Hostrechner ..."
   # Update debian repo
   apt-get update && apt-get install -y \
+    apt-transport-https \
     apt-utils \
     ca-certificates \
     curl \
+    gnupg \
     gnupg2 \
     lsb-release \
     pass
+
+  # Adding Docker Repository
+  mkdir -m 0755 -p /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/debian/gpg |  gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
   # install docker demon and client on host system if not exists already
   case `docker --version` in
@@ -27,12 +29,15 @@ install_docker() {
       ;;
     *)
       echo 'Installiere docker ....'
-      curl -sSL https://get.docker.com/ | sh
-      mkdir -p $USER_DIR/docker/lib
-      systemctl stop docker.socket
-      mv /var/lib/docker $USER_DIR/docker/lib
-      ln -s $USER_DIR/docker/lib/docker /var/lib/docker
+      apt-get update && apt-get install -y \
+        docker-ce \
+        docker-ce-cli \
+        containerd.io \
+        docker-compose-plugin
+      systemctl is-enabled docker
+      systemctl is-enabled containerd
       systemctl start docker
+      systemctl start containerd
     ;;
   esac
 
@@ -47,7 +52,7 @@ install_docker() {
 }
 
 install_docker-compose() {
-  echo "Installiere docker-compose. Verfügbare Tags siehe: https://github.com/docker/compose/tags"
+  echo "Installiere docker-compose. VerfÃ¼gbare Tags siehe: https://github.com/docker/compose/tags"
   if [ -z "${COMPOSE_VERSION}" ] ; then
     read -p "Welche Version von docker-compose soll installiert werden (2.4.1)? " COMPOSE_VERSION
     if [ -z $COMPOSE_VERSION ] ; then
@@ -86,15 +91,9 @@ uninstall_all() {
   fi
 }
 
-
-option1=$1
-option2=$2
-
-set -u # breche ab wenn Variablen verwendet werden, die keine Wertzuweisung hatten
-
-case "$option1" in
+case "$1" in
   uninstall)
-    case $option2 in
+    case $2 in
       docker)
         systemctl stop docker.socket
         apt-get purge docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
@@ -134,17 +133,34 @@ case "$option1" in
         #############################
         # Install tools
         #############################
-
         apt-get update && apt-get install -y \
           apt-utils \
           lshw \
           git \
-          glances \
           jq \
           sendemail \
           tree \
           unzip \
           wget
+
+        #############################
+        # Install Glances
+        #############################
+        apt-get update && apt-get install -y \
+          python3 \
+          python3-dev \
+          python3-jinja2 \
+          python3-psutil \
+          python3-setuptools \
+          hddtemp \python3-pip \
+          lm-sensors
+         pip3 install glances
+
+        #############################
+        # Install Docker
+        #############################
+        install_docker
+        install_docker-compose
 
         # Initialize kvwmap-server
         # Version
@@ -161,6 +177,7 @@ case "$option1" in
         export MYSQL_USER="kvwmap"
         export MYSQL_PASSWORD=$(openssl rand -base64 24)
         export POSTGRES_PASSWORD=$(openssl rand -base64 24)
+        export PGADMIN_DEFAULT_PASSWORD=$(openssl rand -base64 24)
         read -p "Enter the domain name for this server: " CUSTOM_HOSTNAME
         export HOSTNAME=$CUSTOM_HOSTNAME
 
@@ -190,41 +207,9 @@ case "$option1" in
           useradd -u 17000 -g 1700 -d ${USER_DIR} -m -s /bin/bash -p $(echo ${GISADMIN_PASSWORD} | openssl passwd -1 -stdin) ${OS_USER}
         fi
 
-        cd ${USER_DIR}
-
-        #############################
-        # Install Docker
-        #############################
-        install_docker
-        install_docker-compose
-
         /usr/sbin/usermod -a -G docker $OS_USER
 
-        #############################
-        # Umgebung einrichten
-        #############################
-
-        cp /etc/skel/.bashrc $USER_DIR/.bashrc
-        echo "
-        export PATH=\$PATH:${USER_DIR}/kvwmap-server/bin" >> $USER_DIR/.bashrc
-        sed -i \
-            -e "s|#alias ll=|alias ll=|g" \
-            -e "s|alias rm=|#alias rm=|g" \
-            $USER_DIR/.bashrc
-        echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
-        echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
-        echo "set nocompatible" >> $USER_DIR/.vimrc
-        echo ".bashrc angepasst."
-
-        cp $USER_DIR/.bashrc ~/.bashrc
-        echo ".bashrc für Root gesetzt."
-        cp $USER_DIR/.vimrc ~/.vimrc
-        echo ".vimrc für Root gesetzt."
-
-        source ~/.bashrc
-        echo ".bashrc geladen."
-        source ~/.vimrc
-        echo ".vimrc geladen."
+        cd ${USER_DIR}
 
         #############################
         # kvmap-server entfernen, wenn vorhanden
@@ -246,6 +231,7 @@ case "$option1" in
         chmod -R g+w kvwmap-server/* kvwmap-server/.*
         cd kvwmap-server
         sudo -u $OS_USER git checkout develop
+        ln -s ${USER_DIR}/kvwmap-server/bin/dcm /usr/bin/dcm
 
         #############################
         # Hostnamen setzen
@@ -253,7 +239,7 @@ case "$option1" in
         hostname $HOSTNAME
 
         #############################
-        # SSH_PORT ändern
+        # SSH_PORT Ã¤ndern
         #############################
         if [ -z "${SSH_PORT}" ] ; then
           read -p "Enter port for ssh login: " SSH_PORT
@@ -264,6 +250,33 @@ case "$option1" in
             -e "s|#Port 22|Port ${SSH_PORT}|g" \
             /etc/ssh/sshd_config
         /etc/init.d/ssh reload
+
+        #############################
+        # Umgebung einrichten
+        #############################
+
+        cp /etc/skel/.bashrc $USER_DIR/.bashrc
+        echo "
+        export PATH=\$PATH:${USER_DIR}/kvwmap-server/bin" >> $USER_DIR/.bashrc
+        source $USER_DIR/.bashrc
+        sed -i \
+            -e "s|#alias ll=|alias ll=|g" \
+            -e "s|alias rm=|#alias rm=|g" \
+            $USER_DIR/.bashrc
+        echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
+        echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
+        echo "set nocompatible" >> $USER_DIR/.vimrc
+        echo ".bashrc angepasst."
+
+        cp $USER_DIR/.bashrc ~/.bashrc
+        echo ".bashrc fÃ¼r Root gesetzt."
+        cp $USER_DIR/.vimrc ~/.vimrc
+        echo ".vimrc fÃ¼r Root gesetzt."
+
+        source ~/.bashrc
+        echo ".bashrc geladen."
+        source ~/.vimrc
+        echo ".vimrc geladen."
 
         #############################
         # kvwmap-Instanz einrichten und starten
@@ -287,13 +300,13 @@ case "$option1" in
             dcm proxy reload
           ;;
           * )
-            echo "OK, Das Zertifikat kann später mit dem certbot Container erstellt werden."
+            echo "OK, Das Zertifikat kann spÃ¤ter mit dem certbot Container erstellt werden."
           ;;
         esac
 
         cd $USER_DIR/networks/kvwmap_prod/services/web
 
-        #read -p "Initscript löschen? (j/n) " answer
+        #read -p "Initscript lÃ¶schen? (j/n) " answer
         #case ${answer:0:1} in
         #  j|J|y|Y )
         #    rm inithost.sh
@@ -306,11 +319,11 @@ case "$option1" in
         echo "
         Die Installation ist erfolgreich abgeschlossen.
         "
-        echo "Der Zugang für root kann mit folgendem Befehl gesperrt werden:
+        echo "Der Zugang fÃ¼r root kann mit folgendem Befehl gesperrt werden:
         sed -i -e \"s|#PermitRootLogin prohibit-password|PermitRootLogin no|g\" /etc/ssh/sshd_config"
         echo "
-        Nächste Schritte zum installieren von kvwmap:"
-        echo "Browser öffnen mit der Adresse: http://${HOSTNAME}/install.php"
+        NÃ¤chste Schritte zum installieren von kvwmap:"
+        echo "Browser Ã¶ffnen mit der Adresse: http://${HOSTNAME}/install.php"
 
         echo "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 GISADMIN_PASSWORD=\"${GISADMIN_PASSWORD}\"
@@ -321,6 +334,7 @@ SUBNET_KVWMAP_PROD=\"${SUBNET_KVWMAP_PROD}\"
 MYSQL_ROOT_PASSWORD=\"${MYSQL_ROOT_PASSWORD}\"
 MYSQL_PASSWORD=\"${MYSQL_PASSWORD}\" for MYSQL_USER=\"${MYSQL_USER}\"
 POSTGRES_PASSWORD=\"${POSTGRES_PASSWORD}\"
+PGADMIN_PASSWORD=\"${PGADMIN_DEFAULT_PASSWORD=}\"
 = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ="
 
         # Create a mysql user for kvwmap
@@ -339,3 +353,4 @@ POSTGRES_PASSWORD=\"${POSTGRES_PASSWORD}\"
     esac
   ;;
 esac
+
