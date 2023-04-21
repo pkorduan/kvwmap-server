@@ -21,9 +21,9 @@ dcm down "$PGMSERVICE" "$PGMNETWORK"
 rm -rf ./data/*
 dcm up "$PGMSERVICE" "$PGMNETWORK"
 
-while ! docker exec -it "$CONTAINER" test -S /var/run/postgresql/.s.PGSQL.5432;
+while ! docker exec "$CONTAINER" test -S /var/run/postgresql/.s.PGSQL.5432;
 do
     echo "warte 15s auf Starten des Servers..."
     sleep 15
 done
-docker exec -it "$CONTAINER" bash -c /scripts/restore.sh
+docker exec "$CONTAINER" bash -c /scripts/restore.sh
