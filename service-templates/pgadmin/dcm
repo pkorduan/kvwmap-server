@@ -6,12 +6,6 @@ install_service() {
   SERVICE_NAME=pgadmin
   echo "Service-Name=${SERVICE_NAME}"
 
-  if [ -z "$PGADMIN_DEFAULT_EMAIL" ] ; then
-    read -p "pgadmin Administrator E-Mail: " PGADMIN_DEFAULT_EMAIL
-  else
-    echo "Use pre-defined PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL:1:5}..."
-  fi
-
   if [ -z "$PGADMIN_DEFAULT_PASSWORD" ] ; then
     read -p "pgadmin Administrator Passwort: " -s PGADMIN_DEFAULT_PASSWORD
   else
