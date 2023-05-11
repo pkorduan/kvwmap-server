@@ -201,7 +201,6 @@ if [ "$action" = "install" ]; then
     docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "RENAME USER 'root' TO 'root'@'172.0.${SUBNET_KVWMAP_PROD}.%';" mysql
     docker exec kvwmap_prod_mariadb mysql -u root --password=$MYSQL_ROOT_PASSWORD -e "FLUSH PRIVILEGES;" mysql
 
-
     echo "
           Die Installation ist erfolgreich abgeschlossen.
         "

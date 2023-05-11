@@ -41,7 +41,7 @@ function install_service() {
     dcm create service web ${NETWORK_NAME}
     dcm create service mariadb ${NETWORK_NAME}
     dcm create service phpmyadmin ${NETWORK_NAME}
-    dcm create service pgsql15 ${NETWORK_NAME}
+    dcm create service pgsql ${NETWORK_NAME}
     dcm create service pgadmin ${NETWORK_NAME}
     dcm create service gdal ${NETWORK_NAME}
 

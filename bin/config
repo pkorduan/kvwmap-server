@@ -1,0 +1,4 @@
+INSTALL_JN=j
+CREATE_SSL_CERTIFICATES=j
+DOMAIN=kvwmap-build.gdi-service.de
+HOSTNAME=kvwmap

@@ -17,15 +17,6 @@ services:
       - ./www:/var/www
       - ./log:/var/log/nginx
 
-# When it not work with
-# docker-compose run certbot
-# run
-# docker run -it --rm --name certbot \
-#            -v "/home/gisadmin/proxy/www:/var/www" \
-#            -v "/home/gisadmin/proxy/letsencrypt:/etc/letsencrypt" \
-#            -v "/home/gisadmin/proxy/log:/var/log/letsencrypt" \
-#            certbot/certbot certonly
-
 networks:
     ${NETWORK_NAME}:
         external: true
