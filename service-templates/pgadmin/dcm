@@ -28,7 +28,7 @@ install_service() {
 
   mkdir -p ${SERVICE_PATH}
   cp -r ${USER_DIR}/kvwmap-server/service-templates/pgadmin/directory_template/* ${SERVICE_PATH}
-  sed -i "s/secretpasswort/${POSTGRES_PASSWORD}/g" ${SERVICE_PATH}/config/.pgpass
+  sed -i "s|secretpasswort|${POSTGRES_PASSWORD}|g" ${SERVICE_PATH}/config/.pgpass
 
   cp    ${USER_DIR}/kvwmap-server/service-templates/pgadmin/compose-template.yml ${SERVICE_PATH}/
   mkdir -p ${SERVICE_PATH}/data
