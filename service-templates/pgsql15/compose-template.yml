@@ -18,6 +18,7 @@ services:
     volumes:
       - ./config:/var/lib/postgresql/config
       - ./data:/var/lib/postgresql/data
+      - ./www:/var/www
       - ./backup:/pgbackrest
       - ./logs:/var/log/pgsql
       - ./dumps:/dumps
