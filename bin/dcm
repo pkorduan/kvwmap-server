@@ -335,6 +335,12 @@ function up_down_service() {
     export SERVICE_PATH
     cmd="$(compose_call)"
     echo $cmd
+
+    TIMEOUT=10
+    if [[ $SERVICE_NAME == *pgsql || $SERVICE_NAME == *mysql || $SERVICE_NAME == *mariadb ]]; then
+        TIMEOUT=600
+    fi
+
     case "$UP_DOWN" in
       up)
         echo "Erstelle Service ${NETWORK_NAME}_${SERVICE_NAME}"
@@ -342,7 +348,7 @@ function up_down_service() {
       ;;
       down)
         echo "Entferne Service ${NETWORK_NAME}_${SERVICE_NAME}"
-        cmd="${cmd} down -t 600"
+        cmd="${cmd} down -t $TIMEOUT"
       ;;
       *)
         cmd=""
