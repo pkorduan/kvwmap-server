@@ -2,7 +2,7 @@
 
 set -e
 
-apt_pkg_tools=(apt-utils lshw git jq sendmail tree unzip wget nano htop openssl gosu curl fish ca-certificates curl gnupg)
+apt_pkg_tools=(apt-utils lshw git jq sendmail tree unzip wget nano htop openssl gosu curl fish ca-certificates curl gnupg zstd)
 apt_pkg_docker=(docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin)
 apt_pkg_glances=(python3 python3-dev python3-jinja2 python3-psutil python3-setuptools hddtemp python3-pip lm-sensors)
 
