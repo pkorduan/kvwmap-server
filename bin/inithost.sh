@@ -187,6 +187,8 @@ if [ "$action" = "install" ]; then
     fi
 
     cd $USER_DIR/networks/kvwmap_prod/services/web
+    ln -s $USER_DIR/networks/kvwmap_prod/services/web/www/ $USER_DIR
+    chown -h gisadmin:gisadmin $USER_DIR/www
 
 
     #############################
