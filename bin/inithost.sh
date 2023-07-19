@@ -173,8 +173,7 @@ if [ "$action" = "install" ]; then
                 -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" \
                 -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly \
                 -d ${DOMAIN} \
-                --webroot -w /var/www/html --email "peter.korduan@gdi-service.de" \
-                --non-interactive --agree-tos
+                --webroot -w /var/www/html --email "peter.korduan@gdi-service.de" --non-interactive --agree-tos
         # Enable https
         sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN}|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default-ssl.conf
         sed -i -e "s|#add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf
