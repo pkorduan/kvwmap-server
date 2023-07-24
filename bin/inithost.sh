@@ -137,9 +137,11 @@ if [ "$action" = "install" ]; then
     cp /etc/skel/.bashrc $USER_DIR/.bashrc
     source $USER_DIR/.bashrc
     sed -i \
+        -e "s/alias ls='ls --color=auto'/alias ls='ls --color=auto -N'/g" \
         -e "s|#alias ll=|alias ll=|g" \
         -e "s|alias rm=|#alias rm=|g" \
         $USER_DIR/.bashrc
+    echo "export QUOTING_STYLE=literal" >> $USER_DIR/.bashrc
     echo "alias l='ls -alh --color=yes'" >> $USER_DIR/.bashrc
     echo "export PS1=\"\[\e[0m\]\[\e[01;31m\]\u\[\e[0m\]\[\e[00;37m\]@\[\e[0m\]\[\e[01;34m\]\h\[\e[0m\]\[\e[00;37m\]:\[\e[0m\]\[\e[01;37m\]\w\[\e[0m\]\[\e[00;37m\] \\$ \[\e[0m\]\"" >> $USER_DIR/.bashrc
     echo "set nocompatible" >> $USER_DIR/.vimrc
