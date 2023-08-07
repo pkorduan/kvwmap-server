@@ -16,5 +16,5 @@ while read -r DUMP_FILEPATH
 do
     DUMP_FILE=$(basename "$DUMP_FILEPATH")
     echo "Importiere $DUMP_FILEPATH"
-	pg_restore -U kvwmap -d postgres -CO "$DUMP_FILEPATH" &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
+	pg_restore -U kvwmap -d postgres -C "$DUMP_FILEPATH" &> "$LOGDIR"/"$DUMP_FILE".stdout 2> "$LOGDIR"/"$DUMP_FILE".errout
 done < <(find "$DUMPDIR" -type f -name "schema_data.*.dump")
