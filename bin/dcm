@@ -343,6 +343,13 @@ function up_down_service() {
 
     case "$UP_DOWN" in
       up)
+        existing_container=$(docker ps --format "{{.Names}}" --filter name=${NETWORK_NAME}_${SERVICE_NAME})
+        if [ -n "$existing_container" ]; then
+        echo "Der Service ${SERVICE_NAME} existiert in dem ${NETWORK_NAME} bereits. Wählen Sie einen anderen Namen und Starten Sie erneut!"
+        read -p "Erstellen Sie bitte eine neue Service und ein neues Netzwerk Namen, zum Biespiel: web kvwmap_test : " neu_service
+        create_service $neu_service
+        return 1
+        else
         echo "Erstelle Service ${NETWORK_NAME}_${SERVICE_NAME}"
         cmd="${cmd} up -d"
       ;;
