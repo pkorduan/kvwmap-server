@@ -350,6 +350,7 @@ function up_down_service() {
         else
         echo "Erstelle Service ${NETWORK_NAME}_${SERVICE_NAME}"
         cmd="${cmd} up -d"
+      fi
       ;;
       down)
         echo "Entferne Service ${NETWORK_NAME}_${SERVICE_NAME}"
