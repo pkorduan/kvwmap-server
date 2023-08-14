@@ -3,7 +3,7 @@
 set -e
 
 apt_pkg_tools=(apt-utils lshw git jq sendmail tree unzip wget nano htop openssl gosu curl fish ca-certificates curl gnupg zstd)
-apt_pkg_docker=(docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin)
+apt_pkg_docker=(docker.io docker-compose)
 apt_pkg_glances=(python3 python3-dev python3-jinja2 python3-psutil python3-setuptools hddtemp python3-pip lm-sensors)
 
 uninstall_all(){
@@ -41,14 +41,6 @@ if [ "$action" = "install" ]; then
     # install glances
     apt-get install -y ${apt_pkg_glances[*]}
     # install docker
-    install -m 0755 -d /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    chmod a+r /etc/apt/keyrings/docker.gpg
-    echo \
-        "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
-        "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-        tee /etc/apt/sources.list.d/docker.list > /dev/null
-    apt-get update
     apt-get install -y ${apt_pkg_docker[*]}
     # install yq
     wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64
