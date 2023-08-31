@@ -6,6 +6,9 @@ install_service() {
 	echo "optional neuer Service-Name (Default 'geoserver'): "
 	read SERVICE_NAME
 
+  echo "Servername: "
+  read HOSTNAME
+
 	if [ -z "$SERVICE_NAME" ]; then
 		SERVICE_NAME=geoserver
 	fi
@@ -22,6 +25,12 @@ install_service() {
 
 	mkdir ${SERVICE_PATH}
 	cp    ${USER_DIR}/kvwmap-server/service-templates/geoserver/compose-template.yml ${SERVICE_PATH}/
+	mkdir ${SERVICE_PATH}/data_dir
+  chown gisadmin.gisadmin ${SERVICE_PATH}/data_dir
+	mkdir ${SERVICE_PATH}/logs
+  chown gisadmin.gisadmin ${SERVICE_PATH}/logs
+  # Link auf die Logdatei von Geoserver im logs Verzeichnis von Tomcat
+  ln -d ${SERVICE_PATH}/data_dir/logs/geoserver.log ${SERVICE_PATH}/logs/geoserver.log
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }

@@ -2,15 +2,30 @@ version: "3.6"
 services:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
-    image: pkorduan/geoserver_inspire:2.16.1
+    image: pkorduan/geoserver:2.22.2                                    
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
-    restart: "always"
-    ports:
-      - 8080:8080
+    user: root
+    environment:
+      - HTTP_PROXY_NAME=${HOSTNAME}
+      - HTTP_SCHEME=https
+      - GEOSERVER_CSRF_WHITELIST=${HOSTNAME}
+      - GEOSERVER_ADMIN_USER=admin
+      - GEOSERVER_ADMIN_PASSWORD=gdigeoserver
+      - TIMEZONE=Europe/Berlin
+      # - EXISTING_DATA_DIR=/opt/geoserver/data_dir
+      - STABLE_EXTENSIONS=app-schema-plugin,excel-plugin,authkey-plugin,inspire-plugin,gdal-plugin
+      - GEOSERVER_UID=17000
+      - GEOSERVER_GID=1700
+      - TOMCAT_EXTRAS=false
+      - INITIAL_MEMORY=128M
+      - MAXIMUM_MEMORY=512M
+    restart: "always"                     
     volumes:
       - ./data_dir:/opt/geoserver/data_dir
-      - ./web.xml:/usr/local/tomcat/webapps/geoserver/WEB-INF/web.xml
+      - ./logging.properties:/usr/local/tomcat/conf/logging.properties
+      - ./logs:/usr/local/tomcat/logs/
 networks:
-    default:
-        name: ${NETWORK_NAME}
-        external: true
+  default:
+    name: ${NETWORK_NAME}
+    external: true
+

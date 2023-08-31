@@ -1,0 +1,26 @@
+version: "3.6"
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: pkorduan/geoserver:2.22.2
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    user: root
+    environment:
+       - HTTP_PROXY_NAME=${HOSTNAME}
+       - GEOSERVER_CSRF_WHITELIST=${HOSTNAME}
+       - EXISTING_DATA_DIR=/opt/geoserver/data_dir
+       - STABLE_EXTENSIONS=app-schema-plugin,excel-plugin,authkey-plugin,inspire-plugin
+       - GEOSERVER_UID=17000
+       - GEOSERVER_GID=1700
+       - TOMCAT_EXTRAS=false
+       - INITIAL_MEMORY=1G
+       - MAXIMUM_MEMORY=2G
+    restart: "always"
+    volumes:
+      - ./data_dir:/opt/geoserver/data_dir
+      - ./logging.properties:/usr/local/tomcat/conf/logging.properties
+      - ./logs:/usr/local/tomcat/logs/
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true
