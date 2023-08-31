@@ -3,8 +3,8 @@
 set -e
 
 apt_pkg_tools=(apt-utils lshw git jq sendmail tree unzip wget nano htop openssl gosu curl fish ca-certificates curl gnupg zstd)
-apt_pkg_docker=(docker.io docker-compose)
-apt_pkg_glances=(python3 python3-dev python3-jinja2 python3-psutil python3-setuptools hddtemp python3-pip lm-sensors)
+apt_pkg_docker=(docker.io docker-compose apparmor)
+apt_pkg_glances=(python3 python3-dev python3-jinja2 python3-psutil python3-setuptools python3-pip lm-sensors)
 
 uninstall_all(){
     echo "uninstall all"
