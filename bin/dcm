@@ -295,16 +295,18 @@ function remove_service() {
   read -p "Es wird der Service ${SERVICE_NAME} und alle Daten gelöscht! Fortfahren? [j|n]: " answer
   case ${answer:0:1} in
     j|J|y|Y )
+      #Service beenden
+      up_down_service ${SERVICE_NAME} ${NETWORK_NAME} down
+      echo "Lösche Dateien vom Service $SERVICE_NAME in Netzwerk $NETWORK_NAME"
+
+      #Verzeichnisse löschen
+      rm -rdvf ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+      echo "Service ${SERVICE_NAME} in ${NETWORK_NAME} gelöscht."
     ;;
     * )
       return 1
     ;;
   esac
-
-  #Service beenden
-  up_down_service ${SERVICE_NAME} ${NETWORK_NAME} down
-  #Verzeichnisse löschen
-  rm -rdvf ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
 }
 
 function compose_call(){
@@ -326,7 +328,9 @@ function up_down_service() {
   UP_DOWN=$3
   CURRENT_PWD=$(pwd)
 
-  service_exists ${SERVICE_NAME} ${NETWORK_NAME}
+  # Das funktioniert nicht. Wenn man das aufruft bricht das Script hier ab.
+  #service_exists ${SERVICE_NAME} ${NETWORK_NAME}
+
   if [ "$?" -eq 0 ]; then
     NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
     SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
@@ -367,6 +371,7 @@ function up_down_service() {
     cd $CURRENT_PWD
     return 1
   fi
+  echo "cd in das Verzeichnis: $CURRENT_PWD"
   cd $CURRENT_PWD
   return 0
 }

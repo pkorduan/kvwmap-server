@@ -30,7 +30,7 @@ install_service() {
 	mkdir ${SERVICE_PATH}/logs
   chown gisadmin.gisadmin ${SERVICE_PATH}/logs
   # Link auf die Logdatei von Geoserver im logs Verzeichnis von Tomcat
-  ln -d ${SERVICE_PATH}/data_dir/logs/geoserver.log ${SERVICE_PATH}/logs/geoserver.log
+  ln -s ${SERVICE_PATH}/data_dir/logs/geoserver.log ${SERVICE_PATH}/logs/geoserver.log
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }
