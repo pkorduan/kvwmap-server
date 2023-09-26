@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="master_a3_hochformat" pageWidth="842" pageHeight="1191" whenNoDataType="AllSectionsNoDetail" columnWidth="772" leftMargin="42" rightMargin="28" topMargin="28" bottomMargin="28" uuid="9a3e59f5-6675-48cf-ad74-9c42b5a5b290">
+	<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="cm"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<style name="HamburgSans" isDefault="true" forecolor="#00628e" hTextAlign="Left" markup="none" fontName="Noto Sans" fontSize="12" isBold="false"/>
+	<parameter name="mapSubReport" class="java.lang.String"/>
+	<parameter name="title" class="java.lang.String"/>
+	<parameter name="scalebarSubReport" class="java.lang.String"/>
+	<parameter name="scale" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<parameter name="gfi" class="net.sf.jasperreports.engine.data.JsonDataSource">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<parameter name="legend" class="net.sf.jasperreports.engine.data.JsonDataSource">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="showGfi" class="java.lang.Boolean"/>
+	<parameter name="showLegend" class="java.lang.Boolean"/>
+	<title>
+		<band height="1114" splitType="Stretch">
+			<subreport isUsingCache="false">
+				<reportElement mode="Transparent" x="0" y="30" width="772" height="1044" uuid="fa145068-76a5-4834-98ed-ce65b1976b3d">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="local_mesure_unitheight" value="pixel"/>
+				</reportElement>
+				<subreportExpression><![CDATA[$P{mapSubReport}]]></subreportExpression>
+			</subreport>
+			<rectangle radius="0">
+				<reportElement style="HamburgSans" mode="Transparent" x="0" y="30" width="772" height="1044" forecolor="rgba(99, 0, 7, 0.0)" backcolor="#FFFFFF" uuid="197ad040-4830-4219-bbb5-ee71478ed5dc">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="1.0" lineStyle="Solid" lineColor="#00628e"/>
+				</graphicElement>
+			</rectangle>
+			<subreport isUsingCache="false">
+				<reportElement x="0" y="1074" width="140" height="30" uuid="fa145068-76a5-4834-98ed-ce65b1976b3d">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<subreportExpression><![CDATA[$P{scalebarSubReport}]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement key="" style="HamburgSans" x="0" y="0" width="430" height="24" forecolor="#00628e" backcolor="#FFFFFF" uuid="36bf5719-4f89-4dcc-be12-74f1a5ead275">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Bottom" markup="none">
+					<font size="17" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{title}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement key="" style="HamburgSans" x="672" y="1074" width="100" height="30" uuid="ba0aa06f-9927-43b2-a54c-4412ffc2f07a"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{scale}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="RetainShape" hAlign="Right">
+				<reportElement x="637" y="0" width="135" height="24" uuid="ecd3a2f7-55aa-4258-ab6e-b71f85c5adb7"/>
+				<imageExpression><![CDATA["img/logo_mnw.jpg"]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement style="HamburgSans" x="89" y="1074" width="595" height="40" isRemoveLineWhenBlank="true" uuid="df7063f1-c8de-4371-a32a-e70184a7daee"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Testportal PlanDigital" + "\n" + 
+"Nutzungsbedingungen und Datenquellen unter:" + "\n" + 
+"https://testportal-plandigital.de/"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="40" splitType="Prevent">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<printWhenExpression><![CDATA[$P{showLegend} == true]]></printWhenExpression>
+			<subreport isUsingCache="false">
+				<reportElement x="0" y="0" width="772" height="40" isRemoveLineWhenBlank="true" uuid="2e5ea9fe-0dbe-4ba5-a02b-183285ad0fe3">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<dataSourceExpression><![CDATA[$P{legend}.subDataSource("layers")]]></dataSourceExpression>
+				<subreportExpression><![CDATA["a3_hochformat_legend.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="40" splitType="Prevent">
+			<printWhenExpression><![CDATA[$P{showGfi} == true]]></printWhenExpression>
+			<subreport isUsingCache="false">
+				<reportElement x="0" y="0" width="772" height="40" isRemoveLineWhenBlank="true" uuid="e1ac45c5-0a88-4012-bc94-9dea148b9cf1">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<dataSourceExpression><![CDATA[$P{gfi}.subDataSource("layers")]]></dataSourceExpression>
+				<subreportExpression><![CDATA["a3_hochformat_gfi.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="21">
+			<rectangle>
+				<reportElement mode="Opaque" x="0" y="6" width="772" height="15" forecolor="#00628e" backcolor="#00628e" uuid="88269c5a-b411-4c8c-adbf-119c9e41fbec">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<image scaleImage="RetainShape" hAlign="Left" vAlign="Middle" onErrorType="Blank">
+				<reportElement x="0" y="6" width="82" height="15" uuid="66e19891-60bb-4611-b843-5e8349cf744a">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<graphicElement fill="Solid"/>
+				<imageExpression><![CDATA["img/logo_mnw.jpg"]]></imageExpression>
+			</image>
+			<textField pattern="dd,MM,yyyy">
+				<reportElement key="" style="HamburgSans" x="558" y="6" width="208" height="15" forecolor="#FFFFFF" uuid="5137deda-77ed-4ef9-9309-8dc05b9be12c"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Erstellt am: " + DATEFORMAT(new java.util.Date(),"dd.MM.YYYY")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="6" width="386" height="15" forecolor="#FFFFFF" uuid="90e7799b-aa76-4cde-a44a-68816c9ac99d"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Noto Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Seite " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" pattern="">
+				<reportElement x="386" y="6" width="386" height="15" forecolor="#FFFFFF" uuid="686b6099-8db0-4f4a-8006-67ef4939d26b">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Noto Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" / " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

@@ -1,0 +1,26 @@
+{
+  "layout": "A4 Hochformat",
+  "outputFormat": "pdf",
+  "attributes": {
+  	"title": "Mein Dynamischer Titel",
+    "map": {
+      "projection": "EPSG:25832",
+      "dpi": 96,
+      "rotation": 0,
+      "center": [561210, 5932600],
+      "scale": 25000,
+      "layers": [{
+          "baseURL": "https://geodienste.hamburg.de/wms_hamburgde",
+          "opacity": 1,
+          "type": "WMS",
+          "layers": [
+            "geobasisdaten"
+          ],
+          "imageFormat": "image/png",
+          "customParams": {
+            "TRANSPARENT": "true"
+          }
+        }]
+    }
+  }
+}

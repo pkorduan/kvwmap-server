@@ -1,0 +1,28 @@
+{
+  "layout": "A3 Querformat",
+  "outputFormat": "pdf",
+  "attributes": {
+  	"title": "Mein MasterTitel",
+  	"scale": "1:60000",
+	"showLegend": false,
+	"showGfi": false,
+    "map": {
+      "projection": "EPSG:25832",
+      "dpi": 96,
+      "center": [561210, 5932600],
+      "scale": 25000,
+      "layers": [{
+          "baseURL": "https://geodienste.hamburg.de/wms_hamburgde",
+          "opacity": 1,
+          "type": "WMS",
+          "layers": [
+            "geobasisdaten"
+          ],
+          "imageFormat": "image/png",
+          "customParams": {
+            "TRANSPARENT": "true"
+          }
+        }]
+    }
+  }
+}

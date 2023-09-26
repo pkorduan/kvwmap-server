@@ -1,0 +1,182 @@
+
+templates:
+  #===========================================================================	
+  A4 Hochformat: !template
+  #===========================================================================
+    reportTemplate: a4_hochformat.jrxml
+    attributes:
+      title: !string {}
+      scale: !string {}
+      gfi: !jsonDatasource {}
+      showGfi: !boolean {}
+      legend: !jsonDatasource {}
+      showLegend: !boolean {}
+      map: !map
+        maxDpi: 400
+        dpiSuggestions: [72, 96, 120, 400]
+        width: 525
+        height: 695
+        zoomLevels: !zoomLevels
+          scales: [500, 1000, 2500, 5000, 10000, 20000, 40000, 60000, 100000, 250000]
+      scalebar: !scalebar
+        width: 140
+        height: 30
+        default:
+          barSize: 2
+          type: bar
+          align: left
+          intervals: 4
+          lineWidth: 1
+          font: Helvetica
+          fontSize: 8
+      overlayLayers: !staticLayers
+        default:
+          layers:
+            - type: "grid"
+              numberOfLines: [0, 0]
+              labelColor: rgba(0,0,0,0)
+              haloColor: rgba(0,0,0,0)
+    processors:
+    - !addBackgroundLayers
+      inputMapper:
+          overlayLayers: staticLayers
+          map: map
+    - !reportBuilder # compile all reports in current directory
+      directory: '.'
+    - !createMap {}
+    - !createScalebar {}
+  #===========================================================================	
+  A4 Querformat: !template
+  #===========================================================================
+    reportTemplate: a4_querformat.jrxml
+    attributes:
+      title: !string {}
+      scale: !string {}
+      gfi: !jsonDatasource {}
+      showGfi: !boolean {}
+      legend: !jsonDatasource {}
+      showLegend: !boolean {}
+      map: !map
+        maxDpi: 400
+        dpiSuggestions: [72, 96, 120, 400]
+        width: 772
+        height: 448
+        zoomLevels: !zoomLevels
+          scales: [500, 1000, 2500, 5000, 10000, 20000, 40000, 60000, 100000, 250000]
+      scalebar: !scalebar
+        width: 140
+        height: 30
+        default:
+          barSize: 2
+          type: bar
+          align: left
+          intervals: 4
+          lineWidth: 1
+          font: Helvetica
+          fontSize: 8
+      overlayLayers: !staticLayers
+        default:
+          layers:
+            - type: "grid"
+              numberOfLines: [0, 0]
+              labelColor: rgba(0,0,0,0)
+              haloColor: rgba(0,0,0,0)
+    processors:
+    - !addBackgroundLayers
+      inputMapper:
+          overlayLayers: staticLayers
+          map: map
+    - !reportBuilder # compile all reports in current directory
+      directory: '.'
+    - !createMap {}
+    - !createScalebar {}
+  #===========================================================================	
+  A3 Hochformat: !template
+  #===========================================================================
+    reportTemplate: a3_hochformat.jrxml
+    attributes:
+      title: !string {}
+      scale: !string {}
+      gfi: !jsonDatasource {}
+      showGfi: !boolean {}
+      legend: !jsonDatasource {}
+      showLegend: !boolean {}
+      map: !map
+        maxDpi: 400
+        dpiSuggestions: [72, 96, 120, 400]
+        width: 772
+        height: 1044
+        zoomLevels: !zoomLevels
+          scales: [500, 1000, 2500, 5000, 10000, 20000, 40000, 60000, 100000, 250000]
+      scalebar: !scalebar
+        width: 140
+        height: 30
+        default:
+          barSize: 2
+          type: bar
+          align: left
+          intervals: 4
+          lineWidth: 1
+          font: Helvetica
+          fontSize: 8
+      overlayLayers: !staticLayers
+        default:
+          layers:
+            - type: "grid"
+              numberOfLines: [0, 0]
+              labelColor: rgba(0,0,0,0)
+              haloColor: rgba(0,0,0,0)
+    processors:
+    - !addBackgroundLayers
+      inputMapper:
+          overlayLayers: staticLayers
+          map: map
+    - !reportBuilder # compile all reports in current directory
+      directory: '.'
+    - !createMap {}
+    - !createScalebar {}
+  #===========================================================================	
+  A3 Querformat: !template
+  #===========================================================================
+    reportTemplate: a3_querformat.jrxml
+    attributes:
+      title: !string {}
+      scale: !string {}
+      gfi: !jsonDatasource {}
+      showGfi: !boolean {}
+      legend: !jsonDatasource {}
+      showLegend: !boolean {}
+      map: !map
+        maxDpi: 400
+        dpiSuggestions: [72, 96, 120, 400]
+        width: 1120
+        height: 694
+        zoomLevels: !zoomLevels
+          scales: [500, 1000, 2500, 5000, 10000, 20000, 40000, 60000, 100000, 250000]
+      scalebar: !scalebar
+        width: 140
+        height: 30
+        default:
+          barSize: 2
+          type: bar
+          align: left
+          intervals: 4
+          lineWidth: 1
+          font: Helvetica
+          fontSize: 8
+      overlayLayers: !staticLayers
+        default:
+          layers:
+            - type: "grid"
+              numberOfLines: [0, 0]
+              labelColor: rgba(0,0,0,0)
+              haloColor: rgba(0,0,0,0)
+    processors:
+    - !addBackgroundLayers
+      inputMapper:
+          overlayLayers: staticLayers
+          map: map
+    - !reportBuilder # compile all reports in current directory
+      directory: '.'
+    - !createMap {}
+    - !createScalebar {}

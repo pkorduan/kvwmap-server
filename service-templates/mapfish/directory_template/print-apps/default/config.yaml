@@ -1,0 +1,100 @@
+
+templates:
+  #===========================================================================
+  A4 landscape: !template
+  #===========================================================================
+    reportTemplate: simpleReport.jrxml
+    attributes:
+      map: !map
+        maxDpi: 400
+        width: 780
+        height: 330
+      overviewMap: !overviewMap
+        width: 300
+        height: 150
+        maxDpi: 400
+        zoomFactor: 7
+      overlayLayers: !staticLayers
+        default:
+          layers:
+            - type: "grid"
+              numberOfLines: [10, 10]
+              labelColor: rgba(0,0,0,0)
+              haloColor: rgba(0,0,0,0)
+    processors:
+    - !addBackgroundLayers
+      inputMapper:
+          overlayLayers: staticLayers
+          map: map
+    - !reportBuilder # compile all reports in current directory
+      directory: '.'
+    - !createMap {}
+    - !createOverviewMap {}
+  #===========================================================================	
+  A4 landscape bug: !template
+  #===========================================================================
+    reportTemplate: simpleReport_bug.jrxml
+    attributes:
+      map: !map
+        maxDpi: 400
+        width: 780
+        height: 330
+      overviewMap: !overviewMap
+        width: 300
+        height: 150
+        maxDpi: 400
+        zoomFactor: 7
+      overlayLayers: !staticLayers
+        default:
+          layers:
+            - type: "grid"
+              numberOfLines: [10, 10]
+              labelColor: rgba(0,0,0,0)
+              haloColor: rgba(0,0,0,0)
+    processors:
+    - !addBackgroundLayers
+      inputMapper:
+          overlayLayers: staticLayers
+          map: map
+    - !reportBuilder # compile all reports in current directory
+      directory: '.'
+    - !createMap {}
+    - !createOverviewMap {}
+  
+  #===========================================================================	
+  A4 Hochformat: !template
+  #===========================================================================
+    reportTemplate: a4_hochformat.jrxml
+    attributes:
+      title: !string {}
+      map: !map
+        maxDpi: 400
+        width: 571
+        height: 680
+      scalebar: !scalebar
+        width: 140
+        height: 30
+        default:
+          barSize: 2
+          type: bar
+          align: left
+          intervals: 4
+          lineWidth: 1
+          font: Helvetica
+          fontSize: 8
+      overlayLayers: !staticLayers
+        default:
+          layers:
+            - type: "grid"
+              numberOfLines: [10, 10]
+              labelColor: rgba(0,0,0,0)
+              haloColor: rgba(0,0,0,0)
+    processors:
+    - !addBackgroundLayers
+      inputMapper:
+          overlayLayers: staticLayers
+          map: map
+    - !reportBuilder # compile all reports in current directory
+      directory: '.'
+    - !createMap {}
+    - !createScalebar {}

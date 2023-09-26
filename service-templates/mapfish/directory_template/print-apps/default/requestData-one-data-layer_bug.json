@@ -1,0 +1,25 @@
+{
+  "layout": "A4 landscape",
+  "outputFormat": "pdf",
+  "attributes": {
+    "map": {
+      "projection": "EPSG:25832",
+      "dpi": 72,
+      "rotation": 0,
+      "center": [561210, 5932600],
+      "scale": 25000,
+      "layers": [{
+          "baseURL": "https://geodienste.hamburg.de/wms_hamburgde",
+          "opacity": 1,
+          "type": "WMS",
+          "layers": [
+            "geobasisdaten"
+          ],
+          "imageFormat": "image/png",
+          "customParams": {
+            "TRANSPARENT": "true"
+          }
+        }]
+    }
+  }
+}

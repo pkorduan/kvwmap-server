@@ -1,0 +1,137 @@
+{
+  "layout": "A3 Hochformat",
+  "outputFormat": "pdf",
+  "attributes": {
+  	"title": "Mein MasterTitel",
+  	"scale": "1:60000",
+	"showLegend": true,
+  	"legend":{
+  		"layers": [
+  			{
+  				"layerName": "Wahlergebnisse SPD",
+  				"values": [
+  					{
+	  					"legendType": "wmsGetLegendGraphic",
+	  					"geometryType": "",
+	  					"imageUrl":"https://geodienste.hamburg.de/HH_WMS_Statistik_Stadtteile_Wahlergebnisse?version=1.3.0&request=GetLegendGraphic&layer=wahlergebnis_buew_spd_prz_15022015&format=image/png",
+	  					"color":"",
+	  					"label":""
+  					}
+  				]
+  			},
+  			{
+  				"layerName": "Krankenhaus WMS",
+  				"values" : [
+  					{
+  						"legendType": "wmsGetLegendGraphic",
+			  			"geometryType": "",
+			  			"imageUrl": "http://geodienste.hamburg.de/HH_WMS_Krankenhaeuser?version=1.3.0&request=GetLegendGraphic&layer=krankenhaeuser&format=image/png",
+			  			"color":"",
+			  			"label":""
+	  				}
+	  			]
+  			},
+  			{
+  				"layerName": "Krankenhaus WFS",
+  				"values" : [
+  					{
+  						"legendType": "wfsImage",
+			  			"geometryType":"",
+			  			"imageUrl":"https://test-geofos.fhhnet.stadt.hamburg.de/lgv-config/img/krankenhaus.png",
+			  			"color":"",
+			  			"label":"Krankenhaus 1"
+	  				},
+	  				{
+  						"legendType": "wfsImage",
+			  			"geometryType":"",
+			  			"imageUrl":"https://test-geofos.fhhnet.stadt.hamburg.de/lgv-config/img/krankenhaus.png",
+			  			"color":"",
+			  			"label":"Krankenhaus 2"
+	  				}
+	  			]
+  			},
+  			{
+  				"layerName": "Animation",
+  				"values": [
+  					{
+			  			"legendType": "geometry",
+			  			"geometryType":"point",
+			  			"imageUrl":"",
+			  			"color":"red",
+			  			"label":"point Hamburg"
+			  		},
+			  		{
+			  			"legendType": "geometry",
+			  			"geometryType":"point",
+			  			"imageUrl":"",
+			  			"color":"#00FFFF",
+			  			"label":"point Hamburg"
+			  		},
+			  		{
+			  			"legendType": "geometry",
+			  			"geometryType":"point",
+			  			"imageUrl":"",
+			  			"color":"rgb(75,75,75)",
+			  			"label":"point Hamburg"
+			  		},
+			  		{
+			  			"legendType": "geometry",
+			  			"geometryType":"polygon",
+			  			"imageUrl":"",
+			  			"color":"red",
+			  			"label":"point Hamburg"
+			  		},
+			  		{
+			  			"legendType": "geometry",
+			  			"geometryType":"polygon",
+			  			"imageUrl":"",
+			  			"color":"#00FFFF",
+			  			"label":"point Hamburg"
+			  		},
+			  		{
+			  			"legendType": "geometry",
+			  			"geometryType":"polygon",
+			  			"imageUrl":"",
+			  			"color":"rgb(75,75,75)",
+			  			"label":"point Hamburg"
+			  		}
+  				]
+  			}
+  		]
+  	},
+	"showGfi": true,
+  	"gfi":{
+  		"layers": [
+  			{
+  				"layerName": "Krankenhaus",
+  				"values": [
+			  		{"key": "key1", "value":"val1"},
+				  	{"key": "key2", "value":"val2"},
+					{"key": "key3", "value":"val3"},
+					{"key": "key4", "value":"val4"},
+				  	{"key": "key5", "value":"val5"},
+					{"key": "key6", "value":"val6"}
+				]
+	  		}
+		]
+  	},
+    "map": {
+      "projection": "EPSG:25832",
+      "dpi": 96,
+      "center": [561210, 5932600],
+      "scale": 25000,
+      "layers": [{
+          "baseURL": "https://geodienste.hamburg.de/wms_hamburgde",
+          "opacity": 1,
+          "type": "WMS",
+          "layers": [
+            "geobasisdaten"
+          ],
+          "imageFormat": "image/png",
+          "customParams": {
+            "TRANSPARENT": "true"
+          }
+        }]
+    }
+  }
+}

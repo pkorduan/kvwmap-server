@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="a3_querformat_legend_values" pageWidth="540" pageHeight="842" columnWidth="540" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="eee769c2-6c7e-435d-b37d-592f308fca44">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<style name="HamburgSans" isDefault="true" forecolor="#003063" hTextAlign="Left" markup="none" fontName="HamburgSans" fontSize="12" isBold="false"/>
+	<field name="legendType" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="imageUrl" class="java.lang.String"/>
+	<field name="label" class="java.lang.String"/>
+	<field name="geometryType" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="color" class="java.lang.String"/>
+	<detail>
+		<band height="35" splitType="Prevent">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<printWhenExpression><![CDATA[$F{legendType}.equals("wmsGetLegendGraphic")]]></printWhenExpression>
+			<image scaleImage="RealHeight" vAlign="Middle" onErrorType="Icon">
+				<reportElement key="" x="0" y="0" width="540" height="30" uuid="5a2b4eb6-86a3-4a83-a747-e5e7b301139b">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<imageExpression><![CDATA[$F{imageUrl}]]></imageExpression>
+			</image>
+		</band>
+		<band height="35" splitType="Prevent">
+			<printWhenExpression><![CDATA[$F{legendType}.equals("wfsImage")]]></printWhenExpression>
+			<image scaleImage="RetainShape" vAlign="Middle" onErrorType="Icon">
+				<reportElement x="0" y="0" width="30" height="30" uuid="55f3f80e-3730-433b-a02d-295f6b634f28">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<imageExpression><![CDATA[$F{imageUrl}]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="" style="HamburgSans" positionType="Float" stretchType="RelativeToTallestObject" x="40" y="0" width="500" height="30" uuid="a92e0a57-11cf-466c-bc0d-700b25cfd1f0"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{label}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="35" splitType="Prevent">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<printWhenExpression><![CDATA[AND($F{legendType}.equals("geometry"),$F{geometryType}.equals("point"))]]></printWhenExpression>
+			<ellipse>
+				<reportElement key="" x="0" y="0" width="30" height="30" uuid="8908a53b-8b6d-4739-907f-350326702c25">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<propertyExpression name="net.sf.jasperreports.style.forecolor"><![CDATA[$F{color}]]></propertyExpression>
+					<propertyExpression name="net.sf.jasperreports.style.backcolor"><![CDATA[$F{color}]]></propertyExpression>
+				</reportElement>
+			</ellipse>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="HamburgSans" positionType="Float" stretchType="RelativeToTallestObject" x="40" y="0" width="500" height="30" isPrintWhenDetailOverflows="true" uuid="fb7bc9bb-f26d-4deb-9090-8da41faa0b06"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{label}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="35" splitType="Prevent">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<printWhenExpression><![CDATA[AND($F{legendType}.equals("geometry"),$F{geometryType}.equals("polygon"))]]></printWhenExpression>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="HamburgSans" positionType="Float" stretchType="RelativeToTallestObject" x="40" y="0" width="500" height="30" isPrintWhenDetailOverflows="true" uuid="c3623c61-9c79-4cf5-bb4e-10707455dceb"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{label}]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement x="0" y="0" width="30" height="30" uuid="8fc0aebe-7095-4f12-a93f-ed44673c2c3c">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<propertyExpression name="net.sf.jasperreports.style.forecolor"><![CDATA[$F{color}]]></propertyExpression>
+					<propertyExpression name="net.sf.jasperreports.style.backcolor"><![CDATA[$F{color}]]></propertyExpression>
+				</reportElement>
+			</rectangle>
+		</band>
+	</detail>
+</jasperReport>

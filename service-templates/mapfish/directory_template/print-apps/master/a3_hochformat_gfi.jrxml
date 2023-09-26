@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="a3_hochformat_gfi" columnCount="2" pageWidth="772" pageHeight="1190" columnWidth="386" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="eee769c2-6c7e-435d-b37d-592f308fca44">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<style name="HamburgSans" isDefault="true" forecolor="#003063" hTextAlign="Left" markup="none" fontName="HamburgSans" fontSize="12" isBold="false"/>
+	<field name="layerName" class="java.lang.String"/>
+	<title>
+		<band height="25">
+			<staticText>
+				<reportElement style="HamburgSans" x="0" y="0" width="772" height="25" isRemoveLineWhenBlank="true" uuid="d5fea6e5-cc9a-4c0b-99ff-0d1462670f19">
+					<printWhenExpression><![CDATA[$P{REPORT_DATA_SOURCE} != null]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Informationen]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="50" splitType="Prevent">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField isBlankWhenNull="true">
+				<reportElement style="HamburgSans" x="6" y="0" width="380" height="20" isRemoveLineWhenBlank="true" uuid="5056e336-0d10-4eec-9ce3-0450927407fe">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<printWhenExpression><![CDATA[NOT($F{layerName}.equals(""))]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font size="12" isBold="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{layerName}]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement x="20" y="0" width="250" height="1" isRemoveLineWhenBlank="true" forecolor="#E5E5E5" backcolor="#E5E5E5" uuid="be562a6f-02d9-499c-bc08-b1dc76c6b752">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<printWhenExpression><![CDATA[NOT($F{layerName}.equals(""))]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<subreport>
+				<reportElement x="6" y="20" width="380" height="30" uuid="eee2a8b7-7584-43b9-986b-1d9ffd1ef6b5">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JsonDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("values")]]></dataSourceExpression>
+				<subreportExpression><![CDATA["a3_hochformat_gfi_values.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

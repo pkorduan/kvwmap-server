@@ -1,0 +1,18 @@
+version: "3.6"
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: deegree/deegree3-docker:v3.4.33
+    restart: always
+    environment:
+      - DEEGREE_WORKSPACE_ROOT=/deegree_data
+    volumes:
+      - ./data_dir:/deegree_data
+      - ./data_exchange:/data_exchange
+      - ./logs:/usr/local/tomcat/logs
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true
+

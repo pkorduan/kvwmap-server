@@ -1,8 +1,8 @@
 #!/bin/bash
 
 install_service() {
-    echo "Installation von Service deegree in Netzwerk '${NETWORK_NAME}'"
-    SERVICE_NAME=deegree
+    echo "Installation von Service mapfish in Netzwerk '${NETWORK_NAME}'"
+    SERVICE_NAME=mapfish
     echo "Service-Name=${SERVICE_NAME}"
 
     SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
@@ -13,9 +13,12 @@ install_service() {
     fi
 
     mkdir -p ${SERVICE_PATH}
-    cp    ${USER_DIR}/kvwmap-server/service-templates/deegree/compose-template.yml ${SERVICE_PATH}/
+    cp    ${USER_DIR}/kvwmap-server/service-templates/mapfish/compose-template.yml ${SERVICE_PATH}/
+
+    cp -r ${USER_DIR}/kvwmap-server/service-templates/mapfish/directory_template/* ${SERVICE_PATH}
 
     echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+
 
 }
 
