@@ -173,7 +173,7 @@ if [ "$action" = "install" ]; then
         sed -i -e "s|#add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/server-available/${DOMAIN}/default.conf
         sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/server-available/${DOMAIN}/default.conf
         ln -rs ${USER_DIR}/networks/proxy/services/proxy/nginx/server-available/${DOMAIN}/default-ssl.conf ${USER_DIR}/networks/proxy/services/proxy/nginx/server-enabled/${DOMAIN}/default-ssl.conf
-        chown ${OS_USER}:${OS_USER} ${USER_DIR}/networks/proxy/services/proxy/letsencrypt
+        chown -R ${OS_USER}:${OS_USER} ${USER_DIR}/networks/proxy/services/proxy/letsencrypt
         dcm proxy reload
     else
         echo "OK, Das Zertifikat kann später mit dem certbot Container erstellt werden."
