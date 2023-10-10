@@ -6,7 +6,7 @@ install_service() {
     echo "Installation von Service proxy in Netzwerk 'proxy'"
     SERVICE_NAME=proxy
     echo "Service-Name: ${SERVICE_NAME}"
-    echo "Domain: ${DOMAIN_NAME}"
+    echo "Domain: ${DOMAIN}"
 
     NETWORK_NAME=proxy
     NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
@@ -29,11 +29,11 @@ install_service() {
         cp -r ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
     fi
 
-    mv ${SERVICE_PATH}/nginx/server-available/platzhalterkvwmapserverdomainname ${SERVICE_PATH}/nginx/server-available/${DOMAIN_NAME}
-    mkdir ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN_NAME}
-    ln -rs ${SERVICE_PATH}/nginx/server-available/${DOMAIN_NAME}/default.conf ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN_NAME}/default.conf
-    sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g" "${SERVICE_PATH}/nginx/server-available/${DOMAIN_NAME}/default.conf"
-    sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g" "${SERVICE_PATH}/nginx/server-available/${DOMAIN_NAME}/default-ssl.conf"
+    mv ${SERVICE_PATH}/nginx/server-available/platzhalterkvwmapserverdomainname ${SERVICE_PATH}/nginx/server-available/${DOMAIN}
+    mkdir -p ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN}
+    ln -rs ${SERVICE_PATH}/nginx/server-available/${DOMAIN}/default.conf ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN}/default.conf
+    sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN}|g" "${SERVICE_PATH}/nginx/server-available/${DOMAIN}/default.conf"
+    sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN}|g" "${SERVICE_PATH}/nginx/server-available/${DOMAIN}/default-ssl.conf"
 
     echo "Kopiere compose-template.yml nach ${SERVICE_PATH}"
     cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/compose-template.yml ${SERVICE_PATH}/

@@ -64,9 +64,10 @@ if [ "$action" = "install" ]; then
     export POSTGRES_PASSWORD=$(openssl rand -base64 24)
     export PGADMIN_DEFAULT_PASSWORD=$(openssl rand -base64 24)
     export PGADMIN_DEFAULT_EMAIL #aus $configfile
-    if [ -z "$DOMAIN" ]; then
+    if [ -z "$DOMAIN" ]; then #aus configfile
         read -p "Enter the domain name for this server: " DOMAIN
     fi
+    export DOMAIN
     export HOSTNAME #aus configfile
     if [ -z "$HOSTNAME" ]; then
         read -p "Enter the hostname for this server: " HOSTNAME
