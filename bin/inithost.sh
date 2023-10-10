@@ -163,17 +163,16 @@ if [ "$action" = "install" ]; then
     if [ "$CREATE_SSL_CERTIFICATES" = "j" ]; then
         # Create SSL-Certificate for HTTPS Connections
         docker run --rm --name certbot \
-                -v "${USER_DIR}/networks/proxy/services/proxy/www/html:/var/www/html" \
-                -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" \
-                -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly \
-                -d ${DOMAIN} \
-                --webroot -w /var/www/html --email "peter.korduan@gdi-service.de" --non-interactive --agree-tos
+           -v "${USER_DIR}/networks/proxy/services/proxy/www/html:/var/www/html" \
+           -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" \
+           -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly \
+           -d ${DOMAIN} \
+           --webroot -w /var/www/html --email "peter.korduan@gdi-service.de" --non-interactive --agree-tos
         # Enable https
-        sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN}|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default-ssl.conf
-        sed -i -e "s|#add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf
-        sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/default.conf
-        cd ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled
-        ln -s ../sites-available/default-ssl.conf
+        sed -i -e "s|#add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/server-available/${DOMAIN}/default.conf
+        sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/server-available/${DOMAIN}/default.conf
+        ln -rs ${USER_DIR}/networks/proxy/services/proxy/nginx/server-available/${DOMAIN}/default-ssl.conf ${USER_DIR}/networks/proxy/services/proxy/nginx/server-enabled/${DOMAIN}/default-ssl.conf
+        chown ${OS_USER}:${OS_USER} ${USER_DIR}/networks/proxy/services/proxy/letsencrypt
         dcm proxy reload
     else
         echo "OK, Das Zertifikat kann später mit dem certbot Container erstellt werden."

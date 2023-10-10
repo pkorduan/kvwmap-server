@@ -1,1 +1,0 @@
-Hier zusätzliche Konfigurationsdateien für nginx ablegen. Müssen die Dateiendung .conf haben. Wenn Sie wirksam sein sollen muss zusätzlich im Verzeichnis ../sites-enabled ein symbolischer Link auf die Datei in diesem Verzeichnis zeigen.

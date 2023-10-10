@@ -122,7 +122,7 @@ function create_network() {
   if [ ! -d "${USER_DIR}/networks" ]; then
     echo "Erzeuge das Verzeichnis für networks ${USER_DIR}/networks"
     mkdir ${USER_DIR}/networks
-    chown ${OS_USER}.${OS_USER} ${USER_DIR}/networks
+    chown ${OS_USER}:${OS_USER} ${USER_DIR}/networks
     chmod g+w ${USER_DIR}/networks
   fi
 
@@ -134,7 +134,7 @@ function create_network() {
     else
       cp -r ${USER_DIR}/kvwmap-server/kvwmap_template_network/* ${NETWORK_DIR}
     fi
-    chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}
+    chown ${OS_USER}:${OS_USER} ${NETWORK_DIR}
     chmod g+w ${NETWORK_DIR}
   fi
 
@@ -168,9 +168,9 @@ function create_network() {
   ip_range="172.0.${SUBNET}.0/24"
   echo "NETWORK_SUBNET=${ip_range}" >> ${NETWORK_DIR}/env
 
-  chown ${OS_USER}.${OS_USER} ${NETWORK_DIR}/env
+  chown ${OS_USER}:${OS_USER} ${NETWORK_DIR}/env
   if [ "$NETWORK_NAME" != "proxy" ]; then
-    chown -R ${OS_USER}.${OS_USER} ${NETWORK_DIR}/volumes
+    chown -R ${OS_USER}:${OS_USER} ${NETWORK_DIR}/volumes
   fi
   docker network create --subnet "$ip_range" $NETWORK_NAME
   echo "Netwerk erstellt. Mit dcm create service [service] ${NETWORK_NAME} können jetzt die dazugehörigen Dienste installiert werden."
@@ -235,11 +235,13 @@ function write_compose_file() {
     export PGADMIN_DEFAULT_EMAIL
     export PGADMIN_DEFAULT_PASSWORD
     export USER_DIR
+    export OS_USER_ID=$(id -u $OS_USER)
+    export OS_USER_GROUP_ID=$(id -g $OS_USER)
 
     echo " - Substituiere Umgebungsvariablen in compose-template.yml und schreibe sie nach docker-compose.yml"
     envsubst < ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/compose-template.yml > ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
 
-    chown gisadmin.gisadmin ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
+    chown ${OS_USER}:${OS_USER} ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
     chmod g+w ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
     rm ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/compose-template.yml
   else
@@ -371,7 +373,6 @@ function up_down_service() {
     cd $CURRENT_PWD
     return 1
   fi
-  echo "cd in das Verzeichnis: $CURRENT_PWD"
   cd $CURRENT_PWD
   return 0
 }
@@ -439,7 +440,7 @@ function copy_directories() {
   mv $USER_DIR/etc/mysql/my.cnf $USER_DIR/networks/$network_name/mysql/etc/my.cnf
   mv $USER_DIR/etc/mysql/conf.d/* $USER_DIR/networks/$network_name/mysql/etc/conf.d/
   mv $USER_DIR/www/logs/mysql/* $USER_DIR/networks/$network_name/mysql/logs
-  chown -R 999.gisadmin $USER_DIR/networks/$network_name/mysql
+  chown -R 999:gisadmin $USER_DIR/networks/$network_name/mysql
   ln -s $USER_DIR/networks/$network_name/mysql/etc/my.cnf $USER_DIR/etc/mysql/my.cnf
 
   rm -d $USER_DIR/db/mysql/
@@ -645,7 +646,7 @@ if [ ! -f ${CONFIG_KVWMAP_SERVER}/config ] ; then
   fi
   echo "Create config file from config/config-default"
   cp ${CONFIG_KVWMAP_SERVER}/config-default ${CONFIG_KVWMAP_SERVER}/config
-  chown gisadmin.gisadmin ${CONFIG_KVWMAP_SERVER}/config
+  chown gisadmin:gisadmin ${CONFIG_KVWMAP_SERVER}/config
   chmod g+w ${CONFIG_KVWMAP_SERVER}/config
 fi
 source ${CONFIG_KVWMAP_SERVER}/config

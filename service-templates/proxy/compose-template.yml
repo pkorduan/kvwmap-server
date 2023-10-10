@@ -5,6 +5,7 @@ services:
     image: nginx:stable
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     restart: "always"
+    user: "${OS_USER_ID}:${OS_USER_GROUP_ID}"
     networks:
       - ${NETWORK_NAME}
 #      - kvwmap_prod

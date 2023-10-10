@@ -3,43 +3,48 @@
 # ToDos replace servername in nginx configs and
 
 install_service() {
-	echo "Installation von Service proxy in Netzwerk 'proxy'"
-	SERVICE_NAME=proxy
-	echo "Service-Name: ${SERVICE_NAME}"
+    echo "Installation von Service proxy in Netzwerk 'proxy'"
+    SERVICE_NAME=proxy
+    echo "Service-Name: ${SERVICE_NAME}"
+    echo "Domain: ${DOMAIN_NAME}"
 
-	NETWORK_NAME=proxy
-  NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
-	SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
+    NETWORK_NAME=proxy
+    NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
+    SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
 
-  if [ ! -d "$NETWORK_PATH" ]; then
-    echo "Netzwerk ${SERVICE_PATH} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
-    dcm create network $NETWORK_NAME
-  fi
+    if [ ! -d "$NETWORK_PATH" ]; then
+        echo "Netzwerk ${SERVICE_PATH} existiert noch nicht. Erzeuge Netzwerk ${NETWORK_NAME}"
+        dcm create network $NETWORK_NAME
+    fi
 
-	if [ -d "$SERVICE_PATH" ]; then
-		echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
-		return 1
-	fi
+    if [ -d "$SERVICE_PATH" ]; then
+        echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+        return 1
+    fi
 
-	mkdir -p ${SERVICE_PATH}
-	if $DEBUG ; then
-		cp -vr ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
-	else
-		cp -r ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
-	fi
+    mkdir -p ${SERVICE_PATH}
+    if $DEBUG ; then
+        cp -vr ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
+    else
+        cp -r ${USER_DIR}/kvwmap-server/service-templates/proxy/directory_template/* ${SERVICE_PATH}
+    fi
 
-	sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g" "${SERVICE_PATH}/nginx/sites-available/default.conf"
+    mv ${SERVICE_PATH}/nginx/server-available/platzhalterkvwmapserverdomainname ${SERVICE_PATH}/nginx/server-available/${DOMAIN_NAME}
+    mkdir ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN_NAME}
+    ln -rs ${SERVICE_PATH}/nginx/server-available/${DOMAIN_NAME}/default.conf ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN_NAME}/default.conf
+    sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g" "${SERVICE_PATH}/nginx/server-available/${DOMAIN_NAME}/default.conf"
+    sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN_NAME}|g" "${SERVICE_PATH}/nginx/server-available/${DOMAIN_NAME}/default-ssl.conf"
 
-	echo "Kopiere compose-template.yml nach ${SERVICE_PATH}"
-	cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/compose-template.yml ${SERVICE_PATH}/
-	cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/init-letsencrypt.sh ${SERVICE_PATH}/
+    echo "Kopiere compose-template.yml nach ${SERVICE_PATH}"
+    cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/compose-template.yml ${SERVICE_PATH}/
+    cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/init-letsencrypt.sh ${SERVICE_PATH}/
 
-	chown -R www-data.gisadmin ${SERVICE_PATH}
-	chmod -R g+w ${SERVICE_PATH}
-	chown root.root ${SERVICE_PATH}/init-letsencrypt.sh
-	chmod 700 ${SERVICE_PATH}/init-letsencrypt.sh
+    chown -R $(id -u $OS_USER):$(id -g $OS_USER) ${SERVICE_PATH}
+    chmod -R g+w ${SERVICE_PATH}
+    chown root:root ${SERVICE_PATH}/init-letsencrypt.sh
+    chmod 700 ${SERVICE_PATH}/init-letsencrypt.sh
 
 #	dcm up proxy proxy
 
-	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet. Der Service kann gestartet werden mit: dcm proxy up"
+    echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet. Der Service kann gestartet werden mit: dcm proxy up"
 }
