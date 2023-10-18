@@ -19,8 +19,8 @@ install_service() {
 		mkdir -p ${SERVICE_PATH}
 		cp -r ${USER_DIR}/kvwmap-server/service-templates/web/directory_template/* ${SERVICE_PATH}
 		cp    ${USER_DIR}/kvwmap-server/service-templates/web/compose-template.yml ${SERVICE_PATH}/
-		chown root.root ${SERVICE_PATH}/www/cron/crontab_root
-		chown gisadmin.gisadmin ${SERVICE_PATH}/www/cron/crontab_gisadmin
+		chown root:root ${SERVICE_PATH}/www/cron/crontab_root
+		chown gisadmin:gisadmin ${SERVICE_PATH}/www/cron/crontab_gisadmin
 		chmod 600 ${SERVICE_PATH}/www/cron/crontab_root ${SERVICE_PATH}/www/cron/crontab_gisadmin
 
     echo "Service templates für Service web nach ${SERVICE_PATH} kopiert."
@@ -48,7 +48,7 @@ install_service() {
 			display: none;
 		}" >> ${SERVICE_PATH}/www/apps/kvwmap/custom/layouts/custom.css
 
-		chown -R www-data.${OS_USER} ${SERVICE_PATH}/*
+		chown -R www-data:${OS_USER} ${SERVICE_PATH}/*
 		chmod -R g+w ${SERVICE_PATH}/*
 
 		sed -i -e "s|kvwmap_prod_web|${NETWORK_NAME}_${SERVICE_NAME}|g" "${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/apache2/sites-available/000-default.conf"
