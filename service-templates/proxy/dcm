@@ -34,6 +34,10 @@ install_service() {
     ln -rs ${SERVICE_PATH}/nginx/server-available/${DOMAIN}/default.conf ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN}/default.conf
     sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN}|g" "${SERVICE_PATH}/nginx/server-available/${DOMAIN}/default.conf"
     sed -i -e "s|platzhalterkvwmapserverdomainname|${DOMAIN}|g" "${SERVICE_PATH}/nginx/server-available/${DOMAIN}/default-ssl.conf"
+    mkdir -p ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN}/locations-enabled
+    ln -rs ${SERVICE_PATH}/nginx/server-available/${DOMAIN}/locations-available/kvwmap_prod_web.conf ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN}/locations-enabled/kvwmap_prod_web.conf
+    ln -rs ${SERVICE_PATH}/nginx/server-available/${DOMAIN}/locations-available/kvwmap_prod_phpmyadmin.conf ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN}/locations-enabled/kvwmap_prod_phpmyadmin.conf
+    ln -rs ${SERVICE_PATH}/nginx/server-available/${DOMAIN}/locations-available/kvwmap_prod_pgadmin.conf ${SERVICE_PATH}/nginx/server-enabled/${DOMAIN}/locations-enabled/kvwmap_prod_pgadmin.conf
 
     echo "Kopiere compose-template.yml nach ${SERVICE_PATH}"
     cp -v ${USER_DIR}/kvwmap-server/service-templates/proxy/compose-template.yml ${SERVICE_PATH}/
