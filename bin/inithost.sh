@@ -113,7 +113,7 @@ if [ "$action" = "install" ]; then
 
     echo 'Clone kvwmap-server repository to ./kvwmap-server.'
     sudo -u $OS_USER git clone https://github.com/pkorduan/kvwmap-server.git
-    chown -R gisadmin.gisadmin kvwmap-server/* kvwmap-server/.*
+    chown -R gisadmin:gisadmin kvwmap-server/* kvwmap-server/.*
     chmod -R g+w kvwmap-server/* kvwmap-server/.*
     cd kvwmap-server
     sudo -u $OS_USER git checkout develop
