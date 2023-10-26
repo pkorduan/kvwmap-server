@@ -161,6 +161,10 @@ if [ "$action" = "install" ]; then
     if [ -z "$CREATE_SSL_CERTIFICATES" ]; then  #aus configfile
         read -p "Create Certificate for HTTPS? (j/n) " CREATE_SSL_CERTIFICATES
     fi
+    testCertArg=""
+    if [ "$TEST_CERT" = "j" ]; then
+        testCertArg="--test-cert"
+    fi
     if [ "$CREATE_SSL_CERTIFICATES" = "j" ]; then
         # Create SSL-Certificate for HTTPS Connections
         docker run --rm --name certbot \
@@ -168,7 +172,7 @@ if [ "$action" = "install" ]; then
            -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" \
            -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly \
            -d ${DOMAIN} \
-           --webroot -w /var/www/html --email "peter.korduan@gdi-service.de" --non-interactive --agree-tos
+           --webroot -w /var/www/html --email "peter.korduan@gdi-service.de" --non-interactive --agree-tos ${testCertArg}
         # Enable https
         sed -i -e "s|#add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/server-available/${DOMAIN}/default.conf
         sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/server-available/${DOMAIN}/default.conf
@@ -233,8 +237,9 @@ Folgende Komponenten werden gelöscht:
 - Es werden keine Programme deinstalliert.
 
 EOF
-
-    read -p "Fortfahren? (j/n) " UNINSTALL_JN
+    if [ -z "$UNINSTALL_JN" ]; then   #aus $configfile
+        read -p "Fortfahren? (j/n) " UNINSTALL_JN
+    fi
     if [ "$UNINSTALL_JN" != "j" ]; then
         echo "Abbruch."
         exit 1
@@ -249,7 +254,7 @@ EOF
     # rm dcm
     rm /usr/bin/dcm
 
-    deluser --remove-all-files --backup-to /root/gisadmin.tar gisadmin
+    deluser --remove-all-files --backup-to /root gisadmin
     delgroup gisadmin
 
     echo "Fertig."
