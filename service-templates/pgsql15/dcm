@@ -35,7 +35,7 @@ install_service() {
   mkdir ${SERVICE_PATH}/logs
 
 
-  chown -R 999.gisadmin ${SERVICE_PATH}
+  chown -R 999:gisadmin ${SERVICE_PATH}
 
   export SERVICE_NAME
 

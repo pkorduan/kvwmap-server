@@ -28,7 +28,7 @@ install_service() {
   mkdir ${SERVICE_PATH}/logs
 
 
-  chown -R 999.gisadmin ${SERVICE_PATH}
+  chown -R 999:gisadmin ${SERVICE_PATH}
   sed -i -e "s|NETWORK_SUBNET|${NETWORK_SUBNET}|g" "${SERVICE_PATH}/config/pg_hba.conf"
   export SERVICE_NAME
 
