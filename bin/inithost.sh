@@ -232,7 +232,7 @@ elif [ "$action" = "uninstall" ]; then
 cat <<- EOF
 Folgende Komponenten werden gelöscht:
 
-- User gisadmin wird entfernt. Backup des kompletten Home-Verzeichnisses wird unter /root/gisadmin.tar erstellt.
+- User gisadmin wird entfernt. Optionales Backup des home-Verz von gisadmin.
 - Alle Container unter /home/gisadmin/networks werden gestoppt und entfernt.
 - Es werden keine Programme deinstalliert.
 
@@ -254,8 +254,14 @@ EOF
     # rm dcm
     rm /usr/bin/dcm
 
-    deluser --remove-all-files --backup-to /root gisadmin
-    delgroup gisadmin
+    if [ -z "$UNINSTALL_BACKUP" ]; then   #aus $configfile
+        read -p "Backup von /home/gisadmin erstellen? (j/n) " UNINSTALL_BACKUP
+    fi
+    if [ "$UNINSTALL_BACKUP" = "j" ]; then
+        deluserBackup="--backup-to /root"
+        echo "Backup von /home/gisadmin wird nach /root geschrieben."
+    fi
+    deluser --remove-home ${deluserBackup} gisadmin
 
     echo "Fertig."
 fi
