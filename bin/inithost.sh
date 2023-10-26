@@ -224,5 +224,33 @@ EOF
 ) > "$CURRENT_DIR"/kvwmap-passwords.log
 
 elif [ "$action" = "uninstall" ]; then
-    echo "uninstall..."
+
+cat <<- EOF
+Folgende Komponenten werden gelöscht:
+
+- User gisadmin wird entfernt. Backup des kompletten Home-Verzeichnisses wird unter /root/gisadmin.tar erstellt.
+- Alle Container unter /home/gisadmin/networks werden gestoppt und entfernt.
+- Es werden keine Programme deinstalliert.
+
+EOF
+
+    read -p "Fortfahren? (j/n) " UNINSTALL_JN
+    if [ "$UNINSTALL_JN" != "j" ]; then
+        echo "Abbruch."
+        exit 1
+    fi
+
+    # dcm alle Container stoppen und löschen
+    while read netzwerk
+    do
+        dcm down network $netzwerk
+    done < <(find /home/gisadmin/networks/ -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+
+    # rm dcm
+    rm /usr/bin/dcm
+
+    deluser --remove-all-files --backup-to /root/gisadmin.tar gisadmin
+    delgroup gisadmin
+
+    echo "Fertig."
 fi
