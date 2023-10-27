@@ -246,10 +246,17 @@ EOF
     fi
 
     # dcm alle Container stoppen und löschen
+    # Docker Netzwerke entfernen
+    declare -a dockerNetzwerke=()
     while read netzwerk
     do
         dcm down network $netzwerk
+        dockerNetzwerke+=("$netzwerk")
     done < <(find /home/gisadmin/networks/ -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+    for v in ${dockerNetzwerke[@]}
+    do
+        docker network rm $v
+    done
 
     # rm dcm
     rm /usr/bin/dcm
