@@ -161,6 +161,10 @@ if [ "$action" = "install" ]; then
     if [ -z "$CREATE_SSL_CERTIFICATES" ]; then  #aus configfile
         read -p "Create Certificate for HTTPS? (j/n) " CREATE_SSL_CERTIFICATES
     fi
+    testCertArg=""
+    if [ "$TEST_CERT" = "j" ]; then
+        testCertArg="--test-cert"
+    fi
     if [ "$CREATE_SSL_CERTIFICATES" = "j" ]; then
         # Create SSL-Certificate for HTTPS Connections
         docker run --rm --name certbot \
@@ -168,7 +172,7 @@ if [ "$action" = "install" ]; then
            -v "${USER_DIR}/networks/proxy/services/proxy/letsencrypt:/etc/letsencrypt" \
            -v "${USER_DIR}/networks/proxy/services/proxy/log:/var/log/letsencrypt" certbot/certbot certonly \
            -d ${DOMAIN} \
-           --webroot -w /var/www/html --email "peter.korduan@gdi-service.de" --non-interactive --agree-tos
+           --webroot -w /var/www/html --email "peter.korduan@gdi-service.de" --non-interactive --agree-tos ${testCertArg}
         # Enable https
         sed -i -e "s|#add_header Strict-Transport-Security|add_header Strict-Transport-Security|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/server-available/${DOMAIN}/default.conf
         sed -i -e "s|#return 301 https|return 301 https|g" ${USER_DIR}/networks/proxy/services/proxy/nginx/server-available/${DOMAIN}/default.conf
@@ -228,29 +232,43 @@ elif [ "$action" = "uninstall" ]; then
 cat <<- EOF
 Folgende Komponenten werden gelöscht:
 
-- User gisadmin wird entfernt. Backup des kompletten Home-Verzeichnisses wird unter /root/gisadmin.tar erstellt.
+- User gisadmin wird entfernt. Optionales Backup des home-Verz von gisadmin.
 - Alle Container unter /home/gisadmin/networks werden gestoppt und entfernt.
 - Es werden keine Programme deinstalliert.
 
 EOF
-
-    read -p "Fortfahren? (j/n) " UNINSTALL_JN
+    if [ -z "$UNINSTALL_JN" ]; then   #aus $configfile
+        read -p "Fortfahren? (j/n) " UNINSTALL_JN
+    fi
     if [ "$UNINSTALL_JN" != "j" ]; then
         echo "Abbruch."
         exit 1
     fi
 
     # dcm alle Container stoppen und löschen
+    # Docker Netzwerke entfernen
+    declare -a dockerNetzwerke=()
     while read netzwerk
     do
         dcm down network $netzwerk
+        dockerNetzwerke+=("$netzwerk")
     done < <(find /home/gisadmin/networks/ -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+    for v in ${dockerNetzwerke[@]}
+    do
+        docker network rm $v
+    done
 
     # rm dcm
     rm /usr/bin/dcm
 
-    deluser --remove-all-files --backup-to /root/gisadmin.tar gisadmin
-    delgroup gisadmin
+    if [ -z "$UNINSTALL_BACKUP" ]; then   #aus $configfile
+        read -p "Backup von /home/gisadmin erstellen? (j/n) " UNINSTALL_BACKUP
+    fi
+    if [ "$UNINSTALL_BACKUP" = "j" ]; then
+        deluserBackup="--backup-to /root"
+        echo "Backup von /home/gisadmin wird nach /root geschrieben."
+    fi
+    deluser --remove-home ${deluserBackup} gisadmin
 
     echo "Fertig."
 fi
