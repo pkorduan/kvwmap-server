@@ -23,10 +23,10 @@ services:
       - ./logs:/var/log/pgsql
       - ./dumps:/dumps
       - ./scripts:/scripts
+      - ../../volumes/proj/proj.db:/usr/share/proj/proj.db
       - ../../volumes/proj/epsg:/usr/share/proj/epsg
       - ../../volumes/proj/MVTR2010.gsb:/usr/share/proj/MVTR2010.gsb
       - ../../volumes/proj/MVTRS4283.gsb:/usr/share/proj/MVTRS4283.gsb
-      - ../../volumes/proj/proj.db:/usr/share/proj/proj.db
     networks:
         ${NETWORK_NAME}:
             aliases:

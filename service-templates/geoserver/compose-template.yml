@@ -2,7 +2,7 @@ version: "3.6"
 services:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
-    image: pkorduan/geoserver:2.22.2                                    
+    image: kartoza/geoserver:2.23.1
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     user: root
     environment:
@@ -19,13 +19,12 @@ services:
       - TOMCAT_EXTRAS=false
       - INITIAL_MEMORY=128M
       - MAXIMUM_MEMORY=512M
-    restart: "always"                     
+    restart: "always"
     volumes:
       - ./data_dir:/opt/geoserver/data_dir
-      - ./logging.properties:/usr/local/tomcat/conf/logging.properties
+      #- ./logging.properties:/usr/local/tomcat/conf/logging.properties
       - ./logs:/usr/local/tomcat/logs/
 networks:
   default:
     name: ${NETWORK_NAME}
     external: true
-

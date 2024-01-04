@@ -34,9 +34,9 @@ install_service() {
 				${SERVICE_PATH}/www/apps/kvwmap/custom/graphics \
 				${SERVICE_PATH}/www/apps/kvwmap/custom/wappen \
 				${SERVICE_PATH}/www/apps/kvwmap/custom/layouts \
-				${SERVICE_PATH}/www/apps/kvwmap/custom/layouts/snippets \
 				${SERVICE_PATH}/www/apps/kvwmap/custom/symbols
 
+		cp -r ${USER_DIR}/kvwmap-server/service-templates/web/directory_template/www/apps/kvwmap/custom/layouts ${SERVICE_PATH}/www/apps/kvwmap/custom
 		cp ${SERVICE_PATH}/www/apps/kvwmap/graphics/favicon.ico ${SERVICE_PATH}/www/apps/kvwmap/custom/wappen/favicon.ico
 		wget -O ${SERVICE_PATH}/www/apps/kvwmap/custom/wappen/Logo_GDI-Service_200x47.png https://gdi-service.de/public/kvwmap_resources/Logo_GDI-Service_200x47.png
 

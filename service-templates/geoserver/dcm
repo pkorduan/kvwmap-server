@@ -3,17 +3,17 @@
 install_service() {
 
 	echo "Installation von Service geoserver in Netzwerk '${NETWORK_NAME}'"
-	echo "optional neuer Service-Name (Default 'geoserver'): "
-	read SERVICE_NAME
-
-  echo "Servername: "
-  read HOSTNAME
-
+	read -p "Optional neuer Service-Name (Default 'geoserver'): " SERVICE_NAME
 	if [ -z "$SERVICE_NAME" ]; then
-		SERVICE_NAME=geoserver
+		SERVICE_NAME="geoserver"
 	fi
+	echo "SERVICE_NAME ${SERVICE_NAME} gesetzt."
 
-	echo "Service-Name: ${SERVICE_NAME}"
+  read -p "Servername (Default 'geoserver'): " HOSTNAME
+	if [ -z "$HOSTNAME" ]; then
+		HOSTNAME="geoserver"
+	fi
+	echo "HOSTNAME ${HOSTNAME} gesetzt."
 
 	SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
 
@@ -24,13 +24,21 @@ install_service() {
 	fi
 
 	mkdir ${SERVICE_PATH}
+	echo  "Service-Verzeichnis ${SERVICE_PATH} angelegt."
 	cp    ${USER_DIR}/kvwmap-server/service-templates/geoserver/compose-template.yml ${SERVICE_PATH}/
+	echo  "Docker compose-Datei von Template-Verzeichnis in Service-Verzeichnis kopiert."
 	mkdir ${SERVICE_PATH}/data_dir
+	echo  "Geoserver data_dir angelegt."
   chown gisadmin.gisadmin ${SERVICE_PATH}/data_dir
 	mkdir ${SERVICE_PATH}/logs
+	echo  "Geoserver log-Verzeichnis angelegt."
   chown gisadmin.gisadmin ${SERVICE_PATH}/logs
   # Link auf die Logdatei von Geoserver im logs Verzeichnis von Tomcat
   ln -s ${SERVICE_PATH}/data_dir/logs/geoserver.log ${SERVICE_PATH}/logs/geoserver.log
+	echo  "Symlink auf geoserver-log-Datei im Service-Verzeichnis angelegt."
+	cp    ${USER_DIR}/kvwmap-server/service-templates/geoserver/nginx.conf ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/geoserver.conf
+	#ln -s ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-available/geoserver.conf ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled/geoserver.conf
+	echo  "Nginx Konfigurationsdatei in sites-available angelegt. Zur Veröffentlichung des Services nach außen die Datei ${USER_DIR}/networks/proxy/services/proxy/nginx/sites-enabled/geoserver.conf bearbeiten einen dynamischen Link in sites-enabled anlegen und den proxy reloaden!"
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }

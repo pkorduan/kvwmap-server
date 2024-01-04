@@ -209,6 +209,9 @@ function write_compose_file() {
   echo "Compose-File erstellen"
   echo "für Service $SERVICE_NAME im Netzwerk $NETWORK_NAME"
   source ${USER_DIR}/networks/${NETWORK_NAME}/env
+  if [ -f "${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/env" ]; then
+    source "${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/env"
+  fi
 
   write_file=true
   if [ -f ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml ]; then
@@ -237,6 +240,8 @@ function write_compose_file() {
     export USER_DIR
     export OS_USER_ID=$(id -u $OS_USER)
     export OS_USER_GROUP_ID=$(id -g $OS_USER)
+    export SRID
+    export DATA_DIR
 
     echo " - Substituiere Umgebungsvariablen in compose-template.yml und schreibe sie nach docker-compose.yml"
     envsubst < ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/compose-template.yml > ${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/docker-compose.yml
@@ -294,6 +299,15 @@ function create_service() {
 function remove_service() {
   SERVICE_NAME=$1
   NETWORK_NAME=$2
+
+  NETWORK_PATH=${USER_DIR}/networks/${NETWORK_NAME}
+  SERVICE_PATH=${NETWORK_PATH}/services/${SERVICE_NAME}
+
+  if [ ! -d "${SERVICE_PATH}" ]; then
+    echo "Der Service ${SERVICE_PATH} existiert nicht."
+    return 0
+  fi
+
   read -p "Es wird der Service ${SERVICE_NAME} und alle Daten gelöscht! Fortfahren? [j|n]: " answer
   case ${answer:0:1} in
     j|J|y|Y )
@@ -319,8 +333,14 @@ function compose_call(){
     else
         DOCKERCOMPOSE_CALL="docker compose"
     fi
+    
+    if [ -f "./env" ]; then
+      env_file="./env"
+    else
+      env_file="./../../env"
+    fi
 
-    cmd="${DOCKERCOMPOSE_CALL} -f ./docker-compose.yml --env-file ./../../env --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
+    cmd="${DOCKERCOMPOSE_CALL} -f ./docker-compose.yml --env-file ${env_file} --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
     echo $cmd
 }
 
@@ -339,6 +359,12 @@ function up_down_service() {
     cd ${SERVICE_PATH}
     export NETWORK_PATH
     export SERVICE_PATH
+
+    if [ ! -d "${SERVICE_PATH}" ]; then
+      echo "Der Service ${SERVICE_PATH} existiert nicht."
+      return 0
+    fi
+
     cmd="$(compose_call)"
     echo $cmd
 
@@ -351,11 +377,11 @@ function up_down_service() {
       up)
         existing_container=$(docker ps --format "{{.Names}}" --filter name=${NETWORK_NAME}_${SERVICE_NAME})
         if [ -n "$existing_container" ]; then
-        echo "Der Service ${SERVICE_NAME} existiert in dem ${NETWORK_NAME} bereits. Wählen Sie einen anderen Namen und Starten Sie erneut!"
-        return 1
+          echo "Der Service ${SERVICE_NAME} existiert in dem ${NETWORK_NAME} bereits. Wählen Sie einen anderen Namen und Starten Sie erneut!"
+          return 1
         else
-        echo "Erstelle Service ${NETWORK_NAME}_${SERVICE_NAME}"
-        cmd="${cmd} up -d"
+          echo "Erstelle Service ${NETWORK_NAME}_${SERVICE_NAME}"
+          cmd="${cmd} up -d"
       fi
       ;;
       down)
