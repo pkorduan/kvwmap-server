@@ -1,0 +1,18 @@
+version: "3.6"
+services:
+  ${SERVICE_NAME}:
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+    image: tumgis/3dcitydb-web-map:latest
+    restart: always
+#    environment:
+#      - SRSNAME=urn:adv:crs:DE_DHDN_3GK4*DE_DHN92_NH
+#      - CITYDBNAME=citydb
+#    ports:
+#      - 80
+    volumes:
+      - ${DATA_DIR}:/var/www/data/
+networks:
+    default:
+        name: ${NETWORK_NAME}
+        external: true

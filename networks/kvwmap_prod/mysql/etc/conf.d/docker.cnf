@@ -1,3 +1,0 @@
-[mysqld]
-user = mysql
-datadir = /var/lib/mysql

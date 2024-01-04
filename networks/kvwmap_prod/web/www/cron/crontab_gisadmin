@@ -1,2 +1,0 @@
-0 1 * * * find /var/www/tmp -mtime +1 ! -path /var/www/tmp -exec rm -rf {} +
-0 5 * * * rm -R /var/www/data/upload/*

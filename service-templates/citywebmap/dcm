@@ -1,0 +1,28 @@
+#!/bin/bash
+
+install_service() {
+    SERVICE_NAME=citywebmap
+    echo "Installation von Service ${SERVICE_NAME} in Netzwerk ${NETWORK_NAME}"
+
+    SERVICE_PATH="${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}"
+
+    if [ -d "$SERVICE_PATH" ]; then
+      echo "Der Service ${SERVICE_NAME} existiert in dem Netzwerk bereits. Wählen Sie einen anderen Namen!"
+      return 1
+    fi
+
+    mkdir -p ${SERVICE_PATH}/data
+    cp ${USER_DIR}/kvwmap-server/service-templates/${SERVICE_NAME}/compose-template.yml ${SERVICE_PATH}/
+
+    CITYWEBMAP_DATA_DIR_DEFAULT="${USER_DIR}/3dcitydb-web-map/examples/glTFRailwaySceneLoD3Example/Railway_Scene_LoD3/"
+    read -p "Datenverzeichnis (Default: $CITYWEBMAP_DATA_DIR_DEFAULT): " CITYWEBMAP_DATA_DIR
+    if [ -z "$CITYWEBMAP_DATA_DIR" ]; then
+      CITYWEBMAP_DATA_DIR="${CITYWEBMAP_DATA_DIR_DEFAULT}"
+    fi
+    echo "DATA_DIR=${CITYWEBMAP_DATA_DIR}" >> ${SERVICE_PATH}/env
+
+    source ${SERVICE_PATH}/env
+
+    echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+}
+

@@ -1,0 +1,17 @@
+sendfile        on;
+keepalive_timeout  65;
+client_max_body_size 50M;
+
+proxy_connect_timeout  360s;
+proxy_send_timeout     360s;
+proxy_read_timeout     360s;
+send_timeout           360s;
+server_tokens off;
+
+#HTTP header to secure NGINX from Clickjacking attack
+#SAMEORIGIN: This setting will allow the page to be displayed in a frame on the same origin as the page itself.
+add_header X-Frame-Options SAMEORIGIN;
+add_header Set-Cookie "Path=/; HttpOnly; Secure";
+add_header X-Content-Type-Options "nosniff";
+add_header X-XSS-Protection "1; mode=block";
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+install_service() {
+    echo "Installation von Service citydb in Netzwerk ${NETWORK_NAME}"
+    SERVICE_NAME=citydb
+    echo "Service-Name=${SERVICE_NAME}"
+
+    SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+
+    if [ -d "$SERVICE_PATH" ]; then
+      echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+      return 1
+    fi
+
+    mkdir -p ${SERVICE_PATH}/data
+    cp ${USER_DIR}/kvwmap-server/service-templates/citydb/compose-template.yml ${SERVICE_PATH}/
+    read -p "POSTGRES_PASSWORD: " POSTGRES_PASSWORD
+    echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> ${SERVICE_PATH}/env
+    read -p "SRID (Default: 25833): " SRID
+    if [ -z "$SRID" ]; then
+      SRID="25833"
+    fi
+    echo "SRID=${SRID}" >> ${SERVICE_PATH}/env
+    source ${SERVICE_PATH}/env
+
+    echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+}
+

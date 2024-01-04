@@ -1,1 +1,0 @@
-These folder can be used as volumes to link into the deegree container at runtime.

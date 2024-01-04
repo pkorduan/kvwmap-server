@@ -1,1 +1,0 @@
-These folder can be used as volumes to link into the tomcat container at runtime.

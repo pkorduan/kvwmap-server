@@ -1,4 +1,0 @@
-#!/bin/bash
-# Wird ersetzt durch den Eintrag in root crontab aus Datei /var/www/cron/crontab_root
-#rm -rf /etc/apt/sources.list.d/* || true
-#/usr/local/certbot-auto renew --quiet  > /dev/null 2>&1
