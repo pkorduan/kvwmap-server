@@ -17,7 +17,6 @@ install_service() {
 		fi
 
 		mkdir -p ${SERVICE_PATH}
-		cp -r ${USER_DIR}/kvwmap-server/service-templates/web/directory_template/* ${SERVICE_PATH}
 		cp    ${USER_DIR}/kvwmap-server/service-templates/web/compose-template.yml ${SERVICE_PATH}/
 		chown root:root ${SERVICE_PATH}/www/cron/crontab_root
 		chown gisadmin:gisadmin ${SERVICE_PATH}/www/cron/crontab_gisadmin
@@ -25,10 +24,9 @@ install_service() {
 
     echo "Service templates für Service web nach ${SERVICE_PATH} kopiert."
 		echo "Clone kvwmap von github ins Web-Verzeichnis ..."
-		if [ ! -d "${USER_DIR}/networks/$network_name/web/www/apps/kvwmap" ]; then
-			git clone https://github.com/srahn/kvwmap.git ${SERVICE_PATH}/www/apps/kvwmap
-		fi
+    	git clone https://github.com/srahn/kvwmap.git ${SERVICE_PATH}/www/apps/kvwmap
 
+		cp -r ${USER_DIR}/kvwmap-server/service-templates/web/directory_template/* ${SERVICE_PATH}
 		echo "Erzeuge kvwmap custom Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
 		mkdir -p ${SERVICE_PATH}/www/apps/kvwmap/custom/fonts \
 				${SERVICE_PATH}/www/apps/kvwmap/custom/graphics \
