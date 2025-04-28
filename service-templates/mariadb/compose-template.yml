@@ -16,6 +16,8 @@ services:
     volumes:
       - ./data:/var/lib/mysql
       - ./logs:/var/logs/mysql
+      - ./dumps:/dumps
+      - ./etc/initdb.sql:/docker-entrypoint-initdb.d/10_grant_user_kvwmap.sql
     restart: always
 networks:
   default:

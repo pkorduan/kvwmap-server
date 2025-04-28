@@ -1,0 +1,2 @@
+GRANT ALL PRIVILEGES ON kvwmapdb.* TO 'kvwmap'@'%';
+FLUSH PRIVILEGES;
