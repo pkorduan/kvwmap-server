@@ -1,8 +1,8 @@
 version: "3.6"
 services:
-  ${SERVICE_NAME}:
-    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
-    container_name: ${NETWORK_NAME}_${SERVICE_NAME}
+  mariadb:
+    hostname: ${NETWORK_NAME:-kvwmap_prod}_${SERVICE_NAME:-mariadb}
+    container_name: ${NETWORK_NAME:-kvwmap_prod}_${SERVICE_NAME:-mariadb}
     image: mariadb:11.4.3
     ports:
       - 3306:3306
@@ -12,7 +12,7 @@ services:
           - mysql
     environment:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_USER: ${MARIADB_USER:-kvwmap}
       MARIADB_PASSWORD: ${MARIADB_PASSWORD}
       TZ: Europe/Berlin
     volumes:
@@ -25,4 +25,3 @@ networks:
   default:
     name: ${NETWORK_NAME}
     external: true
-
