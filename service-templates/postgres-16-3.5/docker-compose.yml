@@ -5,16 +5,10 @@ services:
         container_name: ${NETWORK_NAME:-kvwmap_prod}_${SERVICE_NAME:-pgsql16}
         hostname: ${NETWORK_NAME:-kvwmap_prod}_${SERVICE_NAME:-pgsql16}
         environment:
-          PGPASSFILE: "/var/lib/postgresql/config/.pgpass"
           POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-          PGSQL_DB: "postgres"
-          PGSQL_USER: "postgres"
-          INITDB_PGCRON: "true"
           INITDB_PGBACKREST: "true"
-          INITDB_PGTRACKSETTINGS: "true"
           INITDB_KVWMAPSP_DB: "true"
           INITDB_KVWMAP_PASSWORD: "${POSTGRES_KVWMAP_PASSWORD}"
-          INITDB_KVWMAPSP_MONITORING: "true"
         labels:
           monitoring.pgmonitor: true
         volumes:
