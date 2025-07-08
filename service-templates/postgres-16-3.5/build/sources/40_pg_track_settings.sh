@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "${INITDB_PGTRACKSETTINGS}" = "true" ]; then
+if [ "${INITDB_PGTRACKSETTINGS:-true}" = "true" ]; then
   echo "pg_tracksettings Extension installieren und in pg_cron einrichten..."
   psql -v ON_ERROR_STOP=1 <<-EOSQL
     CREATE EXTENSION IF NOT EXISTS pg_track_settings;

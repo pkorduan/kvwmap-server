@@ -74,8 +74,7 @@ ADD --chown=postgres:postgres sources/postgresql.conf sources/pg_hba.conf /var/l
 COPY sources/20_pg_cron.sh /docker-entrypoint-initdb.d/
 COPY sources/30_init_pgbackrest.sh /docker-entrypoint-initdb.d/
 COPY sources/40_pg_track_settings.sh /docker-entrypoint-initdb.d/
-COPY sources/50_kvwmap_create.sh /docker-entrypoint-initdb.d/
-COPY sources/60_monitoring_kvwmapsp.sh /docker-entrypoint-initdb.d/
+COPY sources/50_kvwmapsp.sh /docker-entrypoint-initdb.d/
 
 #aliase
 RUN echo "alias ls='ls $LS_OPTIONS' \n alias ll='ls $LS_OPTIONS -l' \n alias rm='rm -i' \n" >> /etc/bash.bashrc
@@ -83,5 +82,10 @@ RUN echo "alias ls='ls $LS_OPTIONS' \n alias ll='ls $LS_OPTIONS -l' \n alias rm=
 #set work env
 WORKDIR /var/lib/postgresql
 USER postgres
+
+#env
+ENV PGPASSFILE="/var/lib/postgresql/config/.pgpass"
+ENV PGSQL_DB="postgres"
+ENV PGSQL_USER="postgres"
 
 CMD [ "docker-entrypoint.sh", "postgres", "-c", "config_file=/var/lib/postgresql/config/postgresql.conf" ]

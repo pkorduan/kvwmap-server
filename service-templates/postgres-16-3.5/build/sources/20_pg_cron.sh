@@ -2,7 +2,7 @@
 set -e
 
 # Prüfe, ob die INITDB_PGCRON Variable gesetzt ist
-if [ "${INITDB_PGCRON}" = "true" ]; then
+if [ "${INITDB_PGCRON:-true}" = "true" ]; then
   echo "Aktiviere pg_cron-Erweiterung und plane regelmäßige Löschung alter Events..."
 
   # Führe SQL-Befehle aus
