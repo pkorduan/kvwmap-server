@@ -14,6 +14,11 @@ install_service() {
 
 	mkdir -p ${SERVICE_PATH}
 	cp    ${USER_DIR}/kvwmap-server/service-templates/gdal/compose-template.yml ${SERVICE_PATH}/
+    cp -r ${USER_DIR}/kvwmap-server/service-templates/gdal/directory_template/* ${SERVICE_PATH}/
+
+    ln -rs ${USER_DIR}/networks/kvwmap_prod/services/postgres-16-3.5/config/.pgpass ${USER_DIR}/networks/kvwmap_prod/services/gdal/.pgpass
+    ln -rs ${USER_DIR}/networks/kvwmap_prod/services/postgres-16-3.5/config/.pgpass_gisadmin ${USER_DIR}/networks/kvwmap_prod/services/gdal/.pgpass_gisadmin
+    ln -rs ${USER_DIR}/networks/kvwmap_prod/services/web/www ${USER_DIR}/networks/kvwmap_prod/services/gdal/www
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }
