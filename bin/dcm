@@ -375,7 +375,7 @@ function up_down_service() {
 
     case "$UP_DOWN" in
       up)
-        existing_container=$(docker ps --format "{{.Names}}" | grep "^${NETWORK_NAME}_${SERVICE_NAME}$")
+        existing_container=$(docker ps --format "{{.Names}}" | grep "^${NETWORK_NAME}_${SERVICE_NAME}$" || return 0)
         if [ -n "$existing_container" ]; then
           echo "Der Service ${SERVICE_NAME} existiert in dem ${NETWORK_NAME} bereits. Wählen Sie einen anderen Namen und Starten Sie erneut!"
           return 1
