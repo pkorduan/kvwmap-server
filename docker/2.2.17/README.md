@@ -1,8 +1,6 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
-    * 2.3.0  [docker/2.3.0/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.3.0/Dockerfile)
-    * 2.2.17 [docker/2.2.15/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.15/Dockerfile)
-    * 2.2.16 [docker/2.2.14/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.14/Dockerfile)
+    * 2.2.16 [docker/2.2.16/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.16/Dockerfile)
     * 2.2.15 [docker/2.2.15/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.15/Dockerfile)
     * 2.2.14 [docker/2.2.14/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.14/Dockerfile)
 	* 2.2.13 [docker/2.2.13/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.13/Dockerfile)
@@ -38,9 +36,9 @@ for geodata. For loading and exporting geodata with ogr2ogr the image [geodata/g
 ## Installation
 The preferred way to install the `pkorduan/kvwmap-server` image on a blank root server is the command
 ```
-wget -O inithost.sh https://raw.githubusercontent.com/pkorduan/kvwmap-server/develop/bin/inithost.sh && \
+wget -O inithost.sh https://gdi-service.de/public/kvwmap_resources/inithost && \
 chmod a+x inithost.sh && \
-. ./inithost.sh -a install
+./inithost.sh
 ```
 The script will clone the kvwmap-server repository from github first and than install
 all required components with the included administration script `dcm` (docker container manager).
@@ -99,8 +97,9 @@ Change the dcm files in cargo-available and create links in cargo-enabled to inc
 Consider, that changes under kvwmap-server will be overwritten by git pull or git merge commands. Save your changes bevore updating kvwmap-server.
 
 ### Run container for kvwmap
+Start the containers with volumes and link it together. You will be asked to choose initial passwords for the MySQL root and PostgreSQL postgres super user as well as for a kvwmap user. The Password for kvwmap user will be used as initial password for the database access to the kvwmap databases, for the phpMyAdmin web client, which has the alias userDbAdmin, and for the admin page of the web application kvwmap itself.
 ```
-dcm up kvwmap_prod
+dcm run all
 ```
 
 After this step the container named web, pgsql-server and mysql-server shoud be
@@ -253,12 +252,8 @@ follow the instruction of certbot and choose option 1 for standalone self instal
 dcm run web
 
 # Changelog
-# 2.3.0
-    * PHP8 and Mapserver8
-# 2.2.17
-    * Sicherheitslücken wurden geschlossen und ein neues, sicheres Docker-Image wurde erstellt.
 # 2.2.16
-    * Security increasing for Apache
+    * Without phpmyadmin configuratin and installation on the web container
 # 2.2.15
     * Security increasing for Apache
 # 2.2.14
@@ -266,10 +261,10 @@ dcm run web
 # 2.2.13
     * Decrease the Mapserver Version
 # 2.2.12
-    * inkscape library included
-    * Decrease the ImageMagick Version
+	* inkscape library included
+	* Decrease the ImageMagick Version
 # 2.2.11
-    * using rotatelogs for apache2 access and error logfiles, daily rotation and compression inside 000-default.conf
+	* using rotatelogs for apache2 access and error logfiles, daily rotation and compression inside 000-default.conf
 # 2.2.10
 	* Use debian image Version 11.3
 	* Install without backports
