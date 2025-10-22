@@ -15,30 +15,30 @@ function install_service() {
       dcm create network $NETWORK_NAME
     fi
 
-    echo "Zur Einrichtung des MySQL und phpMyAdmin Containers müssen Passwörter vergeben werden!"
-    if [ -z "${MARIADB_ROOT_PASSWORD}" ]; then
-      read -p "mariadb Root Passwort: " -s MARIADB_ROOT_PASSWORD
-    else
-      echo "Use pre-defined MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:1:5}..."
-    fi
-    echo "MARIADB_ROOT_PASSWORD=\"${MARIADB_ROOT_PASSWORD}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
+#    echo "Zur Einrichtung des MySQL und phpMyAdmin Containers müssen Passwörter vergeben werden!"
+#    if [ -z "${MARIADB_ROOT_PASSWORD}" ]; then
+#      read -p "mariadb Root Passwort: " -s MARIADB_ROOT_PASSWORD
+#    else
+#      echo "Use pre-defined MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:1:5}..."
+#    fi
+#    echo "MARIADB_ROOT_PASSWORD=\"${MARIADB_ROOT_PASSWORD}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
 
-    if [ -z "$MARIADB_USER" ]; then
-      MARIADB_USER="kvwmap"
-      echo "MARIADB_USER=\"${MARIADB_USER}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
-    fi
+#    if [ -z "$MARIADB_USER" ]; then
+#      MARIADB_USER="kvwmap"
+#      echo "MARIADB_USER=\"${MARIADB_USER}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
+#    fi
 
-    if [ -z "$MARIADB_PASSWORD" ]; then
-      echo ""
-      read -p "Passwort für mariadb User ${MARIADB_USER}: " -s MARIADB_PASSWORD
-    else
-      echo "Use pre-defined MARIADB_PASSWORD: ${MARIADB_PASSWORD:1:5}... for user ${MARIADB_USER}"
-    fi
-    echo "MARIADB_PASSWORD=\"${MARIADB_PASSWORD}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
+#    if [ -z "$MARIADB_PASSWORD" ]; then
+#      echo ""
+#      read -p "Passwort für mariadb User ${MARIADB_USER}: " -s MARIADB_PASSWORD
+#    else
+#      echo "Use pre-defined MARIADB_PASSWORD: ${MARIADB_PASSWORD:1:5}... for user ${MARIADB_USER}"
+#    fi
+#    echo "MARIADB_PASSWORD=\"${MARIADB_PASSWORD}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
 
     dcm create service web ${NETWORK_NAME}
-    dcm create service mariadb ${NETWORK_NAME}
-    dcm create service phpmyadmin ${NETWORK_NAME}
+#    dcm create service mariadb ${NETWORK_NAME}
+#    dcm create service phpmyadmin ${NETWORK_NAME}
     dcm create service pgsql ${NETWORK_NAME}
     dcm create service pgadmin ${NETWORK_NAME}
     dcm create service gdal ${NETWORK_NAME}
