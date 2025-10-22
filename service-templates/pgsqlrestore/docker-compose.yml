@@ -1,0 +1,22 @@
+version: '3'
+services:
+    postgres-postgis:
+        image: pkorduan/postgis:15-3.3
+        container_name: ${NETWORK_NAME:-kvwmap_prod}_pgsqlrestore
+        hostname: ${NETWORK_NAME:-kvwmap_prod}_pgsqlrestore
+        environment:
+          POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+        volumes:
+          - ./config:/var/lib/postgresql/config:ro
+          - ./data:/var/lib/postgresql/data
+          - ./backup:/pgbackrest:ro
+          - ./logs:/var/log/pgsql
+          - ./dumps:/dumps
+        networks:
+            default:
+                aliases:
+                    - pgsqlrestore
+networks:
+    default:
+        name: ${NETWORK_NAME:-kvwmap_prod}
+        external: true
