@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   pgadmin:
-    hostname: ${NETWORK_NAME}_${SERVICE_NAME
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     image: dpage/pgadmin4
     command: dpage/pgadmin4
