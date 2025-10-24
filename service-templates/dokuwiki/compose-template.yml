@@ -9,10 +9,12 @@ services:
       - SCRIPT_NAME=/dokuwiki
       - VIRTUAL_PATH=/dokuwiki
       - VIRTUAL_HOST=$DOMAIN
+      - VIRTUAL_PORT=8080
     volumes:
-      - "./html:/var/www/html"
-      - "./storage:/storage"
-      - "./apache2:/etc/apache2"
+      #- "./html:/var/www/html"
+      #- "./storage:/storage"
+      - "./apache2/sites-availabe:/etc/apache2/sites-available"
+      - "./apache2/sites-enabled:/etc/apache2/sites-enabled"
       #- "./dokuwiki/data:/storage/data"
       #- "./dokuwiki/bin:/var/www/html/bin"
       #- "./dokuwiki/conf:/storage/conf"

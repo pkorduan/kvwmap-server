@@ -15,6 +15,7 @@ install_service() {
 	mkdir ${SERVICE_PATH}
 
     cp    ${USER_DIR}/kvwmap-server/service-templates/dokuwiki/compose-template.yml ${SERVICE_PATH}/
+    cp -r ${USER_DIR}/kvwmap-server/service-templates/dokuwiki/directory_template/apache2 ${SERVICE_PATH}/apache2
 
 	echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
 }
