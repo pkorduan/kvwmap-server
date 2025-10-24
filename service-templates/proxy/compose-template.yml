@@ -1,25 +1,47 @@
-version: '3'
+version: "3.8"
+
 services:
-  ${SERVICE_NAME}:
-    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
-    image: nginx:stable
+  ${SERVICE_NAME}: 
+    image: nginxproxy/nginx-proxy:latest
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
-    restart: "always"
-    user: "${OS_USER_ID}:${OS_USER_GROUP_ID}"
-    networks:
-      - ${NETWORK_NAME}
-#      - kvwmap_prod
+    hostname: ${NETWORK_NAME}_${SERVICE_NAME}
+    restart: always
+    labels:
+      - "com.github.nginx-proxy.nginx=true"
+      - "com.github.nginx-proxy.docker-gen=true"
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx:/etc/nginx
-      - ./letsencrypt:/etc/letsencrypt
-      - ./www:/var/www
-      - ./log:/var/log/nginx
+      - ./certs:/etc/nginx/certs:ro
+      - ./vhost.d:/etc/nginx/vhost.d
+      - ./www/html:/usr/share/nginx/html
+      - ./logs:/var/log/nginx
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  acme-companion:
+    image: nginxproxy/acme-companion
+    container_name: acme-companion
+    restart: always
+    depends_on:
+      - ${SERVICE_NAME}
+    environment:
+      - DEFAULT_EMAIL=peter.korduan@gdi-service.de
+      - NGINX_PROXY_CONTAINER=${NETWORK_NAME}_${SERVICE_NAME}
+      - NGINX_DOCKER_GEN_CONTAINER=${NETWORK_NAME}_${SERVICE_NAME}
+    volumes:
+      - ./acme:/etc/acme.sh
+      - ./certs:/etc/nginx/certs
+      - ./vhost.d:/etc/nginx/vhost.d
+      - ./www/html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy
+      #- kvwmap_prod
 
 networks:
-    ${NETWORK_NAME}:
-        external: true
-#    kvwmap_prod:
-#        external: true
+  proxy:
+    external: true
+  #kvwmap_prod:
+    #external: true
+
