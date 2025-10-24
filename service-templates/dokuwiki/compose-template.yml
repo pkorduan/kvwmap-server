@@ -1,10 +1,14 @@
-version: "3.6"
+version: "3.8"
 services:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     image: dokuwiki/dokuwiki:stable
     restart: always
+    environment:
+      - SCRIPT_NAME=/dokuwiki
+      - VIRTUAL_PATH=/dokuwiki
+      - VIRTUAL_HOST=$DOMAIN
     volumes:
       - "./html:/var/www/html"
       - "./storage:/storage"
@@ -12,7 +16,12 @@ services:
       #- "./dokuwiki/data:/storage/data"
       #- "./dokuwiki/bin:/var/www/html/bin"
       #- "./dokuwiki/conf:/storage/conf"
+    networks:
+      - kvwmap_prod
+      - proxy
+
 networks:
-    default:
-        name: ${NETWORK_NAME}
-        external: true
+  ${NETWORK_NAME}:
+      external: true
+  proxy:
+    external: true
