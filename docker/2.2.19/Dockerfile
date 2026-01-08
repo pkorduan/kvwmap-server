@@ -149,7 +149,7 @@ RUN git clone --branch 6.9.11-60 --depth 1 https://github.com/ImageMagick/ImageM
 
 RUN groupadd -g 1700 ${OS_USER} && \
     useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
-    usermod -G ${OS_USER} www-data && \
+    usermod -aG ${OS_USER} www-data && \
     usermod -aG www-data ${OS_USER} && \
     echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
