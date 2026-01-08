@@ -1,19 +1,16 @@
 #!/bin/bash
-CRONTAB_DIR="/var/www/cron"
-CRONTAB_FILE="$CRONTAB_DIR/crontab_gisadmin"
-if [ -d "$CRONTAB_DIR/gisadmin" ]; then
-  cat $CRONTAB_DIR/gisadmin/* > $CRONTAB_FILE
-fi
-if [ -s $CRONTAB_FILE ] ; then
-  crontab -u gisadmin $CRONTAB_FILE
-  #echo "`date` Update gisadmins crontab." >> /var/www/logs/cron/cron.log
+
+CRONTAB_USER=gisadmin
+CRONTAB_FILE="/var/www/cron/$CRONTAB_USER"
+if [ -s "$CRONTAB_FILE" ] ; then
+  crontab -u "$CRONTAB_USER" "$CRONTAB_FILE"
+  echo "$(date) Update gisadmins crontab." >> /var/www/logs/cron/cron.log
 fi
 
-CRONTAB_FILE="$CRONTAB_DIR/crontab_root"
-if [ -d "$CRONTAB_DIR/root" ]; then
-  cat $CRONTAB_DIR/root/* > $CRONTAB_FILE
-fi
-if [ -s $CRONTAB_FILE ] ; then
-  crontab -u root $CRONTAB_FILE
-  #echo "`date` Update roots crontab." >> /var/www/logs/cron/cron.log
+CRONTAB_USER=root
+KVWMAP=fis
+CRONTAB_FILE="/var/www/cron/$CRONTAB_USER"
+if [ -s "$CRONTAB_FILE" ] ; then
+  crontab -u "$CRONTAB_USER" "$CRONTAB_FILE"
+  echo "$(date) Update roots crontab." >> /var/www/logs/cron/cron.log
 fi

@@ -2,7 +2,7 @@ version: "3.8"
 services:
   ${SERVICE_NAME}:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
-    image: pkorduan/kvwmap-server:2.2.18
+    image: pkorduan/kvwmap-server:2.2.19
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     restart: "always"
     networks:
@@ -28,6 +28,7 @@ services:
       - ./apache2/sites-available:/etc/apache2/sites-available
       - ./apache2/sites-enabled:/etc/apache2/sites-enabled
       - ./apache2/conf-available:/etc/apache2/conf-available
+      - ./apache2/apache2.conf:/etc/apache2/apache2.conf
       #- ./apache2/mods-available:/etc/apache2/mods-available
       #- ./apache2/mods-enabled:/etc/apache2/mods-enabled
       - ./cron/load_cron_files:/etc/cron.hourly/load_cron_files
