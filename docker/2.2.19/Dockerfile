@@ -150,12 +150,15 @@ RUN git clone --branch 6.9.11-60 --depth 1 https://github.com/ImageMagick/ImageM
 RUN groupadd -g 1700 ${OS_USER} && \
     useradd -ms /bin/bash -u 17000 -g 1700 ${OS_USER} && \
     usermod -G ${OS_USER} www-data && \
-    usermod -aG www-data ${OS_USER} && \    
+    usermod -aG www-data ${OS_USER} && \
     echo "www-data  ALL=(gisadmin) NOPASSWD: /usr/bin/git" >> /etc/sudoers.d/git && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     mkdir -p $USER_DIR/.ssh && \
     ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
     chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
+
+RUN echo "umask 0002" >> /home/${OS_USER}/.bashrc && \
+    chown ${OS_USER}:${OS_USER} /home/${OS_USER}/.bashrc
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
