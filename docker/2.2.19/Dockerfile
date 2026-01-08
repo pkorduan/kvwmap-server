@@ -1,6 +1,6 @@
 FROM debian:11.9
 MAINTAINER Peter Korduan <peter.korduan@gdi-service.de>
-LABEL version="2.2.17"
+LABEL version="2.2.19"
 
 ARG OS_USER="gisadmin"
 ARG USER_DIR="/home/${OS_USER}"
