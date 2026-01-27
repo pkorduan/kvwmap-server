@@ -157,6 +157,9 @@ RUN groupadd -g 1700 ${OS_USER} && \
     ssh-keygen -b 2048 -t rsa -f $USER_DIR/.ssh/id_rsa -q -N "" && \
     chown -R $OS_USER.$OS_USER $USER_DIR/.ssh
 
+RUN echo 'umask 0002' >> /home/${OS_USER}/.profile && \
+    chown ${OS_USER}:${OS_USER} /home/${OS_USER}/.profile
+
 RUN echo "umask 0002" >> /home/${OS_USER}/.bashrc && \
     chown ${OS_USER}:${OS_USER} /home/${OS_USER}/.bashrc
 
