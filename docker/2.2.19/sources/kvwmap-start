@@ -1,5 +1,4 @@
 #!/bin/bash
-umask 002
 
 if [ -f "/var/www/apps/kvwmap/index.php" ];
 then
