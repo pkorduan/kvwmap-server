@@ -67,7 +67,7 @@ class ShowProcessor extends AbstractProcessor {
             case 'FROM':
                 $resultList[] = array('expr_type' => ExpressionType::RESERVED, 'base_expr' => trim($token));
                 if ($prev === 'INDEX' || $prev === 'COLUMNS') {
-                    continue;
+                    break;
                 }
                 $category = $upper;
                 break;

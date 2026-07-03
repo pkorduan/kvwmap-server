@@ -118,10 +118,10 @@ class FromProcessor extends AbstractProcessor {
             if ($skip_next && $token !== "") {
                 $parseInfo['token_count']++;
                 $skip_next = false;
-                continue;
+                break;
             } else {
                 if ($skip_next) {
-                    continue;
+                    break;
                 }
             }
 
@@ -158,7 +158,7 @@ class FromProcessor extends AbstractProcessor {
                 $parseInfo['alias']['name'] = $str;
                 $parseInfo['alias']['no_quotes'] = $this->revokeQuotation($str);
                 $parseInfo['alias']['base_expr'] = trim($parseInfo['alias']['base_expr']);
-                continue;
+                break;
 
             case 'INDEX':
                 if ($token_category == 'CREATE') {
@@ -180,13 +180,11 @@ class FromProcessor extends AbstractProcessor {
             case 'INNER':
             case 'OUTER':
                 $parseInfo['token_count']++;
-                continue;
                 break;
 
             case 'FOR':
                 $parseInfo['token_count']++;
                 $skip_next = true;
-                continue;
                 break;
 
             case 'LEFT':
@@ -210,7 +208,7 @@ class FromProcessor extends AbstractProcessor {
 
             default:
                 if ($upper === "") {
-                    continue; // ends the switch statement!
+                    break; // ends the switch statement!
                 }
 
                 if ($parseInfo['token_count'] === 0) {

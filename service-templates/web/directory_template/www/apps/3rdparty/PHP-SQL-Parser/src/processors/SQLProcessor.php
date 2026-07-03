@@ -71,14 +71,14 @@ class SQLProcessor extends SQLChunkProcessor {
                     if ($token_category !== "") { # is this correct??
                         $out[$token_category][] = $token;
                     }
-                    continue;
+                    break;
                 }
                 #to skip the token we replace it with whitespace
                 $trim = "";
                 $token = "";
                 $skip_next--;
                 if ($skip_next > 0) {
-                    continue;
+                    break;
                 }
             }
 
@@ -127,7 +127,7 @@ class SQLProcessor extends SQLChunkProcessor {
             case 'PLUGIN':
             # no separate section
                 if ($token_category === 'SHOW') {
-                    continue;
+                    break;
                 }
                 $token_category = $upper;
                 break;
@@ -139,7 +139,7 @@ class SQLProcessor extends SQLChunkProcessor {
                 }
                 # no separate section
                 if ($token_category === 'SHOW') {
-                    continue;
+                    break;
                 }
                 $token_category = $upper;
                 break;
@@ -167,10 +167,10 @@ class SQLProcessor extends SQLChunkProcessor {
             case 'DATABASE':
             case 'SCHEMA':
                 if ($prev_category === 'DROP') {
-                    continue;
+                    break;
                 }
                 if ($prev_category === 'SHOW') {
-                    continue;
+                    break;
                 }
                 $token_category = $upper;
                 break;
@@ -273,7 +273,7 @@ class SQLProcessor extends SQLChunkProcessor {
 
             case 'CREATE':
                 if ($prev_category === 'SHOW') {
-                    continue;
+                    break;
                 }
                 $token_category = $upper;
                 break;
@@ -362,7 +362,7 @@ class SQLProcessor extends SQLChunkProcessor {
 
             case 'FOR':
                 if ($prev_category === 'SHOW') {
-                    continue;
+                    break;
                 }
                 $skip_next = 1;
                 $out['OPTIONS'][] = 'FOR UPDATE';

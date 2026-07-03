@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo "NETWORK_NAME=${NETWORK_NAME}" > /etc/environment
+
+if [ -f "/var/www/apps/kvwmap/index.php" ];
+then
+	/usr/local/bin/kvwmap-firstrun
+fi
+
+service cron start
+
+/usr/sbin/apache2ctl -d /etc/apache2 -DFOREGROUND
