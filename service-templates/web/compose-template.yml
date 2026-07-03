@@ -6,12 +6,11 @@ services:
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     restart: "always"
     networks:
-      - kvwmap_prod
+      - ${NETWORK_NAME}
       - proxy
     environment:
       # Environment variables with only a key are resolved to their values on the ma>
       - OS_USER=gisadmin
-      - IP_EXTERN=$IP_EXTERN
       - DOMAIN_EXTERN=$DOMAIN
       - KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD
       - TERM=linux
@@ -20,6 +19,7 @@ services:
       - VIRTUAL_HOST=$DOMAIN
       - LETSENCRYPT_HOST=$DOMAIN
       - LETSENCRYPT_EMAIL=peter.korduan@gdi-service.de
+      - NETWORK_NAME=${NETWORK_NAME}
     volumes:
       - ../../volumes/proj/proj.db:/usr/share/proj/proj.db
       - ../../volumes/proj/epsg:/usr/share/proj/epsg
@@ -37,9 +37,8 @@ services:
       - ./www:/var/www
       - ./log:/var/log/apache2
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass:/root/.pgpass
-      - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass_gisadmin:/home/gisadmin/.pgpass
 networks:
   proxy:
     external: true
-  kvwmap_prod:
+  ${NETWORK_NAME}:
     external: true
