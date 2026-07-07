@@ -290,10 +290,13 @@ function create_service() {
   source ${USER_DIR}/networks/${NETWORK_NAME}/env
   install_service
 
-  if [ "${SERVICE_NAME}" != "kvwmap-server" ]; then
-    write_compose_file ${SERVICE_NAME} ${NETWORK_NAME}
-    echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
-  fi
+  case "${SERVICE_NAME}" in
+    kvwmap-server|pgsql) ;;
+    *)
+        write_compose_file ${SERVICE_NAME} ${NETWORK_NAME}
+        echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
+    ;;
+  esac
 }
 
 function remove_service() {

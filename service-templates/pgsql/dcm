@@ -23,19 +23,19 @@ install_service() {
   echo "POSTGRES_KVWMAP_PASSWORD: ${POSTGRES_KVWMAP_PASSWORD:0:5}..."
 
   echo "Clone docker-postgis Repo nach ${SERVICE_PATH} ..."
-  git clone --branch postgres-16-3.5 https://github.com/pkorduan/docker-postgis.git "${SERVICE_PATH}"
+  git clone --branch postgres-16-3.5 https://github.com/pkorduan/docker-postgis.git "${SERVICE_PATH}" || return 1
 
   echo "Erzeuge Verzeichnisse und setze Rechte ..."
-  (cd "${SERVICE_PATH}" && post-clone.sh)
+  (cd "${SERVICE_PATH}" && ./post-clone.sh)
 
-  echo "Schreibe Konfiguration nach ${SERVICE_PATH}/env ..."
-  cat > "${SERVICE_PATH}/env" <<EOF
+  cat > "${SERVICE_PATH}/.env" <<EOF
 NETWORK_NAME="${NETWORK_NAME}"
 SERVICE_NAME="${SERVICE_NAME}"
 POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
 POSTGRES_KVWMAP_PASSWORD="${POSTGRES_KVWMAP_PASSWORD}"
 EOF
-  chown ${OS_USER}:${OS_USER} "${SERVICE_PATH}/env"
+  chown 999:999 "${SERVICE_PATH}/.env"
+  chmod 600 "${SERVICE_PATH}/.env"
 
   export SERVICE_NAME
   echo "Installation von pgsql in ${NETWORK_NAME} abgeschlossen."
