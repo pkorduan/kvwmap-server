@@ -333,14 +333,17 @@ function compose_call(){
     else
         DOCKERCOMPOSE_CALL="docker compose"
     fi
-    
-    if [ -f "./env" ]; then
-      env_file="./env"
-    else
-      env_file="./../../env"
-    fi
 
-    cmd="${DOCKERCOMPOSE_CALL} -f ./docker-compose.yml --env-file ${env_file} --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
+    # verwende erstes environment. .env ist dabei Standard, ./env ist deprecated
+    env_file=""
+    for f in ./.env ./env; do
+      [ -f "$f" ] && env_file="$f" && break
+    done
+
+    env_file_opt=""
+    [ -n "$env_file" ] && env_file_opt="--env-file ${env_file}"
+
+    cmd="${DOCKERCOMPOSE_CALL} -f ./docker-compose.yml ${env_file_opt} --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
     echo $cmd
 }
 
