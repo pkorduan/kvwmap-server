@@ -1,36 +1,42 @@
 #!/bin/bash
 
 install_service() {
-
-  echo "Installation von Service pgsql15 in Netzwerk '${NETWORK_NAME}'"
+  echo "Installation von Service pgsql in Netzwerk '${NETWORK_NAME}'"
   SERVICE_NAME=pgsql
 
-  echo "Service-Name: ${SERVICE_NAME}"
-
-  SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/
+  SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
   if [ -d "$SERVICE_PATH" ]; then
-    echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
+    echo "Der Service existiert in dem Netzwerk bereits. Abbruch."
     return 1
   fi
 
-  if  [ -z "$POSTGRES_PASSWORD" ]; then
-    read -p "Passwort für User postgres: " -s POSTGRES_PASSWORD
-  else
-    echo "Nutze bereits definiertes Postgres-Password: ${POSTGRES_PASSWORD:0:5}..."
+  if [ -z "$POSTGRES_PASSWORD" ]; then
+    echo "Fehler: POSTGRES_PASSWORD ist nicht gesetzt. Abbruch."
+    return 1
   fi
-  echo "POSTGRES_PASSWORD=\"${POSTGRES_PASSWORD}\"" >> ${USER_DIR}/networks/${NETWORK_NAME}/env
+  echo "POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:0:5}..."
 
-  mkdir -p ${SERVICE_PATH}
-  cp -r ${USER_DIR}/kvwmap-server/service-templates/pgsql/directory_template/* ${SERVICE_PATH}
-  cp    ${USER_DIR}/kvwmap-server/service-templates/pgsql/compose-template.yml ${SERVICE_PATH}
-  mkdir ${SERVICE_PATH}/data
-  mkdir ${SERVICE_PATH}/backup
-  mkdir ${SERVICE_PATH}/logs
+  if [ -z "$POSTGRES_KVWMAP_PASSWORD" ]; then
+    echo "Fehler: POSTGRES_KVWMAP_PASSWORD ist nicht gesetzt. Abbruch."
+    return 1
+  fi
+  echo "POSTGRES_KVWMAP_PASSWORD: ${POSTGRES_KVWMAP_PASSWORD:0:5}..."
 
+  echo "Clone docker-postgis Repo nach ${SERVICE_PATH} ..."
+  git clone --branch postgres-16-3.5 https://github.com/pkorduan/docker-postgis.git "${SERVICE_PATH}"
 
-  chown -R 999:gisadmin ${SERVICE_PATH}
-  sed -i -e "s|NETWORK_SUBNET|${NETWORK_SUBNET}|g" "${SERVICE_PATH}/config/pg_hba.conf"
+  echo "Erzeuge Verzeichnisse und setze Rechte ..."
+  (cd "${SERVICE_PATH}" && post-clone.sh)
+
+  echo "Schreibe Konfiguration nach ${SERVICE_PATH}/env ..."
+  cat > "${SERVICE_PATH}/env" <<EOF
+NETWORK_NAME="${NETWORK_NAME}"
+SERVICE_NAME="${SERVICE_NAME}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
+POSTGRES_KVWMAP_PASSWORD="${POSTGRES_KVWMAP_PASSWORD}"
+EOF
+  chown ${OS_USER}:${OS_USER} "${SERVICE_PATH}/env"
+
   export SERVICE_NAME
-
-  echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
+  echo "Installation von pgsql in ${NETWORK_NAME} abgeschlossen."
 }
