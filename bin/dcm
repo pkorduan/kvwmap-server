@@ -291,7 +291,7 @@ function create_service() {
   install_service
 
   case "${SERVICE_NAME}" in
-    kvwmap-server|pgsql) ;;
+    kvwmap-server|pgsql|web) ;;
     *)
         write_compose_file ${SERVICE_NAME} ${NETWORK_NAME}
         echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."

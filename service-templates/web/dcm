@@ -1,57 +1,123 @@
 #!/bin/bash
-# ToDo replace Env Vars correct in docker-compose.yaml
+# Service-Template: web (Apache + MapServer + PHP + kvwmap-App)
+# Wird von "dcm create service web <network>" gesourct und ruft install_service() auf.
+
+# Quelle der kvwmap-App. Ueber KVWMAP_BRANCH kann ein Tag/Branch gepinnt werden
+# (analog zu pgsql --branch). Ohne Angabe bleibt das bisherige Verhalten (Default-Branch).
+KVWMAP_REPO="${KVWMAP_REPO:-https://github.com/srahn/kvwmap.git}"
+KVWMAP_BRANCH="${KVWMAP_BRANCH:-}"
+GDI_LOGO_URL="https://gdi-service.de/public/kvwmap_resources/Logo_GDI-Service_200x47.png"
+
 install_service() {
-	if [ -z $NETWORK_NAME ] ; then
-		echo "Abbruch: Kein Netzwerkname angegeben!"
-	else
-    SERVICE_NAME=web
-    echo "Service-Name=${SERVICE_NAME}"
+  SERVICE_NAME=web
+  echo "Installation von Service ${SERVICE_NAME} in Netzwerk '${NETWORK_NAME}'"
 
-		PROXY_SERVICE="proxy"
+  # --- Voraussetzungen pruefen (fail fast) ---
+  if [ -z "$NETWORK_NAME" ]; then
+    echo "Fehler: Kein Netzwerkname angegeben. Abbruch."
+    return 1
+  fi
 
-		SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
-		if [ -d "$SERVICE_PATH" ]; then
-			echo "Der Service existiert in dem Netzwerk bereits. Starten Sie erneut und wählen Sie einen anderen Namen!"
-			echo "${SERVICE_PATH} ist bereits vorhanden!"
-			return 1
-		fi
+  SERVICE_PATH=${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}
+  if [ -d "$SERVICE_PATH" ]; then
+    echo "Der Service existiert in dem Netzwerk bereits. Abbruch."
+    echo "${SERVICE_PATH} ist bereits vorhanden!"
+    return 1
+  fi
 
-		mkdir -p ${SERVICE_PATH}
+  # Diese Variablen werden vom compose-template.yml gebraucht.
+  if [ -z "$DOMAIN" ]; then
+    echo "Fehler: DOMAIN ist nicht gesetzt (aus networks/${NETWORK_NAME}/env). Abbruch."
+    return 1
+  fi
+  if [ -z "$KVWMAP_INIT_PASSWORD" ]; then
+    echo "Fehler: KVWMAP_INIT_PASSWORD ist nicht gesetzt. Abbruch."
+    return 1
+  fi
+  echo "KVWMAP_INIT_PASSWORD: ${KVWMAP_INIT_PASSWORD:0:5}..."
 
-        echo "Service templates für Service web nach ${SERVICE_PATH} kopiert."
-		echo "Clone kvwmap von github ins Web-Verzeichnis ..."
-    	git clone https://github.com/srahn/kvwmap.git ${SERVICE_PATH}/www/apps/kvwmap
+  # DB-Passwort des kvwmap-Users (muss zum pgsql-Service passen).
+  if [ -z "$POSTGRES_KVWMAP_PASSWORD" ]; then
+    echo "Fehler: POSTGRES_KVWMAP_PASSWORD ist nicht gesetzt. Abbruch."
+    return 1
+  fi
+  echo "POSTGRES_KVWMAP_PASSWORD: ${POSTGRES_KVWMAP_PASSWORD:0:5}..."
 
-		cp    ${USER_DIR}/kvwmap-server/service-templates/web/compose-template.yml ${SERVICE_PATH}/
-		cp -r ${USER_DIR}/kvwmap-server/service-templates/web/directory_template/* ${SERVICE_PATH}
-		chown root:root ${SERVICE_PATH}/www/cron/crontab_root
-		chown gisadmin:gisadmin ${SERVICE_PATH}/www/cron/crontab_gisadmin
-		chmod 600 ${SERVICE_PATH}/www/cron/crontab_root ${SERVICE_PATH}/www/cron/crontab_gisadmin
+  local TEMPLATE_DIR="${USER_DIR}/kvwmap-server/service-templates/web"
 
-		echo "Erzeuge kvwmap custom Verzeichnisse für Fonts, Grafik, Symbole und Layouts ..."
-		mkdir -p ${SERVICE_PATH}/www/apps/kvwmap/custom/fonts \
-				${SERVICE_PATH}/www/apps/kvwmap/custom/graphics \
-				${SERVICE_PATH}/www/apps/kvwmap/custom/wappen \
-				${SERVICE_PATH}/www/apps/kvwmap/custom/layouts \
-				${SERVICE_PATH}/www/apps/kvwmap/custom/symbols
+  # --- kvwmap-App klonen ---
+  echo "Clone kvwmap von ${KVWMAP_REPO} ins Web-Verzeichnis ..."
+  if [ -n "$KVWMAP_BRANCH" ]; then
+    git clone --branch "$KVWMAP_BRANCH" "$KVWMAP_REPO" "${SERVICE_PATH}/www/apps/kvwmap" || return 1
+  else
+    git clone "$KVWMAP_REPO" "${SERVICE_PATH}/www/apps/kvwmap" || return 1
+  fi
 
-		cp -r ${USER_DIR}/kvwmap-server/service-templates/web/directory_template/www/apps/kvwmap/custom/layouts ${SERVICE_PATH}/www/apps/kvwmap/custom
-		cp ${SERVICE_PATH}/www/apps/kvwmap/graphics/favicon.ico ${SERVICE_PATH}/www/apps/kvwmap/custom/wappen/favicon.ico
-		wget -O ${SERVICE_PATH}/www/apps/kvwmap/custom/wappen/Logo_GDI-Service_200x47.png https://gdi-service.de/public/kvwmap_resources/Logo_GDI-Service_200x47.png
+  # --- Templates ins Service-Verzeichnis kopieren ---
+  # web ist (wie pgsql) von write_compose_file()/envsubst ausgenommen, damit die
+  # Passwoerter nicht ins docker-compose.yml eingebacken werden. Deshalb wird das
+  # compose-template direkt als docker-compose.yml abgelegt; die Variablen darin
+  # loest docker compose zur Laufzeit aus der .env auf (compose_call: --env-file).
+  echo "Kopiere Service-Templates nach ${SERVICE_PATH} ..."
+  cp    "${TEMPLATE_DIR}/docker-compose.yml" "${SERVICE_PATH}/docker-compose.yml" || return 1
+  cp -r "${TEMPLATE_DIR}/directory_template/"* "${SERVICE_PATH}"                     || return 1
 
-		echo "#geo_name_search_field {
-			width: 100%;
-			}
+  chown root:root         "${SERVICE_PATH}/www/cron/crontab_root"
+  chown gisadmin:gisadmin "${SERVICE_PATH}/www/cron/crontab_gisadmin"
+  chmod 600               "${SERVICE_PATH}/www/cron/crontab_root" "${SERVICE_PATH}/www/cron/crontab_gisadmin"
 
-			#search_div {
-			display: none;
-		}" >> ${SERVICE_PATH}/www/apps/kvwmap/custom/layouts/custom.css
+  # --- kvwmap custom-Verzeichnisse (layouts kommt bereits aus directory_template) ---
+  echo "Erzeuge kvwmap custom-Verzeichnisse fuer Fonts, Grafik, Symbole und Wappen ..."
+  mkdir -p "${SERVICE_PATH}/www/apps/kvwmap/custom/fonts" \
+           "${SERVICE_PATH}/www/apps/kvwmap/custom/graphics" \
+           "${SERVICE_PATH}/www/apps/kvwmap/custom/wappen" \
+           "${SERVICE_PATH}/www/apps/kvwmap/custom/symbols"
 
-		chown -R www-data:${OS_USER} ${SERVICE_PATH}/*
-		chmod -R g+w ${SERVICE_PATH}/*
+  # Favicon und Logo sind nicht installationskritisch -> nur warnen, nicht abbrechen.
+  local FAVICON="${SERVICE_PATH}/www/apps/kvwmap/graphics/favicon.ico"
+  if [ -f "$FAVICON" ]; then
+    cp "$FAVICON" "${SERVICE_PATH}/www/apps/kvwmap/custom/wappen/favicon.ico"
+  else
+    echo "Warnung: favicon.ico nicht gefunden, wird uebersprungen."
+  fi
 
-		sed -i -e "s|kvwmap_prod_web|${NETWORK_NAME}_${SERVICE_NAME}|g" "${USER_DIR}/networks/${NETWORK_NAME}/services/${SERVICE_NAME}/apache2/sites-available/000-default.conf"
+  wget -O "${SERVICE_PATH}/www/apps/kvwmap/custom/wappen/Logo_GDI-Service_200x47.png" "$GDI_LOGO_URL" \
+    || echo "Warnung: GDI-Logo konnte nicht geladen werden, wird uebersprungen."
 
-		echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} beendet."
-	fi
+  cat >> "${SERVICE_PATH}/www/apps/kvwmap/custom/layouts/custom.css" <<'EOF'
+#geo_name_search_field {
+  width: 100%;
+}
+
+#search_div {
+  display: none;
+}
+EOF
+
+  chown -R www-data:${OS_USER} "${SERVICE_PATH}/"*
+  chmod -R g+w                 "${SERVICE_PATH}/"*
+
+  # --- .env fuer docker compose (Laufzeit-Interpolation, siehe compose_call) ---
+  # Enthaelt alle im docker-compose.yml referenzierten Variablen inkl. der
+  # Passwoerter. Dadurch stehen sie kvwmap/php zur Laufzeit zur Verfuegung, ohne
+  # im Klartext im docker-compose.yml zu landen.
+  cat > "${SERVICE_PATH}/.env" <<EOF
+NETWORK_NAME="${NETWORK_NAME}"
+SERVICE_NAME="${SERVICE_NAME}"
+USER_DIR="${USER_DIR}"
+DOMAIN="${DOMAIN}"
+KVWMAP_INIT_PASSWORD="${KVWMAP_INIT_PASSWORD}"
+POSTGRES_KVWMAP_PASSWORD="${POSTGRES_KVWMAP_PASSWORD}"
+EOF
+  chown ${OS_USER}:${OS_USER} "${SERVICE_PATH}/.env"
+  chmod 600                   "${SERVICE_PATH}/.env"
+
+  # Container-Namen in der Apache-Site auf das aktuelle Netzwerk setzen.
+  local DEFAULT_CONF="${SERVICE_PATH}/apache2/sites-available/000-default.conf"
+  if [ -f "$DEFAULT_CONF" ]; then
+    sed -i -e "s|kvwmap_prod_web|${NETWORK_NAME}_${SERVICE_NAME}|g" "$DEFAULT_CONF"
+  fi
+
+  export SERVICE_NAME
+  echo "Installation von ${SERVICE_NAME} in ${NETWORK_NAME} abgeschlossen."
 }
