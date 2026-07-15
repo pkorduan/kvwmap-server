@@ -290,10 +290,13 @@ function create_service() {
   source ${USER_DIR}/networks/${NETWORK_NAME}/env
   install_service
 
-  if [ "${SERVICE_NAME}" != "kvwmap-server" ]; then
-    write_compose_file ${SERVICE_NAME} ${NETWORK_NAME}
-    echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
-  fi
+  case "${SERVICE_NAME}" in
+    kvwmap-server|pgsql|web) ;;
+    *)
+        write_compose_file ${SERVICE_NAME} ${NETWORK_NAME}
+        echo "Service ${SERVICE_NAME} wurde erstellt. Mit dcm up ${SERVICE_NAME} ${2} kann der Dienst gestartet werden."
+    ;;
+  esac
 }
 
 function remove_service() {
@@ -333,14 +336,17 @@ function compose_call(){
     else
         DOCKERCOMPOSE_CALL="docker compose"
     fi
-    
-    if [ -f "./env" ]; then
-      env_file="./env"
-    else
-      env_file="./../../env"
-    fi
 
-    cmd="${DOCKERCOMPOSE_CALL} -f ./docker-compose.yml --env-file ${env_file} --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
+    # verwende erstes environment. .env ist dabei Standard, ./env ist deprecated
+    env_file=""
+    for f in ./.env ./env; do
+      [ -f "$f" ] && env_file="$f" && break
+    done
+
+    env_file_opt=""
+    [ -n "$env_file" ] && env_file_opt="--env-file ${env_file}"
+
+    cmd="${DOCKERCOMPOSE_CALL} -f ./docker-compose.yml ${env_file_opt} --project-name ${SERVICE_NAME}_${NETWORK_NAME} "
     echo $cmd
 }
 

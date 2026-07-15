@@ -26,17 +26,16 @@ export OS_USER
 
 # weitere
 export POSTGRES_PASSWORD=$(openssl rand -base64 24)
-export PGADMIN_DEFAULT_PASSWORD=$(openssl rand -base64 24)
-export PGADMIN_DEFAULT_EMAIL
-export KVWMAP_PASSWORD=$(openssl rand -base64 24)
+export POSTGRES_KVWMAP_PASSWORD=$(openssl rand -base64 24)
+export KVWMAP_INIT_PASSWORD=$(openssl rand -base64 24)
 
 (
 cat << EOF
 <?php
 define('WEB_BROWSER', 'Browser öffnen mit der Adresse: http://${DOMAIN}/install.php');
 define('POSTGRES_PASSWORD', '${POSTGRES_PASSWORD}');
-define('PGADMIN_PASSWORD', '${PGADMIN_DEFAULT_PASSWORD}');
-define('KVWMAP_PASSWORD', '${KVWMAP_PASSWORD}');
+define('POSTGRES_KVWMAP_PASSWORD', '${POSTGRES_KVWMAP_PASSWORD}');
+define('KVWMAP_INIT_PASSWORD', '${KVWMAP_INIT_PASSWORD}');
 ?>
 EOF
 ) > "$USER_DIR"/passwords.php

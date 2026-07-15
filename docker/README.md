@@ -27,6 +27,25 @@
 	* 1.2.6 [docker/1.2.6/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.6/Dockerfile)
 	* 1.2.5 [docker/1.2.5/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/1.2.5/Dockerfile)
 
+# Version matrix (ab 2.2.18)
+
+Verwendete Basiskomponenten der jeweiligen Docker-Images:
+
+| Version | Debian (Basis-Image) | MapServer / php-mapscript | PHP | Apache |
+|---------|----------------------|---------------------------|-----|--------|
+| 2.3.4   | debian:12 (Bookworm) | 8.4.0 (`-DWITH_PHPNG=1`)  | 8.2 | 2.4    |
+| 2.3.3   | debian:12 (Bookworm) | 8.4.0 (`-DWITH_PHPNG=1`)  | 8.2 | 2.4    |
+| 2.3.1   | debian:12 (Bookworm) | 8.2.2 (`-DWITH_PHPNG=1`)  | 8.2 | 2.4    |
+| 2.3.0   | debian:12 (Bookworm) | 8.0.0 (`-DWITH_PHPNG=1`)  | 8.2 | 2.4    |
+| 2.2.20  | debian:11.9 (Bullseye) | 7.4.5 (`-DWITH_PHP=1`)  | 7.4 | 2.4    |
+| 2.2.19  | debian:11.9 (Bullseye) | 7.4.5 (`-DWITH_PHP=1`)  | 7.4 | 2.4    |
+| 2.2.18  | debian:11.9 (Bullseye) | 7.4.5 (`-DWITH_PHP=1`)  | 7.4 | 2.4    |
+
+Hinweise:
+* **Debian** und **MapServer** sind im jeweiligen `Dockerfile` fest angegeben (`FROM …` bzw. die `mapserver-X.Y.Z.tar.gz`-Zeile).
+* **PHP**: In 2.2.x wird `php7.4` explizit installiert (mapscript nach `/usr/lib/php/20190902/` → PHP 7.4). In 2.3.x wird das Standard-`php`-Paket von Debian 12 verwendet (PHP 8.2). Der Wechsel des mapscript-Build-Flags von `WITH_PHP` auf `WITH_PHPNG` markiert diesen Sprung.
+* **Apache**: Es wird keine feste Version gepinnt; installiert wird jeweils das `apache2`-Paket der Distribution (Serie 2.4.x; die genaue Patch-Version hängt vom Build-Zeitpunkt ab).
+
 # kvwmap-server
 
 The git repository [pkorduan/kvwmap-server](https://github.com/pkorduan/kvwmap-server/) include all files to install and run a container based on the docker image [pkorduan/kvwmap-server](https://registry.hub.docker.com/u/pkorduan/kvwmap-server/).

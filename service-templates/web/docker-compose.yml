@@ -1,6 +1,6 @@
 version: "3.8"
 services:
-  ${SERVICE_NAME}:
+  web:
     hostname: ${NETWORK_NAME}_${SERVICE_NAME}
     image: pkorduan/kvwmap-server:2.2.20
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
@@ -9,10 +9,10 @@ services:
       - ${NETWORK_NAME}
       - proxy
     environment:
-      # Environment variables with only a key are resolved to their values on the ma>
       - OS_USER=gisadmin
-      - DOMAIN_EXTERN=$DOMAIN
-      - KVWMAP_INIT_PASSWORD=$KVWMAP_INIT_PASSWORD
+      - DOMAIN_EXTERN=${DOMAIN}
+      - KVWMAP_INIT_PASSWORD=${KVWMAP_INIT_PASSWORD}
+      - POSTGRES_KVWMAP_PASSWORD=${POSTGRES_KVWMAP_PASSWORD}
       - TERM=linux
       - COLUMNS=180
       - LINES=200
