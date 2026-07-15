@@ -5,9 +5,6 @@ services:
     image: pkorduan/kvwmap-server:2.2.20
     container_name: ${NETWORK_NAME}_${SERVICE_NAME}
     restart: "always"
-    networks:
-      - ${NETWORK_NAME}
-      - proxy
     environment:
       - OS_USER=gisadmin
       - DOMAIN_EXTERN=${DOMAIN}
@@ -37,8 +34,19 @@ services:
       - ./www:/var/www
       - ./log:/var/log/apache2
       - ${USER_DIR}/networks/${NETWORK_NAME}/services/pgsql/config/.pgpass:/root/.pgpass
+
+    networks:
+            proxy:
+                aliases:
+                    - web
+            default:
+                aliases:
+                    - web
 networks:
-  proxy:
-    external: true
-  ${NETWORK_NAME}:
-    external: true
+    default:
+        name: ${NETWORK_NAME:-kvwmap_prod}
+        external: true
+    proxy:
+        name: proxy
+        external: true
+
