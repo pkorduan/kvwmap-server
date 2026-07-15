@@ -14,7 +14,6 @@ services:
       - "443:443"
     networks:
       - proxy
-      #- kvwmap_prod
     volumes:
       - ./certs:/etc/nginx/certs:ro
       - ./vhost.d:/etc/nginx/vhost.d
@@ -40,11 +39,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - proxy
-      #- kvwmap_prod
 
 networks:
   proxy:
-    external: true
-  #kvwmap_prod:
-    #external: true
+    name: proxy
 
