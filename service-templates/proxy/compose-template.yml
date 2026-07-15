@@ -12,8 +12,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    networks:
-      - proxy
     volumes:
       - ./certs:/etc/nginx/certs:ro
       - ./vhost.d:/etc/nginx/vhost.d
@@ -37,10 +35,8 @@ services:
       - ./vhost.d:/etc/nginx/vhost.d
       - ./www/html:/usr/share/nginx/html
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - proxy
-
 networks:
-  proxy:
-    name: proxy
+    default:
+        name: proxy
+        external: true
 
