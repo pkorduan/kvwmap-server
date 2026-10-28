@@ -1,5 +1,6 @@
 # Supported tags and respective Dockerfile
 	* latest [docker/dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/Dockerfile)
+    * 2.2.22 [docker/2.2.22/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.22/Dockerfile)
     * 2.2.16 [docker/2.2.16/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.16/Dockerfile)
     * 2.2.15 [docker/2.2.15/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.15/Dockerfile)
     * 2.2.14 [docker/2.2.14/Dockerfile](https://github.com/pkorduan/kvwmap-server/blob/master/docker/2.2.14/Dockerfile)
@@ -252,6 +253,8 @@ follow the instruction of certbot and choose option 1 for standalone self instal
 dcm run web
 
 # Changelog
+# 2.2.22
+    * Aufgrund der Sicherheitslücken CVE-2026-109618 und CVE-2026-109619 wurde kvwmap_prod_web auf PHP 7.4.34-dev (CLI) aktualisiert
 # 2.2.16
     * Without phpmyadmin configuratin and installation on the web container
 # 2.2.15
