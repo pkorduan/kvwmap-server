@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "NETWORK_NAME=${NETWORK_NAME}" > /etc/environment
+
 if [ -f "/var/www/apps/kvwmap/index.php" ];
 then
 	/usr/local/bin/kvwmap-firstrun
