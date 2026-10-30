@@ -1,0 +1,40 @@
+#!/bin/bash
+
+echo "Execute kvwmap-firstrun"
+MYSQL_KVWMAP_USERNAME="kvwmap"
+
+echo "Create phpmyadmin database if not exists."
+mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /srv/www/phpmyadmin/sql/create_tables.sql
+
+echo "Create pamcontroluser with initial password."
+mysql --host=$MYSQL_PORT_3306_TCP_ADDR --port=$MYSQL_PORT_3306_TCP_PORT --user=root --password=$MYSQL_ENV_MYSQL_ROOT_PASSWORD < /usr/local/bin/create_pmacontrol_user.sql
+rm /usr/local/bin/create_pmacontrol_user.sql
+
+echo "Create symbolic links to enable apache conifg files if not exists."
+cd /etc/apache2/sites-enabled
+if [ ! -L ../sites-enabled/000-default.conf ] ; then 
+  ln -s ../sites-available/000-default.conf
+fi
+#ln -s ../sites-available/default-ssl.conf
+if [ ! -L ../sites-enabled/kvwmap.conf ] ; then
+  ln -s ../sites-available/kvwmap.conf
+fi
+if [ ! -L ../sites-enabled/mapserver.conf ] ; then
+  ln -s ../sites-available/mapserver.conf
+fi
+if [ ! -L ../sites-enabled/3rdparty.conf ] ; then
+  ln -s ../sites-available/3rdparty.conf
+fi
+if [ ! -L ../sites-enabled/phpmyadmin.conf ] ; then
+  ln -s ../sites-available/phpmyadmin.conf
+fi
+
+#if [ -n "$GDAL_PORT_22_TCP_ADDR" ] ; then
+#  echo "Copy the public key in /home/gisadmin/.ssh/id_rsa.pub to /home/gisadmin/.ssh/authorized_keys in gdal container"
+#  su gisadmin
+#  cat ~/.ssh/id_rsa.pub | ssh gisadmin@$GDAL_PORT_22_TCP_ADDR 'cat >> .ssh/authorized_keys'
+#fi
+
+cmd="mv /usr/local/bin/kvwmap-firstrun /usr/local/bin/kvwmap-firstrun-executed"
+echo $cmd
+$cmd
