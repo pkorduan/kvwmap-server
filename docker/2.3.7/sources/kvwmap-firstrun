@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo "Create symbolic links to enable apache conifg files if not exists."
+cd /etc/apache2/sites-enabled
+if [ ! -L ../sites-enabled/000-default.conf ] ; then 
+  ln -s ../sites-available/000-default.conf
+fi
+
+if [ ! -L ../sites-enabled/kvwmap.conf ] ; then
+  ln -s ../sites-available/kvwmap.conf
+fi
+if [ ! -L ../sites-enabled/mapserver.conf ] ; then
+  ln -s ../sites-available/mapserver.conf
+fi
+if [ ! -L ../sites-enabled/3rdparty.conf ] ; then
+  ln -s ../sites-available/3rdparty.conf
+fi
+
+cmd="mv /usr/local/bin/kvwmap-firstrun /usr/local/bin/kvwmap-firstrun-executed"
+echo $cmd
+$cmd
