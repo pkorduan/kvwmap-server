@@ -256,7 +256,7 @@ dcm run web
 
 # Changelog
 # 2.3.7
-    * Aufgrund der Sicherheitslücken CVE-2026-129289 und CVE-2026-115560 wurde kvwmap_prod_web auf PHP 8.4.28 (cli) aktualisiert
+    * Aufgrund der Sicherheitslücken vom 19.11.2026 (u. a. CVE-2026-126714, CVE-2026-115560) wurde kvwmap_prod_web auf PHP 8.4.28 aktualisiert
 # 2.3.6
     * Aufgrund der Sicherheitslücken CVE-2026-109618 und CVE-2026-109619 wurde kvwmap_prod_web auf PHP 8.4.27 (CLI) aktualisiert
 # 2.3.0

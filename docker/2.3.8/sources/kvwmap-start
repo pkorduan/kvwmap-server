@@ -1,0 +1,23 @@
+#!/bin/bash
+function stop_apache()
+{
+    echo "stopping apache2"
+    apache2ctl stop
+    exit 0
+}
+trap stop_apache SIGINT SIGQUIT SIGTERM
+
+if [ -f "/var/www/apps/kvwmap/index.php" ];
+then
+	/usr/local/bin/kvwmap-firstrun
+fi
+
+service cron start
+
+#/usr/sbin/apache2ctl -d /etc/apache2 -DFOREGROUND
+/usr/sbin/apache2ctl -d /etc/apache2
+
+while true
+do
+    sleep 1
+done
